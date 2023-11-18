@@ -1,0 +1,11 @@
+[Dionysos]
+192.168.1.120
+
+[Hermes]
+192.168.1.120
+
+[Dionysos:vars]
+ansible_ssh_user=susu
+
+[Hermes:vars]
+ansible_ssh_user=susu

@@ -1,0 +1,28 @@
+---
+- hosts: all
+  become: yes
+
+  roles: 
+    - role: system
+      tags: 
+        - System
+
+    - role: docker
+      tags: 
+        - Docker
+
+- hosts: Dionysos
+  become: yes
+
+  roles: 
+    - role: mediaServices
+      tags: 
+        - MediaServices
+
+# - hosts: Hermes
+#   become: yes
+
+#   roles: 
+#     - role: systemServices
+#       tags: 
+#         - SystemServices

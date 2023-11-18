@@ -1,0 +1,7 @@
+---
+- include_tasks: essential.yml
+- include_tasks: netplan.yml
+- include_tasks: user.yml
+
+# ubuntu server extend to full size
+# sudo lvextend -l +100%FREE -r /dev/ubuntu-vg/ubuntu-lv
