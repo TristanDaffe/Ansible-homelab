@@ -1,0 +1,10 @@
+network:
+  version: 2
+  ethernets:
+    {{ ansible_default_ipv4.interface }}:
+      dhcp4: true
+  vlans:
+    app:
+      id: 4
+      link: enp2s0f0
+      addresses: ["{{ ansible_default_ipv4.address }}/24"]

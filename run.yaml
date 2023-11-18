@@ -1,0 +1,8 @@
+---
+- hosts: debian
+  become: yes
+
+  roles: 
+    - role: system
+      tags: 
+        - System

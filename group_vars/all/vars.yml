@@ -1,0 +1,22 @@
+---
+
+hostname: '{{ inventory_hostname }}'
+
+username: susu
+
+############
+# packages
+############
+
+extra_packages:
+  - neofetch
+  - git
+  - nano 
+  - htop
+
+############
+# docker
+############
+
+docker_dir: /docker
+docker_comppose_dir: /docker/compose
