@@ -9,6 +9,7 @@ username: susu
 ############
 
 extra_packages:
+  - sshpass
   - neofetch
   - git
   - nano 
