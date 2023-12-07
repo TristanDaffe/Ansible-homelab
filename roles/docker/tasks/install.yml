@@ -1,16 +1,36 @@
 ---
-- name: Install Python and python3-pip
-  package:
-    name:
-      - python3
-      - python3-pip
+- name: install dependency
+  apt:
+    name: "{{item}}"
+    state: present
+    update_cache: yes
+  loop:
+    - apt-transport-https
+    - ca-certificates
+    - curl
+    - gnupg-agent
+    - software-properties-common
+
+- name: add GPG key
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
     state: present
 
-- name: Install docker module for Python
-  pip:
-    name: 
-      - docker
-      - docker-compose
+- name: add docker repository to apt
+  apt_repository:
+    repo: deb https://download.docker.com/linux/ubuntu bionic stable
+    state: present
+
+- name: install docker
+  apt:
+    name: "{{item}}"
+    state: latest
+    update_cache: yes
+  loop:
+    - docker-ce
+    - docker-ce-cli
+    - containerd.io
+
 
 - name: Make sure that the docker folders exists
   ansible.builtin.file:
@@ -19,16 +39,13 @@
     group: "{{ username }}"
     state: directory
   loop:
-    - "{{ docker_compose_dir }}"
     - "{{ docker_dir }}"
+    - "{{ docker_compose_dir }}"
 
 - name: Copy the compose file
   template: 
     src: templates/compose.yaml
     dest: "{{ docker_compose_dir }}/compose.yaml"
-  vars:
-    app_cidr: "{{ (networks | selectattr('name', '==', 'app') | map(attribute='cidr') | first) | default('') }}"
-    app_base: "{{ (networks | selectattr('name', '==', 'app') | map(attribute='base') | first) | default('') }}"
 
 - name: Docker-compose up
   community.docker.docker_compose:

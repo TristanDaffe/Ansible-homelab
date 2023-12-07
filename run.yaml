@@ -6,3 +6,7 @@
     - role: system
       tags: 
         - System
+
+    - role: docker
+      tags: 
+        - Docker
