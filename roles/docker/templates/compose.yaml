@@ -1,5 +1,9 @@
 services:
 
+#
+#  System Services
+#
+
   portainer:
     container_name: portainer
     image: portainer/portainer-ce:latest
@@ -10,18 +14,20 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - "{{ docker_dir}}/portainer/data:/data"
 
-  twingate: 
-    container_name: "{{ twingate_container_name }}"
-    image: twingate/connector:latest
-    environment:
-      - TWINGATE_NETWORK="{{  twingate_network }}"
-      - TWINGATE_ACCESS_TOKEN="{{ twingate_access_token }}"
-      - TWINGATE_REFRESH_TOKEN="{{ twingate_refresh_token }}" 
-      - TWINGATE_LABEL_HOSTNAME="`hostname`"
-    restart: 'unless-stopped'
-    sysctls:
-      net.ipv4.ping_group_range: "0 2147483647"
+  # twingate_connector:
+  #   container_name: "{{ twingate_container_name }}"
+  #   restart: always
+  #   image: "twingate/connector:1"
+  #   environment:
+  #     - SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
+  #     - TWINGATE_API_ENDPOINT=/connector.stock
+  #     - TWINGATE_NETWORK="{{ twingate_network }}"
+  #     - TWINGATE_ACCESS_TOKEN="{{ twingate_access_token }}"
+  #     - TWINGATE_REFRESH_TOKEN="{{ twingate_refresh_token }}"
 
+#
+#  Media Services
+#
 
   jellyfin:
     image: jellyfin/jellyfin
@@ -33,6 +39,8 @@ services:
       - "{{ docker_dir}}/jellyfin/cache:/cache"
       - "{{ docker_dir}}/media:/media"
     restart: 'unless-stopped'
+    networks:
+      - MediaNetwork
     devices:
       - "/dev/dri:/dev/dri" 
   
@@ -51,6 +59,23 @@ services:
       - 8080:8080
       - 6881:6881
       - 6881:6881/udp
+    networks:
+      - MediaNetwork
+    restart: unless-stopped
+
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+    volumes:
+      - "{{ docker_dir}}/prowlarr/config:/config"
+    ports:
+      - 9696:9696
+    networks:
+      - MediaNetwork
     restart: unless-stopped
 
   sonarr:
@@ -66,5 +91,27 @@ services:
       - "{{ docker_dir}}/media/tvseries:/tv"
     ports:
       - 8989:8989
+    networks:
+      - MediaNetwork
     restart: unless-stopped
 
+  lidarr:
+    image: lscr.io/linuxserver/lidarr:latest
+    container_name: lidarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+    volumes:
+      - "{{ docker_dir}}/lidarr/config:/config"
+      - "{{ docker_dir}}/media/downloads:/downloads"
+    ports:
+      - 8686:8686
+    restart: unless-stopped
+
+#
+#  Network
+#
+
+networks:
+  MediaNetwork:

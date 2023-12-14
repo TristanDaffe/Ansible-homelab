@@ -37,6 +37,7 @@
     path: "{{ item }}"
     owner: "{{ username }}"
     group: "{{ username }}"
+    mode: 777
     state: directory
   loop:
     - "{{ docker_dir }}"
