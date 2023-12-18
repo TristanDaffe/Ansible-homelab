@@ -43,25 +43,6 @@ services:
       - MediaNetwork
     devices:
       - "/dev/dri:/dev/dri" 
-  
-  qbittorrent:
-    image: lscr.io/linuxserver/qbittorrent:latest
-    container_name: qbittorrent
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Etc/UTC
-      - WEBUI_PORT=8080
-    volumes:
-      - "{{ docker_dir}}/qbit/appdata/config:/config"
-      - "{{ docker_dir}}/media/downloads:/downloads"
-    ports:
-      - 8080:8080
-      - 6881:6881
-      - 6881:6881/udp
-    networks:
-      - MediaNetwork
-    restart: unless-stopped
 
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:latest
@@ -95,18 +76,40 @@ services:
       - MediaNetwork
     restart: unless-stopped
 
-  lidarr:
-    image: lscr.io/linuxserver/lidarr:latest
-    container_name: lidarr
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
     environment:
       - PUID=1000
       - PGID=1000
       - TZ=Etc/UTC
     volumes:
-      - "{{ docker_dir}}/lidarr/config:/config"
+      - "{{ docker_dir}}/radarr/config:/config"
+      - "{{ docker_dir}}/media/downloads:/downloads"
+      - "{{ docker_dir}}/media/movies:/movies"
+    ports:
+      - 7878:7878
+    networks:
+      - MediaNetwork
+    restart: unless-stopped
+  
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+      - WEBUI_PORT=8080
+    volumes:
+      - "{{ docker_dir}}/qbit/appdata/config:/config"
       - "{{ docker_dir}}/media/downloads:/downloads"
     ports:
-      - 8686:8686
+      - 8080:8080
+      - 6881:6881
+      - 6881:6881/udp
+    networks:
+      - MediaNetwork
     restart: unless-stopped
 
 #
