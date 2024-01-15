@@ -51,3 +51,7 @@
 - name: Docker-compose up
   community.docker.docker_compose:
     project_src: "{{ docker_compose_dir }}"
+
+- name: Twingate container 
+  command: 
+      cmd: sudo docker run -d --env TWINGATE_NETWORK="{{ twingate_network }}" --env TWINGATE_ACCESS_TOKEN="{{ twingate_access_token }}" --env TWINGATE_REFRESH_TOKEN="{{ twingate_refresh_token }}"  --env TWINGATE_LABEL_HOSTNAME="`hostname`" --name "{{ twingate_container_name }}" --restart=unless-stopped --network="host" --pull=always twingate/connector:1
