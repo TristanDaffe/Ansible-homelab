@@ -7,13 +7,26 @@ services:
   portainer:
     container_name: portainer
     image: portainer/portainer-ce:latest
+    restart: always
     ports:
       - 9000:9000
-    restart: always
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - "{{ docker_dir}}/portainer/data:/data"
       
+  homarr:
+    container_name: homarr
+    image: ghcr.io/ajnart/homarr:latest
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - "{{ docker_dir}}/homaarr/config:/app/data/configs"
+      - "{{ docker_dir}}/homaarr/icons:/app/public/icons"
+      - "{{ docker_dir}}/homaarr/data:/data"
+    ports:
+      - 80:7575
+
+
 #
 #  Media Services
 #
@@ -68,11 +81,10 @@ services:
     environment:
       - PUID=1000
       - PGID=1000
-      - TZ=Etc/UTC
     volumes:
-      - "{{ docker_dir}}/sonarr/data:/config"
-      - "{{ docker_dir}}/media/downloads:/downloads"
-      - "{{ docker_dir}}/media/tvseries:/tv"
+      - "{{docker_dir}}/sonarr/data:/config"
+      - "{{docker_dir}}/media/downloads:/downloads"
+      - "{{docker_dir}}/media/tvseries:/tv"
     ports:
       - 8989:8989
     networks:
@@ -87,9 +99,9 @@ services:
       - PGID=1000
       - TZ=Etc/UTC
     volumes:
-      - "{{ docker_dir}}/radarr/config:/config"
-      - "{{ docker_dir}}/media/downloads:/downloads"
-      - "{{ docker_dir}}/media/movies:/movies"
+      - "{{docker_dir}}/radarr/config:/config"
+      - "{{docker_dir}}/media/downloads:/downloads"
+      - "{{docker_dir}}/media/movies:/movies"
     ports:
       - 7878:7878
     networks:
