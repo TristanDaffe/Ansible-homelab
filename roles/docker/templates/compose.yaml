@@ -73,7 +73,7 @@ services:
     ports:
       - 5055:5055
     volumes:
-      - "{{ docker_dir}}/jellyseer/config:/config"
+      - "{{ docker_dir}}/jellyseer/config:/app/config"
     labels:
       traefik.enable: true
       traefik.http.routers.request.entryPoints: https
