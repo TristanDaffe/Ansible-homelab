@@ -1,5 +1,5 @@
 ---
-- hosts: debian
+- hosts: all
   become: yes
 
   roles: 
@@ -10,3 +10,19 @@
     - role: docker
       tags: 
         - Docker
+
+- hosts: Dionysos
+  become: yes
+
+  roles: 
+    - role: mediaServices
+      tags: 
+        - MediaServices
+
+- hosts: Hermes
+  become: yes
+
+  roles: 
+    - role: systemServices
+      tags: 
+        - SystemServices
