@@ -21,5 +21,12 @@ extra_packages:
 # docker
 ############
 
-docker_dir: /opt/docker
+docker_dir: /opt/docker/config
 docker_compose_dir: /opt/docker/compose
+
+############
+# smb share
+############
+
+smb_share: //192.168.1.122/prox-media
+smb_mount: /mnt/prox-media

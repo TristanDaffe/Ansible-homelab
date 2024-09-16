@@ -1,7 +1,7 @@
 services:
 
 #
-#  Media Services
+#  Media Services 
 #
 
   jellyfin:
@@ -12,10 +12,9 @@ services:
     volumes:
       - "{{ docker_dir}}/jellyfin/config:/config"
       - "{{ docker_dir}}/jellyfin/cache:/cache"
-      - "{{ docker_dir}}/media:/media"
-    restart: 'unless-stopped'
+      - "{{ smb_mount}}/media:/media"
+    restart: unless-stopped
     networks:
-      - Dashboard
       - MediaNetwork
     devices:
       - "/dev/dri:/dev/dri" 
@@ -32,7 +31,6 @@ services:
     ports:
       - 9696:9696
     networks:
-      - Dashboard
       - MediaNetwork
     restart: unless-stopped
 
@@ -48,7 +46,6 @@ services:
       traefik.enable: true
       traefik.http.routers.request.entryPoints: https
     networks:
-      - Dashboard
       - MediaNetwork
       
   sonarr:
@@ -59,12 +56,11 @@ services:
       - PGID=1000
     volumes:
       - "{{docker_dir}}/sonarr/data:/config"
-      - "{{docker_dir}}/media/downloads:/downloads"
-      - "{{docker_dir}}/media/tvseries:/tv"
+      - "{{smb_mount}}/media/downloads:/downloads"
+      - "{{smb_mount}}/media/tvseries:/tv"
     ports:
       - 8989:8989
     networks:
-      - Dashboard
       - MediaNetwork
     restart: unless-stopped
 
@@ -77,12 +73,11 @@ services:
       - TZ=Etc/UTC
     volumes:
       - "{{docker_dir}}/radarr/config:/config"
-      - "{{docker_dir}}/media/downloads:/downloads"
-      - "{{docker_dir}}/media/movies:/movies"
+      - "{{smb_mount}}/media/downloads:/downloads"
+      - "{{smb_mount}}/media/movies:/movies"
     ports:
       - 7878:7878
     networks:
-      - Dashboard
       - MediaNetwork
     restart: unless-stopped
   
@@ -96,13 +91,12 @@ services:
       - WEBUI_PORT=8080
     volumes:
       - "{{ docker_dir}}/qbit/appdata/config:/config"
-      - "{{ docker_dir}}/media/downloads:/downloads"
+      - "{{ smb_mount}}/media/downloads:/downloads"
     ports:
       - 8080:8080
       - 6881:6881
       - 6881:6881/udp
     networks:
-      - Dashboard
       - MediaNetwork
     restart: unless-stopped
 
@@ -112,6 +106,3 @@ services:
 
 networks:
   MediaNetwork:
-    external: true
-  Dashboard:
-    external: true

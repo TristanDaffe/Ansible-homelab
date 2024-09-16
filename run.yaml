@@ -19,10 +19,10 @@
       tags: 
         - MediaServices
 
-- hosts: Hermes
-  become: yes
+# - hosts: Hermes
+#   become: yes
 
-  roles: 
-    - role: systemServices
-      tags: 
-        - SystemServices
+#   roles: 
+#     - role: systemServices
+#       tags: 
+#         - SystemServices

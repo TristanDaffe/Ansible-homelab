@@ -4,18 +4,10 @@
     path: "{{ item }}"
     owner: "{{ username }}"
     group: "{{ username }}"
-    mode: 7777
+    mode: '777'
     state: directory
   loop:
     - "{{ docker_compose_dir }}/system"
-
-- name: create the networks
-  community.docker.docker_network:
-    name: "{{ item }}"
-    state: present
-  loop:
-    - MediaNetwork
-    - Dashboard
 
 - name: Copy the compose file
   template: 
@@ -26,3 +18,8 @@
   community.docker.docker_compose_v2:
     project_src: "{{ docker_compose_dir }}/system"
     pull: always
+
+- name: Docker prune
+  community.general.docker_prune:
+    networks: yes
+    images: yes

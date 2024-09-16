@@ -1,21 +1,21 @@
 ---
+
+- name: Mount network share
+  mount:
+    src: "{{ smb_share }}"
+    path: "{{ smb_mount }}"
+    fstype: cifs
+    opts: 'username={{ smb_username }},password={{ smb_password }},uid={{ smb_uid }},gid={{ smb_pid }},rw'
+    state: mounted
+  become: true
+
 - name: Make sure that the docker folders exists
   ansible.builtin.file:
     path: "{{ item }}"
-    owner: "{{ username }}"
-    group: "{{ username }}"
-    mode: 7777
     state: directory
   loop:
+    - "{{ smb_mount }}/media"
     - "{{ docker_compose_dir }}/media"
-
-- name: create the networks
-  community.docker.docker_network:
-    name: "{{ item }}"
-    state: present
-  loop:
-    - MediaNetwork
-    - Dashboard
     
 - name: Copy the compose file
   template: 
@@ -26,3 +26,8 @@
   community.docker.docker_compose_v2:
     project_src: "{{ docker_compose_dir }}/media"
     pull: always
+
+- name: Docker prune
+  community.general.docker_prune:
+    networks: yes
+    images: yes
