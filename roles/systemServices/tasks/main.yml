@@ -19,7 +19,7 @@
     project_src: "{{ docker_compose_dir }}/system"
     pull: always
 
-- name: Docker prune
-  community.general.docker_prune:
-    networks: yes
-    images: yes
+# - name: Docker prune
+#   community.general.docker_prune:
+#     networks: yes
+#     images: yes

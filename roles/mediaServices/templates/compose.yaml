@@ -10,24 +10,22 @@ services:
     ports:
       - 8096:8096
     volumes:
-      - "{{ docker_dir}}/jellyfin/config:/config"
-      - "{{ docker_dir}}/jellyfin/cache:/cache"
-      - "{{ smb_mount}}/media:/media"
+      - "{{ docker_dir }}/jellyfin/config:/config"
+      - "{{ docker_dir }}/jellyfin/cache:/cache"
+      - "{{ media_dir }}:/media"
     restart: unless-stopped
     networks:
       - MediaNetwork
-    devices:
-      - "/dev/dri:/dev/dri" 
 
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:latest
     container_name: prowlarr
     environment:
       - PUID=1000
-      - PGID=1000
+      - PGID=1001
       - TZ=Etc/UTC
     volumes:
-      - "{{ docker_dir}}/prowlarr/config:/config"
+      - "{{ docker_dir }}/prowlarr/config:/config"
     ports:
       - 9696:9696
     networks:
@@ -41,7 +39,7 @@ services:
     ports:
       - 5055:5055
     volumes:
-      - "{{ docker_dir}}/jellyseer/config:/app/config"
+      - "{{ docker_dir }}/jellyseer/config:/app/config"
     labels:
       traefik.enable: true
       traefik.http.routers.request.entryPoints: https
@@ -53,11 +51,11 @@ services:
     container_name: sonarr
     environment:
       - PUID=1000
-      - PGID=1000
+      - PGID=1001
     volumes:
-      - "{{docker_dir}}/sonarr/data:/config"
-      - "{{smb_mount}}/media/downloads:/downloads"
-      - "{{smb_mount}}/media/tvseries:/tv"
+      - "{{ docker_dir }}/sonarr/data:/config"
+      - "{{ media_dir }}/downloads:/downloads"
+      - "{{ media_dir }}/tvseries:/tv"
     ports:
       - 8989:8989
     networks:
@@ -69,12 +67,12 @@ services:
     container_name: radarr
     environment:
       - PUID=1000
-      - PGID=1000
+      - PGID=1001
       - TZ=Etc/UTC
     volumes:
-      - "{{docker_dir}}/radarr/config:/config"
-      - "{{smb_mount}}/media/downloads:/downloads"
-      - "{{smb_mount}}/media/movies:/movies"
+      - "{{ docker_dir }}/radarr/config:/config"
+      - "{{ media_dir }}/downloads:/downloads"
+      - "{{ media_dir }}/movies:/movies"
     ports:
       - 7878:7878
     networks:
@@ -86,12 +84,12 @@ services:
     container_name: qbittorrent
     environment:
       - PUID=1000
-      - PGID=1000
+      - PGID=1001
       - TZ=Etc/UTC
       - WEBUI_PORT=8080
     volumes:
-      - "{{ docker_dir}}/qbit/appdata/config:/config"
-      - "{{ smb_mount}}/media/downloads:/downloads"
+      - "{{ docker_dir }}/qbit/appdata/config:/config"
+      - "{{ media_dir }}/downloads:/downloads"
     ports:
       - 8080:8080
       - 6881:6881

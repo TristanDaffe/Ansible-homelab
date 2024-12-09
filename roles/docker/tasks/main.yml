@@ -40,8 +40,8 @@
 - name: Make sure that the docker folders exists
   ansible.builtin.file:
     path: "{{ item }}"
-    owner: "{{ username }}"
-    group: "{{ username }}"
+    owner: "{{ ansible_ssh_user }}"
+    group: "{{ ansible_ssh_user }}"
     mode: 7777
     state: directory
   loop:

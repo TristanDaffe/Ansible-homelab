@@ -1,0 +1,24 @@
+---
+hostname: Dionysos
+
+username: susu
+
+target_ip : 192.168.1.120
+
+extra_packages:
+
+############
+# docker
+############
+
+docker_dir: /docker/config
+docker_compose_dir: /docker/compose
+
+media_dir: /media
+
+############
+# smb share
+############
+
+# smb_share: //192.168.1.30/Tristan/mac-mini
+# smb_mount: /mnt/prox-media
