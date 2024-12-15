@@ -1,0 +1,71 @@
+services:
+
+#
+#  System Services
+#
+
+  portainer:
+    container_name: portainer
+    image: portainer/portainer-ce:latest
+    restart: always
+    ports:
+      - 9000:9000
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - "{{ docker_dir}}/portainer/data:/data"
+
+  pihole:
+    container_name: pihole
+    image: pihole/pihole:latest
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+      - "8081:80/tcp"
+    environment:
+      - TZ=Etc/UTC
+      - WEBPASSWORD={{ pihole_webpassword }}
+    volumes:
+      - "{{ docker_dir }}/pihole:/etc/pihole"
+      - "{{ docker_dir }}/pihole/dnsmasq.d:/etc/dnsmasq.d"
+    restart: unless-stopped
+    networks:
+      - NertworkNetwork
+
+  ngnix_rp:
+    container_name: ngnix_rp
+    image: 'jc21/nginx-proxy-manager:latest'
+    ports:
+      - '80:80'
+      - '81:81'
+      - '443:443'
+    environment:
+      DB_MYSQL_HOST: "mariadb"
+      DB_MYSQL_PORT: 3306
+      DB_MYSQL_USER: "{{ db_user }}"
+      DB_MYSQL_PASSWORD: "{{ db_password }}"
+      DB_MYSQL_NAME: "{{ db_name }}"
+    volumes:
+      - "{{ docker_dir }}/ngnix_rp/data:/data"
+      - "{{ docker_dir }}/ngnix_rp/letsencrypt:/etc/letsencrypt"
+    networks:
+      - NertworkNetwork
+
+  mariadb:
+    container_name: mariadb
+    image: 'jc21/mariadb-aria:latest'
+    environment:
+      MYSQL_ROOT_PASSWORD: '{{ db_password }}'
+      MYSQL_DATABASE: '{{ db_name }}'
+      MYSQL_USER: '{{ db_user }}'
+      MYSQL_PASSWORD: '{{ db_password }}'
+    volumes:
+      - "{{ docker_dir }}/ngnix_rp/mysql:/var/lib/mysql"
+    networks:
+      - NertworkNetwork
+
+#
+#  Network
+#
+
+networks: 
+  NertworkNetwork:

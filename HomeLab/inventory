@@ -1,8 +1,8 @@
 [Dionysos]
-192.168.1.44
+192.168.1.120
 
 [Hermes]
-192.168.1.120
+192.168.1.121
 
 [Dionysos:vars]
 ansible_ssh_user=susu

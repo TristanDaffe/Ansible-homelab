@@ -1,5 +1,5 @@
 ---
-- hosts: Dionysos
+- hosts: all 
   become: yes
 
   roles: 
@@ -19,10 +19,10 @@
       tags: 
         - MediaServices
 
-# - hosts: Hermes
-#   become: yes
+- hosts: Hermes
+  become: yes
 
-#   roles: 
-#     - role: systemServices
-#       tags: 
-#         - SystemServices
+  roles: 
+    - role: networkServices 
+      tags: 
+        - NetworkServices

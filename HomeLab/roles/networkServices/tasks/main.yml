@@ -2,21 +2,21 @@
 - name: Make sure that the docker folders exists
   ansible.builtin.file:
     path: "{{ item }}"
+    state: "directory"
+    group: "docker"
     owner: "{{ username }}"
-    group: "{{ username }}"
-    mode: '777'
-    state: directory
+    mode: "755"
   loop:
-    - "{{ docker_compose_dir }}/system"
+    - "{{ docker_compose_dir }}/network"
 
 - name: Copy the compose file
   template: 
     src: templates/compose.yaml
-    dest: "{{ docker_compose_dir }}/system/compose.yaml"
+    dest: "{{ docker_compose_dir }}/network/compose.yaml"
 
 - name: Docker-compose up
   community.docker.docker_compose_v2:
-    project_src: "{{ docker_compose_dir }}/system"
+    project_src: "{{ docker_compose_dir }}/network"
     pull: always
 
 # - name: Docker prune
