@@ -1,5 +1,5 @@
 ---
-- hosts: Dionysos
+- hosts: all 
   become: yes
 
   roles: 
