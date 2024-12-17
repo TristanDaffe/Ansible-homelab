@@ -12,6 +12,8 @@
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory
+    group: 'docker'
+    mode: '0755'
   loop:
     - "{{ media_dir }}"
     - "{{ docker_compose_dir }}/media"
