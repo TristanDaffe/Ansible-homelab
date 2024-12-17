@@ -8,15 +8,16 @@
 #     state: mounted
 #   become: true
 
-- name: Make sure that the docker folders exists
-  ansible.builtin.file:
-    path: "{{ item }}"
-    state: directory
-    group: 'docker'
-    mode: '0755'
-  loop:
-    - "{{ media_dir }}"
-    - "{{ docker_compose_dir }}/media"
+# broken for the group and permissions for some reason
+# - name: Make sure that the docker folders exists
+#   ansible.builtin.file:
+#     path: "{{ item }}"
+#     state: directory
+#     mode: '0755'
+#     group: 'docker'
+#   loop:
+#     - "{{ media_dir }}"
+#     - "{{ docker_compose_dir }}/media"
     
 - name: Copy the compose file
   template: 
