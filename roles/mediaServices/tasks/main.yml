@@ -8,7 +8,6 @@
 #     state: mounted
 #   become: true
 
-# broken for the group and permissions for some reason
 - name: Make sure that the docker folders exists
   ansible.builtin.file:
     path: "{{ item }}"
@@ -20,15 +19,15 @@
     - "{{ media_dir }}"
     - "{{ docker_compose_dir }}/media"
     
-# - name: Copy the compose file
-#   template: 
-#     src: templates/compose.yaml
-#     dest: "{{ docker_compose_dir }}/media/compose.yaml"
+- name: Copy the compose file
+  template: 
+    src: templates/compose.yaml
+    dest: "{{ docker_compose_dir }}/media/compose.yaml"
 
-# - name: Docker-compose up
-#   community.docker.docker_compose_v2:
-#     project_src: "{{ docker_compose_dir }}/media"
-#     pull: always
+- name: Docker-compose up
+  community.docker.docker_compose_v2:
+    project_src: "{{ docker_compose_dir }}/media"
+    pull: always
 
 # - name: Docker prune
 #   community.general.docker_prune:
