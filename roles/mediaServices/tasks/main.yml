@@ -9,25 +9,26 @@
 #   become: true
 
 # broken for the group and permissions for some reason
-# - name: Make sure that the docker folders exists
-#   ansible.builtin.file:
-#     path: "{{ item }}"
-#     state: directory
-#     mode: '0755'
-#     group: 'docker'
-#   loop:
-#     - "{{ media_dir }}"
-#     - "{{ docker_compose_dir }}/media"
+- name: Make sure that the docker folders exists
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: "directory"
+    group: "docker"
+    owner: "{{ username }}"
+    mode: "755"
+  loop:
+    - "{{ media_dir }}"
+    - "{{ docker_compose_dir }}/media"
     
-- name: Copy the compose file
-  template: 
-    src: templates/compose.yaml
-    dest: "{{ docker_compose_dir }}/media/compose.yaml"
+# - name: Copy the compose file
+#   template: 
+#     src: templates/compose.yaml
+#     dest: "{{ docker_compose_dir }}/media/compose.yaml"
 
-- name: Docker-compose up
-  community.docker.docker_compose_v2:
-    project_src: "{{ docker_compose_dir }}/media"
-    pull: always
+# - name: Docker-compose up
+#   community.docker.docker_compose_v2:
+#     project_src: "{{ docker_compose_dir }}/media"
+#     pull: always
 
 # - name: Docker prune
 #   community.general.docker_prune:

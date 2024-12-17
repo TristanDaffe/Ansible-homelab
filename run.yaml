@@ -1,15 +1,15 @@
 ---
-- hosts: all 
-  become: yes
+# - hosts: all 
+#   become: yes
 
-  roles: 
-    - role: system
-      tags: 
-        - System
+#   roles: 
+#     - role: system
+#       tags: 
+#         - System
 
-    - role: docker
-      tags: 
-        - Docker
+#     - role: docker
+#       tags: 
+#         - Docker
 
 - hosts: Dionysos
   become: yes
