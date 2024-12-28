@@ -11,7 +11,10 @@
 - name: Make sure that the docker folders exists
   ansible.builtin.file:
     path: "{{ item }}"
-    state: directory
+    state: "directory"
+    group: "docker"
+    owner: "{{ username }}"
+    mode: "755"
   loop:
     - "{{ media_dir }}"
     - "{{ docker_compose_dir }}/media"

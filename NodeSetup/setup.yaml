@@ -1,0 +1,34 @@
+---
+# add user susu
+# add susu to sudo group
+# udpate packages 
+# create docker group and add susu to docker group
+
+- name: Set up new node 
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Add user susu
+      user:
+        name: susu
+        state: present
+        groups: sudo
+        append: yes
+        password: "{{ group_vars['NewNode'].password }}"
+
+    - name: apt update && upgrade
+      apt:
+        update_cache: yes
+        upgrade: 'yes'
+
+    - name: Create docker group
+      group:
+        name: docker
+        state: present
+
+    - name: Add susu to docker group
+      user:
+        name: susu
+        groups: docker
+        append: yes
