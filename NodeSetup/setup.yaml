@@ -1,34 +1,40 @@
 ---
-# add user susu
-# add susu to sudo group
-# udpate packages 
-# create docker group and add susu to docker group
-
 - name: Set up new node 
   hosts: all
   become: true
 
   tasks:
-    - name: Add user susu
+    - name: Create groups
+      group:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - sudo
+
+    - name: Add user user 
       user:
-        name: susu
+        name: "{{ username }}" 
         state: present
         groups: sudo
         append: yes
-        password: "{{ group_vars['NewNode'].password }}"
+        password: "{{ hash_pass }}"
+        shell: /bin/bash
 
     - name: apt update && upgrade
       apt:
         update_cache: yes
         upgrade: 'yes'
 
-    - name: Create docker group
-      group:
-        name: docker
+    - name: Allow 'sudo' group to have passwordless sudo
+      lineinfile:
+        path: /etc/sudoers
         state: present
+        regexp: '^%sudo'
+        line: '%sudo ALL=(ALL) NOPASSWD: ALL'
+        validate: '/usr/sbin/visudo -cf %s'
 
-    - name: Add susu to docker group
-      user:
-        name: susu
-        groups: docker
-        append: yes
+    - name: Copy the public SSH key 
+      authorized_key:
+        user: "{{ username }}"
+        state: present
+        key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"

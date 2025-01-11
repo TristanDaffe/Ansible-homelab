@@ -1,6 +1,5 @@
 [NewNode]
-192.168.1.47
+192.168.1.43
 
-[NewNode:vars]
+[all:vars]
 ansible_ssh_user=root
-pass=pwsNetwork
