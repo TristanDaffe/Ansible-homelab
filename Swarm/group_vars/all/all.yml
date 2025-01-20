@@ -1,0 +1,39 @@
+---
+username: susu
+
+############
+# packages
+############
+
+extra_packages:
+  - sshpass
+  - neofetch
+  - git
+  - nano 
+  - vim
+  - btop
+  - cifs-utils
+  - python3-jsondiff
+
+############
+# docker swarm
+############
+
+swarm:
+  advertise_addr: 192.168.129.111:2377
+  docker_dir: /mnt/glusterfs/swarm
+  stacks: 
+    - system
+  volumes: 
+    - portainer
+
+
+############
+# glusterfs
+############
+
+gluster:
+  brick_dir: /gluster/swarm_vol
+  volume_name: swarm_vol
+  mount_dir: /mnt/glusterfs
+  gluster_alias: glusterfs

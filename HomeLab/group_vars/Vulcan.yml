@@ -3,11 +3,8 @@ hostname: Vulcan
 
 username: susu
 
-target_ip : 192.168.1.122
+target_ip : 192.168.129.122
 
 ############
 # docker
 ############
-
-docker_dir: /docker/config
-docker_compose_dir: /docker/compose

@@ -1,0 +1,20 @@
+---
+- name: Join cluster as manager
+  ansible.builtin.command:
+    argv:
+      - docker
+      - swarm
+      - join
+      - --token
+      - "{{ hostvars[groups['Leader'][0]].manager_token }}"
+      - "{{ hostvars[groups['Leader'][0]].target_ip }}:2377"
+  when:
+  - "not is_in_swarm"
+  changed_when: true
+
+- name: Promote worker to manager
+  shell: "docker node promote {{ host_name }}"
+  delegate_to: "{{ groups['Leader'][0] }}"
+  when:
+    - "'Managers' in group_names"
+    - "is_worker"

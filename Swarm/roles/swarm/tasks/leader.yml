@@ -1,0 +1,24 @@
+---
+- name: Initialize the cluster using docker swarm
+  docker_swarm:
+    state: present
+    advertise_addr: "{{ target_ip }}"
+  register: swarm_result
+
+- name: get join command worker
+  ansible.builtin.command:
+    cmd: 'docker swarm join-token worker -q'
+  register: join_command_worker_raw
+  changed_when: false 
+  
+- name: get join command manager
+  ansible.builtin.command:
+    cmd: 'docker swarm join-token manager -q'
+  register: join_command_manager_raw
+  changed_when: false 
+
+- name: Set join token 
+  set_fact:
+    worker_token: "{{ join_command_worker_raw.stdout }}"
+    manager_token: "{{ join_command_manager_raw.stdout }}"
+ 

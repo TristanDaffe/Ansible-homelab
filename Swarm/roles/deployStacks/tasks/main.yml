@@ -1,0 +1,40 @@
+---
+- name: Create the folders
+  ansible.builtin.file:
+    path: "{{ item }}"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: '0755'
+    state: directory
+  loop:
+    - "{{ swarm.docker_dir }}"
+    - "{{ swarm.docker_dir }}/compose"
+
+- name: Copy the compose file
+  template: 
+    src: "templates/{{ item }}.yaml"
+    dest: "{{ swarm.docker_dir }}/compose/{{ item }}.yaml"
+  loop: "{{ swarm.stacks }}"
+
+- name: Create folders
+  ansible.builtin.file:
+    path: "{{ gluster.mount_dir }}/swarm/{{ item }}"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: '0755'
+  loop: "{{ swarm.volumes }}"
+
+- name: Create volumes
+  docker_volume:
+    driver: "{{ gluster.gluster_alias }}"
+    name: "{{ gluster.volume_name }}/swarm/{{ item }}"
+  loop: "{{ swarm.volumes }}"
+
+- name: Deploy stacks
+  docker_stack:
+    state: present
+    name: "{{ item }}"
+    compose:
+      - "{{ swarm.docker_dir }}/compose/{{ item }}.yaml"
+  loop: "{{ swarm.stacks }}"

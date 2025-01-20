@@ -1,0 +1,27 @@
+---
+- name: Get sorted list of Gluster node IPs
+  set_fact:
+    gluster_ips_sorted: "{{ groups['Gluster'] | map('extract', hostvars, 'target_ip') | list | unique | sort }}"
+
+- name: Getsindex of current node in sorted list
+  set_fact:
+    gluster_self_index: "{{ gluster_ips_sorted.index(hostvars[inventory_hostname]['target_ip'] | string) | int }}"
+
+- name: Reorder Gluster node list (starting from current node)
+  set_fact:
+    gluster_ips_reordered: "{{ (gluster_ips_sorted[gluster_self_index | int :] + gluster_ips_sorted[:gluster_self_index | int]) | join(',') }}"
+
+- name: Check Gluster configuration
+  ansible.builtin.command:
+    cmd: docker plugin inspect glusterfs:latest  
+  register: gluster_config
+  failed_when: false
+  changed_when: false
+
+- name: Set Gluster config facts
+  set_fact:
+    is_correct: "{{ 'SERVERS=' + gluster_ips_reordered in gluster_config.stdout }}"
+
+- name: Configure GlusterFS Docker Plugin
+  include_tasks: configure_docker.yml 
+  when: not is_correct

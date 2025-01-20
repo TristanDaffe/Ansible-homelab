@@ -1,0 +1,6 @@
+--- 
+- name: Install and configure GlusterFS 
+  include_tasks: gluster.yml
+
+- name: Docker plugin
+  include_tasks: docker_plugin.yml
