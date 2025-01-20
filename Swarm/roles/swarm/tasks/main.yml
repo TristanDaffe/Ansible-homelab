@@ -1,0 +1,23 @@
+---
+- name: Get docker info
+  ansible.builtin.command:
+    cmd: docker info  
+  register: swarm_status
+  failed_when: false
+  changed_when: false
+
+- name: Set fact node roles
+  set_fact:
+    is_in_swarm: "{{ 'Swarm: active' in swarm_status.stdout }}"
+    is_manager: "{{ 'Is Manager: true' in swarm_status.stdout }}"
+    is_worker: "{{ 'Is Manager: false' in swarm_status.stdout}}"
+  when: "'Workers' in group_names or 'Managers' in group_names"
+
+- include_tasks: leader.yml
+  when: "'Leader' in group_names"
+
+- include_tasks: manager.yml
+  when: "'Managers' in group_names"
+
+- include_tasks: worker.yml
+  when: "'Workers' in group_names"

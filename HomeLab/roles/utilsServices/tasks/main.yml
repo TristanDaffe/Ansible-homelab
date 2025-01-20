@@ -1,13 +1,4 @@
 ---
-# - name: Mount network share
-#   mount:
-#     src: "{{ smb_share }}"
-#     path: "{{ smb_mount }}"
-#     fstype: cifs
-#     opts: 'uid={{ smb_uid }},gid={{ smb_pid }},rw'
-#     state: mounted
-#   become: true
-
 - name: Make sure that the docker folders exists
   ansible.builtin.file:
     path: "{{ item }}"
@@ -28,7 +19,8 @@
     project_src: "{{ docker_compose_dir }}/utils"
     pull: always
 
-# - name: Docker prune
-#   community.general.docker_prune:
-#     networks: yes
-#     images: yes
+- name: Docker prune
+  community.docker.docker_prune:
+    networks: yes
+    images: yes
+    

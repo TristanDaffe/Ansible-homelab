@@ -10,4 +10,34 @@ services:
       - '8080:80'  
     restart: unless-stopped  
     container_name: it-tools 
-    
+  
+  convertx:
+    image: ghcr.io/c4illin/convertx:latest
+    container_name: convertx
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    volumes:
+      - "{{ docker_dir }}/convertx:/app/data"
+    environment:
+      ALLOW_UNAUTHENTICATED: true
+
+  dozzle:
+    container_name: dozzle
+    image: amir20/dozzle:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 3080:8080
+
+  stirling-pdf:
+    image: stirlingtools/stirling-pdf:latest
+    container_name: stirling-pdf
+    restart: unless-stopped
+    ports:
+      - '3030:8080'
+    volumes:
+      - "{{ docker_dir }}/StirlingPDF/trainingData:/usr/share/tessdata"
+      - "{{ docker_dir }}/StirlingPDF/extraConfigs:/configs"
+      - "{{ docker_dir }}/StirlingPDF/customFiles:/customFiles/"
+      

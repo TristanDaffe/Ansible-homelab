@@ -1,0 +1,16 @@
+services:
+
+  portainer:
+    image: portainer/portainer-ce:latest
+    ports:
+      - '9000:9000'
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - gfs_portainer:/data
+    deploy:
+      replicas: 1
+
+volumes:
+  gfs_portainer:
+    driver: "{{ gluster.gluster_alias }}"
+    name: "{{ gluster.volume_name }}/swarm/portainer"

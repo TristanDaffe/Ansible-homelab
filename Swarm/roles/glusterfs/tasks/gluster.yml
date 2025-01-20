@@ -1,0 +1,52 @@
+---
+- name: Install GlusterFS
+  apt:
+    name: "glusterfs-server"
+    state: present
+
+- name: Activate GlusterFS service
+  ansible.builtin.systemd:
+    name: glusterd
+    enabled: yes
+    state: started
+
+- name: Create a trusted storage pool
+  gluster.gluster.gluster_peer:
+    state: present
+    nodes: "{{ groups['Gluster'] | difference([inventory_hostname]) }}"
+  when: 
+    - "'Leader' in group_names"
+
+- name: Create brick directory
+  file:
+    path: "{{ gluster.brick_dir}}"
+    state: directory
+    owner: "{{ ansible_ssh_user }}"
+    group: "{{ ansible_ssh_user }}"
+    mode: '0755'
+
+- name: Create GlusterFS volume with multiple bricks
+  gluster.gluster.gluster_volume:
+    state: present
+    name: "{{ gluster.volume_name }}"
+    bricks: "{{ gluster.brick_dir}}"
+    cluster: "{{ groups['Gluster'] | map('extract', hostvars, 'target_ip') | list }}"
+    replicas: 3
+    force: true
+  run_once: true
+
+  # auth allow
+
+- name: Start GlusterFS volume
+  gluster.gluster.gluster_volume:
+    state: started
+    name: "{{ gluster.volume_name }}"
+
+- name: Mount GlusterFS volume
+  mount:
+    path: "{{ gluster.mount_dir }}"
+    src: "{{ hostvars[groups['Gluster'][0]].target_ip }}:/{{ gluster.volume_name }}"
+    fstype: glusterfs
+    opts: defaults,_netdev,nofail
+    state: mounted
+

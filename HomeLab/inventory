@@ -1,17 +1,11 @@
 [Dionysos]
-192.168.1.120
-
-[Dionysos:vars]
-ansible_ssh_user=susu
+192.168.129.120
 
 [Hermes]
-192.168.1.121
-
-[Hermes:vars]
-ansible_ssh_user=susu
+192.168.129.121
 
 [Vulcan]
-192.168.1.5
+192.168.129.122
 
-[Vulcan:vars]
+[all:vars]
 ansible_ssh_user=susu

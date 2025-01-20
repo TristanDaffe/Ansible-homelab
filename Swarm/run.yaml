@@ -1,0 +1,27 @@
+---
+- hosts: all 
+
+  roles: 
+    - role: system
+      become: yes
+      tags: 
+        - System
+
+    - role: docker
+      become: yes
+      tags: 
+        - Docker
+
+    - role: swarm
+      tags: 
+        - Swarm
+
+    - role: glusterfs
+      become: true
+      tags: 
+        - GlusterFS
+
+    - role: deployStacks
+      tags: 
+        - DeployStacks
+      when: "'Leader' in group_names"

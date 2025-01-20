@@ -1,6 +1,7 @@
 ---
 - name: Set up new node 
   hosts: all
+  gather_facts: false
   become: true
 
   tasks:

@@ -1,5 +1,6 @@
 ---
 - hosts: all 
+  gather_facts: false
   become: yes
 
   roles: 
@@ -12,24 +13,18 @@
         - Docker
 
 - hosts: Dionysos
-  become: yes
-
   roles: 
     - role: mediaServices
       tags: 
         - MediaServices
 
 - hosts: Hermes
-  become: yes
-
   roles: 
     - role: networkServices 
       tags: 
         - NetworkServices
 
 - hosts: Vulcan
-  become: yes
-
   roles: 
     - role: utilsServices
       tags: 

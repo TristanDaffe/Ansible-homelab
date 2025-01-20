@@ -5,6 +5,10 @@
     name: systemd-resolved
     state: stopped
     enabled: no
+<<<<<<< HEAD
+=======
+  become: true
+>>>>>>> 8f482a2 (swarm-setup)
 
 - name: Make sure that the docker folders exists
   ansible.builtin.file:
@@ -26,7 +30,7 @@
     project_src: "{{ docker_compose_dir }}/network"
     pull: always
 
-# - name: Docker prune
-#   community.general.docker_prune:
-#     networks: yes
-#     images: yes
+- name: Docker prune
+  community.docker.docker_prune:
+    networks: yes
+    images: yes
