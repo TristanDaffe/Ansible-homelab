@@ -26,3 +26,11 @@
     - role: networkServices 
       tags: 
         - NetworkServices
+
+- hosts: Vulcan
+  become: yes
+
+  roles: 
+    - role: utilsServices
+      tags: 
+        - UtilsServices
