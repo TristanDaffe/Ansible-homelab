@@ -13,9 +13,8 @@ extra_packages:
   - git
   - nano 
   - vim
-  - htop
+  - btop
   - cifs-utils
-  - python3-requests
 
 ############
 # docker
