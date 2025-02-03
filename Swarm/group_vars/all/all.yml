@@ -1,6 +1,9 @@
 ---
 username: susu
 
+swarm:
+  advertise_addr: 192.168.1.111:2377
+
 ############
 # packages
 ############

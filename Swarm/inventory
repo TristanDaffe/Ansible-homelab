@@ -1,3 +1,15 @@
+
+[Leader:children]
+Node1
+
+[Managers:children]
+Node1
+Node2
+Node3
+
+[Workers:children]
+
+
 [Node1]
 192.168.1.111
 
@@ -6,15 +18,6 @@
 
 [Node3]
 192.168.1.113
-
-[Master:children]
-Node1
-
-[Workers:children]
-Node2
-Node3
-
-[Managers:children]
 
 [all:vars]
 ansible_ssh_user=susu

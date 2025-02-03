@@ -1,0 +1,7 @@
+---
+- name: Initialize the cluster using docker swarm
+  docker_swarm:
+    state: present
+    advertise_addr: "{{ target_ip }}"
+  register: swarm_result
+ 
