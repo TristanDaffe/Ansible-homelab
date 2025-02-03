@@ -1,10 +1,12 @@
 ---
-
-- name: Stop the systemd-resolved service
-  ansible.builtin.systemd:
-    name: systemd-resolved
-    state: stopped
-    enabled: no
+# - name: Mount network share
+#   mount:
+#     src: "{{ smb_share }}"
+#     path: "{{ smb_mount }}"
+#     fstype: cifs
+#     opts: 'uid={{ smb_uid }},gid={{ smb_pid }},rw'
+#     state: mounted
+#   become: true
 
 - name: Make sure that the docker folders exists
   ansible.builtin.file:
@@ -14,16 +16,16 @@
     owner: "{{ username }}"
     mode: "755"
   loop:
-    - "{{ docker_compose_dir }}/network"
-
+    - "{{ docker_compose_dir }}/utils"
+    
 - name: Copy the compose file
   template: 
     src: templates/compose.yaml
-    dest: "{{ docker_compose_dir }}/network/compose.yaml"
+    dest: "{{ docker_compose_dir }}/utils/compose.yaml"
 
 - name: Docker-compose up
   community.docker.docker_compose_v2:
-    project_src: "{{ docker_compose_dir }}/network"
+    project_src: "{{ docker_compose_dir }}/utils"
     pull: always
 
 # - name: Docker prune

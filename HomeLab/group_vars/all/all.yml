@@ -15,7 +15,6 @@ extra_packages:
   - vim
   - btop
   - cifs-utils
-  - python3-requests
 
 ############
 # docker
