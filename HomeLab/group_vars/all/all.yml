@@ -3,6 +3,9 @@ hostname: '{{ inventory_hostname }}'
 
 username: susu
 
+ansible_default_ipv4: 
+  interface: eth0
+
 ############
 # packages
 ############

@@ -1,15 +1,18 @@
-[Master]
+[Node1]
 192.168.1.111
 
-[Worker1]
+[Node2]
 192.168.1.112
 
-[Worker2]
+[Node3]
 192.168.1.113
 
+[Master:children]
+Node1
+
 [Workers:children]
-Worker1
-Worker2
+Node2
+Node3
 
 [Managers:children]
 
