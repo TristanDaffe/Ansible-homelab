@@ -1,0 +1,19 @@
+---
+- hosts: all 
+
+  roles: 
+    # - role: system
+    #   become: yes
+    #   tags: 
+    #     - System
+
+    # - role: docker
+    #   become: yes
+    #   tags: 
+    #     - Docker
+
+    - role: swarm
+      become: yes
+      tags: 
+        - Swarm
+

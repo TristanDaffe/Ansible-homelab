@@ -1,0 +1,45 @@
+---
+- name: Initialize the cluster using docker swarm
+  docker_swarm:
+    state: present
+    advertise_addr: "{{ target_ip }}"
+  when: "'Master' in group_names"
+
+- name: get join command worker
+  shell: 'docker swarm join-token worker -q'
+  register: join_command_worker_raw
+  when: "'Master' in group_names"
+  changed_when: false 
+  
+- name: get join command manager
+  shell: 'docker swarm join-token manager -q'
+  register: join_command_manager_raw
+  when: "'Master' in group_names"
+  changed_when: false 
+
+- name: Set join command
+  set_fact:
+    join_command_worker: "{{ join_command_worker_raw.stdout }}"
+    join_command_manager: "{{ join_command_manager_raw.stdout }}"
+  when: "'Master' in group_names"
+
+- name: Check if node is part of a swarm
+  shell: "docker node ls"
+  register: swarm_status
+  failed_when: false
+  changed_when: false
+  when: "'Workers' in group_names or 'Managers' in group_names"
+
+- name: Join cluster as worker
+  shell: "docker swarm join --token {{ hostvars[groups['Master'][0]].join_command_worker }} {{ groups['Master'][0] }}:2377"
+  when:
+    - "'Workers' in group_names"
+    - "swarm_status.stdout | length == 0"
+    - "swarm_status.stderr | length == 0"
+
+- name: Join cluster as manager
+  shell: "docker swarm join --token {{ hostvars[groups['Master'][0]].join_command_manager }} {{ groups['Master'][0] }}:2377"
+  when:
+    - "'Managers' in group_names"
+    - "swarm_status.stdout | length == 0"
+    - "swarm_status.stderr | length == 0"

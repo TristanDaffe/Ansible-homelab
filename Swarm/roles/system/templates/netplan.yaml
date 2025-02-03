@@ -1,0 +1,6 @@
+network:
+  version: 2
+  ethernets:
+    {{ ansible_default_ipv4.interface }}:
+      dhcp4: true
+      addresses: ["{{ target_ip }}/24"]

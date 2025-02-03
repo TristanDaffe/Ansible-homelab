@@ -1,0 +1,19 @@
+---
+username: susu
+
+############
+# packages
+############
+
+extra_packages:
+  - sshpass
+  - neofetch
+  - git
+  - nano 
+  - vim
+  - btop
+  - cifs-utils
+
+############
+# docker
+############

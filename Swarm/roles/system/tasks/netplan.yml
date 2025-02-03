@@ -1,0 +1,11 @@
+---
+- name: Template out the netplan file
+  ansible.builtin.template:
+    src: netplan.yaml
+    dest: /etc/netplan/00-static-ip.yaml
+    owner: root
+    group: root
+    mode: 0644
+  notify: Apply netplan config
+
+- meta: flush_handlers
