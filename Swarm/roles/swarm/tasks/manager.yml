@@ -1,1 +1,5 @@
 ---
+- name: Join cluster as manager
+  shell: "docker swarm join --token {{ hostvars[groups['Leader'][0]].join_command_manager }} {{ groups['Leader'][0] }}:2377"
+  when:
+    - "is_not_in_swarm"
