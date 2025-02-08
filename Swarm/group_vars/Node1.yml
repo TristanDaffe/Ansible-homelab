@@ -1,4 +1,4 @@
 ---
 
 target_ip : 192.168.1.111
-
+host_name: swarm-1

@@ -4,11 +4,10 @@ Node1
 
 [Managers:children]
 Node1
-Node2
 Node3
+Node2
 
 [Workers:children]
-
 
 [Node1]
 192.168.1.111

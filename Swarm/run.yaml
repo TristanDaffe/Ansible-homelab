@@ -2,15 +2,15 @@
 - hosts: all 
 
   roles: 
-    # - role: system
-    #   become: yes
-    #   tags: 
-    #     - System
+    - role: system
+      become: yes
+      tags: 
+        - System
 
-    # - role: docker
-    #   become: yes
-    #   tags: 
-    #     - Docker
+    - role: docker
+      become: yes
+      tags: 
+        - Docker
 
     - role: swarm
       become: yes

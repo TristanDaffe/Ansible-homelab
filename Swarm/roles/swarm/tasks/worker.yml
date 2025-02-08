@@ -1,6 +1,20 @@
 ---
 - name: Join cluster as worker
-  shell: "docker swarm join --token {{ hostvars[groups['Leader'][0]].join_command_worker }} {{ groups['Leader'][0] }}:2377"
+  ansible.builtin.command:
+    argv:
+      - docker
+      - swarm
+      - join
+      - --token
+      - "{{ worker_token }}"
+      - "{{ hostvars[groups['Leader']].ansible_host }}:2377"  
   when:
-    - "is_not_in_swarm"
+  - "not is_in_swarm"
+  changed_when: true
+
+- name: Demote manager to worker
+  shell: "docker node demote $(docker info --format '{{ \"{{.Swarm.NodeID}}\" }}')"
+  when:
+    - "'Workers' in group_names"
+    - "is_manager" 
 

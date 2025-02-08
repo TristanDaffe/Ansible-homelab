@@ -1,18 +1,17 @@
 ---
-
-- name: Get node role in cluster
-  shell: "docker node inspect self --format '{{ \"{{.Spec.Role}}\" }}'"
+- name: Get docker info
+  ansible.builtin.command:
+    cmd: docker info  
   register: swarm_status
   failed_when: false
   changed_when: false
 
-- name: Set fact node role
+- name: Set fact node roles
   set_fact:
-    is_manager: "{{ swarm_status.stdout == 'manager' }}"
-    is_worker: "{{ 'Worker nodes' in swarm_status.stderr }}"
-    is_not_in_swarm: "{{ 'docker swarm join' in swarm_status.stderr }}"
+    is_in_swarm: "{{ 'Swarm: active' in swarm_status.stdout }}"
+    is_manager: "{{ 'Is Manager: true' in swarm_status.stdout }}"
+    is_worker: "{{ 'Is Manager: false' in swarm_status.stdout}}"
   when: "'Workers' in group_names or 'Managers' in group_names"
-
 
 - include_tasks: leader.yml
   when: "'Leader' in group_names"
