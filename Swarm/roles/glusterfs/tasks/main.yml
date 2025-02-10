@@ -1,0 +1,74 @@
+---
+- name: Install GlusterFS
+  apt:
+    name: "glusterfs-server"
+    state: present
+
+- name: Activate GlusterFS service
+  ansible.builtin.systemd:
+    name: glusterd
+    enabled: yes
+    state: started
+
+- name: Create a trusted storage pool
+  gluster.gluster.gluster_peer:
+    state: present
+    nodes: "{{ groups['Gluster'] | difference([inventory_hostname]) }}"
+  when: 
+    - "'Leader' in group_names"
+
+- name: Create brick directory
+  file:
+    path: /gluster/swarm_vol
+    state: directory
+    owner: "{{ ansible_ssh_user }}"
+    group: "{{ ansible_ssh_user }}"
+    mode: '0755'
+
+- name: Create GlusterFS volume with multiple bricks
+  gluster.gluster.gluster_volume:
+    state: present
+    name: swarm_vol
+    bricks: "/gluster/swarm_vol"
+    cluster: "{{ groups['Gluster'] | map('extract', hostvars, 'target_ip') | list }}"
+    replicas: 3
+    force: true
+  run_once: true
+
+- name: Start GlusterFS volume
+  gluster.gluster.gluster_volume:
+    state: started
+    name: swarm_vol
+
+- name: Mount GlusterFS volume
+  ansible.posix.mount:
+    path: /mnt/glusterfs
+    src: "{{ groups['Gluster'][0] }}:/swarm_vol"
+    fstype: glusterfs
+    opts: defaults,_netdev
+    state: mounted
+
+- name: Install GlusterFS Docker Plugin
+  community.docker.docker_plugin:
+    plugin_name: trajano/glusterfs-volume-plugin:v2.0.3
+    alias: glusterfs
+    state: disable
+    
+# - name: Set SERVERS for GlusterFS Docker Plugin
+#   community.docker.docker_plugin:
+#     plugin_name: glusterfs
+#     plugin_options:
+#       SERVERS: "{{ groups['Gluster'] | map('extract', hostvars, 'target_ip') | list | unique | 
+#                    groups['Gluster'] | map('extract', hostvars, 'target_ip') | list | first + 
+#                    groups['Gluster'] | map('extract', hostvars, 'target_ip') | list | difference([ host_name ]) | join(',') }}"
+
+- name: Debug 
+  debug:
+    msg: "{{ 
+        groups['Gluster'] | map('extract', hostvars, 'target_ip') | list | unique | difference([ host_name ]) | join(',')
+      }}"
+
+- name: Enable the plugin
+  community.docker.docker_plugin:
+    plugin_name: glusterfs
+    state: enable

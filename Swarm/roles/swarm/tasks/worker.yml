@@ -16,5 +16,6 @@
   shell: "docker node demote $(docker info --format '{{ \"{{.Swarm.NodeID}}\" }}')"
   when:
     - "'Workers' in group_names"
+    - "not 'Leader' in group_names"
     - "is_manager" 
 

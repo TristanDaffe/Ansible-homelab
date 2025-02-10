@@ -5,6 +5,7 @@
     name: systemd-resolved
     state: stopped
     enabled: no
+  become: true
 
 - name: Make sure that the docker folders exists
   ansible.builtin.file:
