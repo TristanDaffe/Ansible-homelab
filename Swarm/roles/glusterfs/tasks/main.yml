@@ -53,20 +53,28 @@
     plugin_name: trajano/glusterfs-volume-plugin:v2.0.3
     alias: glusterfs
     state: disable
-    
-# - name: Set SERVERS for GlusterFS Docker Plugin
-#   community.docker.docker_plugin:
-#     plugin_name: glusterfs
-#     plugin_options:
-#       SERVERS: "{{ groups['Gluster'] | map('extract', hostvars, 'target_ip') | list | unique | 
-#                    groups['Gluster'] | map('extract', hostvars, 'target_ip') | list | first + 
-#                    groups['Gluster'] | map('extract', hostvars, 'target_ip') | list | difference([ host_name ]) | join(',') }}"
 
-- name: Debug 
-  debug:
-    msg: "{{ 
-        groups['Gluster'] | map('extract', hostvars, 'target_ip') | list | unique | difference([ host_name ]) | join(',')
-      }}"
+### wip
+
+- name: Get sorted list of Gluster node IPs
+  set_fact:
+    gluster_ips_sorted: "{{ groups['Gluster'] | map('extract', hostvars, 'target_ip') | list | unique | sort }}"
+
+- name: Get index of current node in sorted list
+  set_fact:
+    gluster_self_index: "{{ gluster_ips_sorted.index(hostvars[inventory_hostname]['target_ip'] | string) | int }}"
+
+- name: Reorder Gluster node list (starting from current node)
+  set_fact:
+    gluster_ips_reordered: "{{ (gluster_ips_sorted[gluster_self_index | int :] + gluster_ips_sorted[:gluster_self_index | int]) | join(',') }}"
+
+- name: Set SERVERS for GlusterFS Docker Plugin
+  community.docker.docker_plugin:
+    plugin_name: glusterfs
+    plugin_options:
+      SERVERS: "{{ gluster_ips_reordered }}"
+
+### end wip
 
 - name: Enable the plugin
   community.docker.docker_plugin:
