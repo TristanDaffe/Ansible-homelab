@@ -1,0 +1,97 @@
+services:
+
+  grafana:
+    image: grafana/grafana:latest
+    volumes:
+      - grafana_data_gfs:/var/lib/grafana
+      - grafana_config_gfs:/etc/grafana/provisioning/datasources
+    networks:
+      - monitoring
+      - proxy_network
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.swarm.network=proxy_network" 
+        - "traefik.http.services.grafana.loadbalancer.server.port=3000"
+        - "traefik.http.routers.grafana.rule=Host(`grafana.{{ swarm.domain }}`)"
+        - "traefik.http.routers.grafana.entrypoints=web"
+        - "traefik.http.routers.grafana.entrypoints=websecure"
+        # - "traefik.http.routers.grafana.tls.certresolver={{ swarm.certresolver }}"
+
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - gfs_prometheus_config:/etc/prometheus
+      - gfs_prometheus:/prometheus
+    networks:
+      - monitoring
+      - proxy_network
+    ports:
+      - 9090:9090
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      labels:
+        - "traefik.enable=true"
+        - "traefik.swarm.network=proxy_network" 
+        - "traefik.http.services.prometheus.loadbalancer.server.port=9090"
+        - "traefik.http.routers.prometheus.rule=Host(`prometheus.{{ swarm.domain }}`)"
+        - "traefik.http.routers.prometheus.entrypoints=web"
+        - "traefik.http.routers.prometheus.entrypoints=websecure"
+        # - "traefik.http.routers.prometheus.tls.certresolver={{ swarm.certresolver }}"
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    ports:
+      - 9100:9100
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--path.rootfs=/rootfs'
+    networks:
+      - monitoring
+    deploy:
+      mode: global
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.52.1
+    command: 
+      - docker_only
+    ports:
+      - 8080:8080
+    volumes:
+      - /:/rootfs:ro
+      - /run:/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    networks:
+      - monitoring
+    deploy:
+      mode: global
+
+networks:
+  proxy_network:
+      external: true
+  monitoring:
+      external: true
+
+volumes:
+  gfs_prometheus:
+    driver: "{{ gluster.gluster_alias }}"
+    name: "{{ gluster.volume_name }}/swarm/prometheus/metrics"  
+  gfs_prometheus_config:
+    driver: "{{ gluster.gluster_alias }}"
+    name: "{{ gluster.volume_name }}/swarm/prometheus/config"
+  grafana_data_gfs:
+    driver: "{{ gluster.gluster_alias }}"
+    name: "{{ gluster.volume_name }}/swarm/grafana/data" 
+  grafana_config_gfs:
+    driver: "{{ gluster.gluster_alias }}"
+    name: "{{ gluster.volume_name }}/swarm/grafana/config"

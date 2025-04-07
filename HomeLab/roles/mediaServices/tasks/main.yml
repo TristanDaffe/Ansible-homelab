@@ -29,7 +29,8 @@
     project_src: "{{ docker_compose_dir }}/media"
     pull: always
 
-- name: Docker prune
-  community.docker.docker_prune:
-    networks: yes
-    images: yes
+# - name: Docker prune
+#   community.docker.docker_prune:
+#     networks: yes
+#     images: yes
+#   timeout: 300

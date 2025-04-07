@@ -1,0 +1,23 @@
+---
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'prometheus'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'node_exporter'
+    static_configs:
+      - targets:
+{% for host in groups['Swarm'] %}
+        - '{{ hostvars[host].target_ip }}:9100'
+{% endfor %}
+
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets:
+{% for host in groups['Swarm'] %}
+        - '{{ hostvars[host].target_ip }}:8080'
+{% endfor %}

@@ -1,0 +1,65 @@
+services:
+
+  calibre-web-automated:
+    image: crocodilestick/calibre-web-automated:latest
+    environment:
+      - "PUID={{ nas.puid }}"
+      - "PGID={{ nas.pgid }}"
+      - "TZ={{ timezone }}" 
+    volumes:
+      - gfs_calibre-web:/config
+      - "{{ nas.mount }}/books/librairy:/calibre-library"
+      - "{{ nas.mount }}/books/downloads:/cwa-book-ingest"
+    ports:
+      - target: 8083
+        published: 8083
+        protocol: tcp
+        mode: host
+    networks:
+      - proxy_network
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      labels:
+        - "traefik.enable=true"
+        - "traefik.swarm.network=proxy_network" 
+        - "traefik.http.services.calibre-web.loadbalancer.server.port=8083"
+        - "traefik.http.routers.calibre-web.rule=Host(`calibre-web.{{ swarm.domain }}`)"
+        - "traefik.http.routers.calibre-web.entrypoints=web"
+        - "traefik.http.routers.calibre-web.entrypoints=websecure"
+        # - "traefik.http.routers.calibre-web.tls.certresolver={{ swarm.certresolver }}"
+
+  calibre-web-automated-book-downloader:
+    image: ghcr.io/calibrain/calibre-web-automated-book-downloader:latest
+    environment:
+      FLASK_PORT: 8084
+      LOG_LEVEL: info
+      BOOK_LANGUAGE: fr,en
+      USE_BOOK_TITLE: "true"
+      TZ: "{{ timezone}}"
+      APP_ENV: prod
+      UID: "{{ nas.puid }}"
+      GID: "{{ nas.pgid }}"
+    volumes:
+      - "{{ nas.mount }}/books/downloads:/cwa-book-ingest"
+    networks:
+      - proxy_network
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.swarm.network=proxy_network" 
+        - "traefik.http.services.calibre-web-book-download.loadbalancer.server.port=8084"
+        - "traefik.http.routers.calibre-web-book-download.rule=Host(`calibre-web-book-download.{{ swarm.domain }}`)"
+        - "traefik.http.routers.calibre-web-book-download.entrypoints=web"
+        - "traefik.http.routers.calibre-web-book-download.entrypoints=websecure"
+        # - "traefik.http.routers.calibre-web-book-download.tls.certresolver={{ swarm.certresolver }}"
+
+networks:
+  proxy_network:
+      external: true
+
+volumes:
+  gfs_calibre-web:
+    driver: "{{ gluster.gluster_alias }}"
+    name: "{{ gluster.volume_name }}/swarm/calibre-web"

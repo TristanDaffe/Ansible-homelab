@@ -1,0 +1,86 @@
+services:
+
+  omni-tools:
+    image: iib0011/omni-tools:latest
+    networks:
+      - proxy_network
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.swarm.network=proxy_network" 
+        - "traefik.http.services.omni-tools.loadbalancer.server.port=80"
+        - "traefik.http.routers.omni-tools.rule=Host(`omni-tools.{{ swarm.domain }}`)"
+        - "traefik.http.routers.omni-tools.entrypoints=web"
+        - "traefik.http.routers.omni-tools.entrypoints=websecure"
+        # - "traefik.http.routers.omni-tools.tls.certresolver={{ swarm.certresolver }}"
+
+  it-tools:
+    image: 'corentinth/it-tools:latest' 
+    networks:
+      - proxy_network
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.swarm.network=proxy_network" 
+        - "traefik.http.services.it-tools.loadbalancer.server.port=80"
+        - "traefik.http.routers.it-tools.rule=Host(`it-tools.{{ swarm.domain }}`)"
+        - "traefik.http.routers.it-tools.entrypoints=web"
+        - "traefik.http.routers.it-tools.entrypoints=websecure"
+        # - "traefik.http.routers.it-tools.tls.certresolver={{ swarm.certresolver }}"
+  
+  convertx:
+    image: ghcr.io/c4illin/convertx:latest
+    environment:
+      ALLOW_UNAUTHENTICATED: "true"
+      HTTP_ALLOWED: "true"
+    volumes:
+      - gfs_convertx:/app/data
+    networks:
+      - proxy_network
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.swarm.network=proxy_network" 
+        - "traefik.http.services.convertx.loadbalancer.server.port=3000"
+        - "traefik.http.routers.convertx.rule=Host(`convertx.{{ swarm.domain }}`)"
+        - "traefik.http.routers.convertx.entrypoints=web"
+        - "traefik.http.routers.convertx.entrypoints=websecure"
+        # - "traefik.http.routers.convertx.tls.certresolver={{ swarm.certresolver }}"
+  
+  stirling-pdf:
+    image: stirlingtools/stirling-pdf:latest
+    networks:
+      - proxy_network
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.swarm.network=proxy_network" 
+        - "traefik.http.services.stirling-pdf.loadbalancer.server.port=8080"
+        - "traefik.http.routers.stirling-pdf.rule=Host(`stirling-pdf.{{ swarm.domain }}`)"
+        - "traefik.http.routers.stirling-pdf.entrypoints=web"
+        - "traefik.http.routers.stirling-pdf.entrypoints=websecure"
+        # - "traefik.http.routers.stirling-pdf.tls.certresolver={{ swarm.certresolver }}"
+
+  mazanoke:
+    container_name: mazanoke
+    image: ghcr.io/civilblur/mazanoke:latest
+    networks:
+      - proxy_network
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.swarm.network=proxy_network" 
+        - "traefik.http.services.mazanoke.loadbalancer.server.port=80"
+        - "traefik.http.routers.mazanoke.rule=Host(`mazanoke.{{ swarm.domain }}`)"
+        - "traefik.http.routers.mazanoke.entrypoints=web"
+        - "traefik.http.routers.mazanoke.entrypoints=websecure"
+        # - "traefik.http.routers.mazanoke.tls.certresolver={{ swarm.certresolver }}"
+
+networks:
+  proxy_network:
+      external: true
+
+volumes:
+  gfs_convertx:
+    driver: "{{ gluster.gluster_alias }}"
+    name: "{{ gluster.volume_name }}/swarm/convertx"
