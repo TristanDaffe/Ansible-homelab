@@ -10,31 +10,31 @@
     - "{{ swarm.docker_dir }}"
     - "{{ swarm.docker_dir }}/compose"
 
-- name: Copy the compose file
+- name: Copy the compose files
   template: 
-    src: "templates/{{ item }}.yaml"
-    dest: "{{ swarm.docker_dir }}/compose/{{ item }}.yaml"
+    src: "templates/{{ item.name }}.yaml"
+    dest: "{{ swarm.docker_dir }}/compose/{{ item.name }}.yaml"
   loop: "{{ swarm.stacks }}"
 
-- name: Create folders
-  ansible.builtin.file:
-    path: "{{ gluster.mount_dir }}/swarm/{{ item }}"
-    state: directory
-    owner: "{{ username }}"
-    group: "{{ username }}"
-    mode: '0755'
-  loop: "{{ swarm.volumes }}"
+- name: Create networks
+  docker_network:
+    name: "{{ item }}"
+    driver: overlay
+    scope: swarm
+    attachable: true
+  loop: "{{ swarm.docker_networks }}"
+  when: swarm.docker_networks is defined
 
-- name: Create volumes
-  docker_volume:
-    driver: "{{ gluster.gluster_alias }}"
-    name: "{{ gluster.volume_name }}/swarm/{{ item }}"
-  loop: "{{ swarm.volumes }}"
+- name: Configuration for stacks
+  include_tasks: stacks-config.yaml
+  loop: "{{ swarm.stacks }}"
+  loop_control:
+    loop_var: stack
 
 - name: Deploy stacks
   docker_stack:
     state: present
-    name: "{{ item }}"
+    name: "{{ item.name }}"
     compose:
-      - "{{ swarm.docker_dir }}/compose/{{ item }}.yaml"
+      - "{{ swarm.docker_dir }}/compose/{{ item.name }}.yaml"
   loop: "{{ swarm.stacks }}"

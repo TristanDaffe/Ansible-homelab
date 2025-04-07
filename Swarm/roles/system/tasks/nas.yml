@@ -1,0 +1,8 @@
+- name: Mount network share
+  mount:
+    src: "{{ nas.share }}"
+    path: "{{ nas.mount }}"
+    fstype: cifs
+    opts: 'nobrl,uid={{ nas.puid }},gid={{ nas.pgid }},rw'
+    state: mounted
+  become: true

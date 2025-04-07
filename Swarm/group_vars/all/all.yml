@@ -1,5 +1,6 @@
 ---
 username: susu
+timezone: Europe/Brussels
 
 ############
 # packages
@@ -16,17 +17,52 @@ extra_packages:
   - python3-jsondiff
 
 ############
+# NAS
+############
+
+nas:
+  share: //192.168.129.45/Tristan/mac-mini
+  mount: /mnt/nas
+  puid: 1000
+  pgid: 1000
+
+############
 # docker swarm
 ############
 
 swarm:
   advertise_addr: 192.168.129.111:2377
   docker_dir: /mnt/glusterfs/swarm
-  stacks: 
-    - system
-  volumes: 
-    - portainer
+  domain: autostack.duckdns.org
+  certresolver: duckdns
 
+  docker_networks:
+    - proxy_network
+    - monitoring
+
+  stacks: 
+    - name: network
+      volumes:
+        - traefik
+    - name: system
+      volumes:
+        - portainer
+    - name: monitoring
+      volumes:
+        - prometheus/config
+        # not working when already exist because use of custom chown 472:root
+        # - prometheus/metrics
+        # - grafana/data
+        # - grafana/config
+      config:
+        - file: prometheus.yaml.j2
+          dst: prometheus/config/prometheus.yml
+    - name: tools
+      volumes:
+        - convertx-data
+    - name: media
+      volumes:
+        - calibre-web
 
 ############
 # glusterfs

@@ -1,9 +1,13 @@
+[Swarm:children]
+Managers
+Workers
+
 [Managers:children]
 Node1
-Node3
-Node2
 
 [Workers:children]
+Node2
+Node3
 
 [Gluster:children]
 Node1

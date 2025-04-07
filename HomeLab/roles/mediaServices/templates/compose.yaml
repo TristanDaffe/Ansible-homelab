@@ -32,6 +32,15 @@ services:
       - MediaNetwork
     restart: unless-stopped
 
+  flaresolverr:
+      image: 'ghcr.io/flaresolverr/flaresolverr:latest'
+      restart: unless-stopped
+      container_name: flaresolverr
+      environment:
+          - LOG_LEVEL=info
+      ports:
+          - '8191:8191'
+
   jellyseer: 
     container_name: jellyseer
     image: fallenbagel/jellyseerr:latest 

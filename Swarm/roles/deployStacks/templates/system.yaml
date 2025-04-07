@@ -2,13 +2,27 @@ services:
 
   portainer:
     image: portainer/portainer-ce:latest
-    ports:
-      - '9000:9000'
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - gfs_portainer:/data
+    networks:
+      - proxy_network
     deploy:
-      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      labels:
+        - "traefik.enable=true"
+        - "traefik.swarm.network=proxy_network" 
+        - "traefik.http.services.portainer.loadbalancer.server.port=9000"
+        - "traefik.http.routers.portainer.rule=Host(`portainer.{{ swarm.domain }}`)"
+        - "traefik.http.routers.portainer.entrypoints=web"
+        - "traefik.http.routers.portainer.entrypoints=websecure"
+        # - "traefik.http.routers.portainer.tls.certresolver={{ swarm.certresolver }}"
+
+networks:
+  proxy_network:
+      external: true
 
 volumes:
   gfs_portainer:
