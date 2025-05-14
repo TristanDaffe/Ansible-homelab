@@ -16,7 +16,6 @@ services:
         - "traefik.http.routers.grafana.rule=Host(`grafana.{{ swarm.domain }}`)"
         - "traefik.http.routers.grafana.entrypoints=web"
         - "traefik.http.routers.grafana.entrypoints=websecure"
-        # - "traefik.http.routers.grafana.tls.certresolver={{ swarm.certresolver }}"
 
   prometheus:
     image: prom/prometheus
@@ -40,7 +39,6 @@ services:
         - "traefik.http.routers.prometheus.rule=Host(`prometheus.{{ swarm.domain }}`)"
         - "traefik.http.routers.prometheus.entrypoints=web"
         - "traefik.http.routers.prometheus.entrypoints=websecure"
-        # - "traefik.http.routers.prometheus.tls.certresolver={{ swarm.certresolver }}"
 
   node-exporter:
     image: prom/node-exporter:latest

@@ -12,26 +12,14 @@ services:
         protocol: tcp
         mode: host
     command:
-      - "--api.dashboard=true"
-      - "--api.insecure=false"
-      - "--log.level=INFO"
-      - "--providers.swarm=true"
-      - "--providers.swarm.exposedbydefault=false"
-      - "--providers.swarm.network=proxy_network"
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.websecure.address=:443"
-      - "--entrypoints.websecure.http.tls=true"
-      # - "--certificatesresolvers.duckdns.acme.dnschallenge=true"
-      # - "--certificatesresolvers.duckdns.acme.dnschallenge.provider=duckdns"
-      # - "--certificatesresolvers.duckdns.acme.email={{ email }}"
-      # - "--certificatesresolvers.duckdns.acme.storage=/letsencrypt/acme.json"
+      - "--configFile=/letsencrypt/traefik.yaml"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - "gfs_traefik:/letsencrypt"
     networks:
       - proxy_network
-    # environment:
-    #   - DUCKDNS_TOKEN={{ duckdns_token }}
+    environment:
+      - DUCKDNS_TOKEN={{ duckdns_token }}
     deploy:
       placement:
         constraints:
@@ -39,19 +27,10 @@ services:
       labels:
         - "traefik.enable=true"
         - "traefik.http.services.dummy-svc.loadbalancer.server.port=9999"
-        - "traefik.http.routers.traefik.service=api@internal"
-
-        # Redirect HTTP to HTTPS
-        - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
-        - "traefik.http.routers.http-catchall.rule=HostRegexp(`{host:.+}`)"
-        - "traefik.http.routers.http-catchall.entrypoints=web"
-        - "traefik.http.routers.http-catchall.middlewares=redirect-to-https"
-
-        # Traefik Dashboard (Optional)
         - "traefik.http.routers.traefik.rule=Host(`traefik.{{ swarm.domain }}`)"
         - "traefik.http.routers.traefik.entrypoints=websecure"
-        # - "traefik.http.routers.traefik.tls.certresolver={{ swarm.certresolver }}"
-
+        - "traefik.http.routers.traefik.service=api@internal"
+  
   whoami:
     image: "traefik/whoami"
     networks:
@@ -64,9 +43,26 @@ services:
         - "traefik.http.routers.whoami.rule=Host(`whoami.{{ swarm.domain }}`)"
         - "traefik.http.routers.whoami.entrypoints=web"
         - "traefik.http.routers.whoami.entrypoints=websecure"
-        - "traefik.http.routers.whoami.middlewares=redirect-to-https"
-        # - "traefik.http.routers.whoami.tls.certresolver={{ swarm.certresolver }}"
 
+  homepage:
+    image: ghcr.io/gethomepage/homepage:latest
+    volumes:
+      - gfs_homepage:/app/config 
+    environment:
+      HOMEPAGE_ALLOWED_HOSTS: "homepage.{{ swarm.domain }}"
+      PUID: "{{ nas.puid }}"
+      PGID: "{{ nas.pgid }}"
+    networks:
+      - proxy_network
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.swarm.network=proxy_network" 
+        - "traefik.http.services.homepage.loadbalancer.server.port=3000"
+        - "traefik.http.routers.homepage.rule=Host(`homepage.{{ swarm.domain }}`)"
+        - "traefik.http.routers.homepage.entrypoints=web"
+        - "traefik.http.routers.homepage.entrypoints=websecure"
+        
 networks:
   proxy_network:
       external: true
@@ -75,3 +71,7 @@ volumes:
   gfs_traefik:
     driver: "{{ gluster.gluster_alias }}"
     name: "{{ gluster.volume_name }}/swarm/traefik"
+
+  gfs_homepage:
+    driver: "{{ gluster.gluster_alias }}"
+    name: "{{ gluster.volume_name }}/swarm/homepage"

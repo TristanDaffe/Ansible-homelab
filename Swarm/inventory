@@ -23,6 +23,9 @@ Node3
 [Node3]
 192.168.129.113
 
+[FakeNas]
+192.168.129.120
+
 [Leader:children]
 Node1
 

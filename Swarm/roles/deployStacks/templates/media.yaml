@@ -1,35 +1,5 @@
 services:
 
-  calibre-web-automated:
-    image: crocodilestick/calibre-web-automated:latest
-    environment:
-      - "PUID={{ nas.puid }}"
-      - "PGID={{ nas.pgid }}"
-      - "TZ={{ timezone }}" 
-    volumes:
-      - gfs_calibre-web:/config
-      - "{{ nas.mount }}/books/librairy:/calibre-library"
-      - "{{ nas.mount }}/books/downloads:/cwa-book-ingest"
-    ports:
-      - target: 8083
-        published: 8083
-        protocol: tcp
-        mode: host
-    networks:
-      - proxy_network
-    deploy:
-      placement:
-        constraints:
-          - node.role == manager
-      labels:
-        - "traefik.enable=true"
-        - "traefik.swarm.network=proxy_network" 
-        - "traefik.http.services.calibre-web.loadbalancer.server.port=8083"
-        - "traefik.http.routers.calibre-web.rule=Host(`calibre-web.{{ swarm.domain }}`)"
-        - "traefik.http.routers.calibre-web.entrypoints=web"
-        - "traefik.http.routers.calibre-web.entrypoints=websecure"
-        # - "traefik.http.routers.calibre-web.tls.certresolver={{ swarm.certresolver }}"
-
   calibre-web-automated-book-downloader:
     image: ghcr.io/calibrain/calibre-web-automated-book-downloader:latest
     environment:
@@ -53,13 +23,184 @@ services:
         - "traefik.http.routers.calibre-web-book-download.rule=Host(`calibre-web-book-download.{{ swarm.domain }}`)"
         - "traefik.http.routers.calibre-web-book-download.entrypoints=web"
         - "traefik.http.routers.calibre-web-book-download.entrypoints=websecure"
-        # - "traefik.http.routers.calibre-web-book-download.tls.certresolver={{ swarm.certresolver }}"
+
+  calibre-web-automated-book-downloader-2:
+    image: ghcr.io/calibrain/calibre-web-automated-book-downloader:latest
+    environment:
+      FLASK_PORT: 8084
+      LOG_LEVEL: info
+      BOOK_LANGUAGE: fr
+      USE_BOOK_TITLE: "true"
+      TZ: "{{ timezone}}"
+      APP_ENV: prod
+      UID: "{{ nas.puid }}"
+      GID: "{{ nas.pgid }}"
+    volumes:
+      - "{{ nas.mount }}/books-maman/downloads:/cwa-book-ingest"
+    networks:
+      - proxy_network
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.swarm.network=proxy_network" 
+        - "traefik.http.services.calibre-web-book-download-2.loadbalancer.server.port=8084"
+        - "traefik.http.routers.calibre-web-book-download-2.rule=Host(`book-download-maman.{{ swarm.domain }}`)"
+        - "traefik.http.routers.calibre-web-book-download-2.entrypoints=web"
+        - "traefik.http.routers.calibre-web-book-download-2.entrypoints=websecure"
+
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    environment:
+      - PUID="{{ nas.puid }}"
+      - PGID="{{ nas.pgid }}"
+      - TZ="{{ timezone }}"
+    volumes:
+      - gfs_prowlarr:/config
+    networks:
+      - proxy_network
+      - indexer
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.swarm.network=proxy_network" 
+        - "traefik.http.services.prowlarr.loadbalancer.server.port=9696"
+        - "traefik.http.routers.prowlarr.rule=Host(`arr.{{ swarm.domain }}`) && PathPrefix(`/prowlarr`)"
+        - "traefik.http.routers.prowlarr.entrypoints=web"
+        - "traefik.http.routers.prowlarr.entrypoints=websecure"
+
+  flaresolverr:
+    image: 'ghcr.io/flaresolverr/flaresolverr:latest'
+    environment:
+        - LOG_LEVEL=info
+    networks:
+        - indexer
+
+  jellyseer: 
+    image: fallenbagel/jellyseerr:latest 
+    volumes:
+      - gfs_jellyseer:/app/config
+    networks:
+      - proxy_network
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.swarm.network=proxy_network" 
+        - "traefik.http.services.jellyseer.loadbalancer.server.port=5055"
+        - "traefik.http.routers.jellyseer.rule=Host(`jellyseer.{{ swarm.domain }}`)"
+        - "traefik.http.routers.jellyseer.entrypoints=web"
+        - "traefik.http.routers.jellyseer.entrypoints=websecure"
+
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    environment:
+      - PUID="{{ nas.puid }}"
+      - PGID="{{ nas.pgid }}"
+      - TZ="{{ timezone }}"
+    volumes:
+      - gfs_sonarr:/config
+      - "{{ nas.mount }}/media/downloads:/downloads"
+      - "{{ nas.mount }}/media/tvseries:/tv"
+    networks:
+      - proxy_network
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.swarm.network=proxy_network" 
+        - "traefik.http.services.sonarr.loadbalancer.server.port=8989"
+        - "traefik.http.routers.sonarr.rule=Host(`arr.{{ swarm.domain }}`) && PathPrefix(`/sonarr`)"
+        - "traefik.http.routers.sonarr.entrypoints=web"
+        - "traefik.http.routers.sonarr.entrypoints=websecure"
+
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    environment:
+      - PUID="{{ nas.puid }}"
+      - PGID="{{ nas.pgid }}"
+      - TZ="{{ timezone }}"
+    volumes:
+      - gfs_radarr:/config
+      - "{{ nas.mount }}/media/downloads:/downloads"
+      - "{{ nas.mount }}/media/movies:/movies"
+    networks:
+      - proxy_network
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.swarm.network=proxy_network" 
+        - "traefik.http.services.radarr.loadbalancer.server.port=7878"
+        - "traefik.http.routers.radarr.rule=Host(`arr.{{ swarm.domain }}`) && PathPrefix(`/radarr`)"
+        - "traefik.http.routers.radarr.entrypoints=web"
+        - "traefik.http.routers.radarr.entrypoints=websecure"
+
+  bazarr:
+    image: lscr.io/linuxserver/bazarr:latest
+    environment:
+      - PUID="{{ nas.puid }}"
+      - PGID="{{ nas.pgid }}"
+      - TZ="{{ timezone }}"
+    volumes:
+      - gfs_bazarr:/config
+      - "{{ nas.mount }}/media/movies:/movies"
+      - "{{ nas.mount }}/media/tvseries:/tv"    
+    networks:
+      - proxy_network
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.swarm.network=proxy_network" 
+        - "traefik.http.services.bazarr.loadbalancer.server.port=6767"
+        - "traefik.http.routers.bazarr.rule=Host(`arr.{{ swarm.domain }}`) && PathPrefix(`/bazarr`)"
+        - "traefik.http.routers.bazarr.entrypoints=web"
+        - "traefik.http.routers.bazarr.entrypoints=websecure"
+
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    environment:
+      - "PUID={{ nas.puid }}"
+      - "PGID={{ nas.pgid }}"
+      - "TZ={{ timezone }}"
+      - WEBUI_PORT=8080
+    volumes:
+      - gfs_qbit:/config
+      - "{{ nas.mount }}/media/downloads:/downloads"
+    ports:
+      - 6881:6881
+      - 6881:6881/udp
+    networks:
+      - proxy_network
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.swarm.network=proxy_network" 
+        - "traefik.http.services.qbit.loadbalancer.server.port=8080"
+        - "traefik.http.routers.qbit.rule=Host(`qbit.{{ swarm.domain }}`)"
+        - "traefik.http.routers.qbit.entrypoints=web"
+        - "traefik.http.routers.qbit.entrypoints=websecure"
 
 networks:
   proxy_network:
       external: true
+  indexer:
 
 volumes:
   gfs_calibre-web:
     driver: "{{ gluster.gluster_alias }}"
     name: "{{ gluster.volume_name }}/swarm/calibre-web"
+  gfs_prowlarr:
+    driver: "{{ gluster.gluster_alias }}"
+    name: "{{ gluster.volume_name }}/swarm/prowlarr"
+  gfs_jellyseer:
+    driver: "{{ gluster.gluster_alias }}"
+    name: "{{ gluster.volume_name }}/swarm/jellyseer"
+  gfs_sonarr:
+    driver: "{{ gluster.gluster_alias }}"
+    name: "{{ gluster.volume_name }}/swarm/sonarr"
+  gfs_radarr:
+    driver: "{{ gluster.gluster_alias }}"
+    name: "{{ gluster.volume_name }}/swarm/radarr"
+  gfs_bazarr:
+    driver: "{{ gluster.gluster_alias }}"
+    name: "{{ gluster.volume_name }}/swarm/bazarr"
+  gfs_qbit:
+    driver: "{{ gluster.gluster_alias }}"
+    name: "{{ gluster.volume_name }}/swarm/qbittorrent"

@@ -1,6 +1,7 @@
 ---
 username: susu
 timezone: Europe/Brussels
+local_domain: home
 
 ############
 # packages
@@ -26,6 +27,17 @@ nas:
   puid: 1000
   pgid: 1000
 
+mount_nas: true
+
+############
+# fake nas
+############
+
+fake:
+  docker_dir: /docker
+  nas_mount: /media
+  igpu_group: 107
+
 ############
 # docker swarm
 ############
@@ -44,16 +56,28 @@ swarm:
     - name: network
       volumes:
         - traefik
+        - homepage
+      config:
+        - file: traefik.yaml
+          dst: traefik/traefik.yaml
+        - file: homepage/settings.yaml
+          dst: homepage/settings.yaml
+        - file: homepage/services.yaml
+          dst: homepage/services.yaml       
+        - file: homepage/bookmarks.yaml
+          dst: homepage/bookmarks.yaml          
+        - file: homepage/widgets.yaml
+          dst: homepage/widgets.yaml     
     - name: system
       volumes:
         - portainer
+        - filebrowser
     - name: monitoring
       volumes:
         - prometheus/config
-        # not working when already exist because use of custom chown 472:root
-        # - prometheus/metrics
-        # - grafana/data
-        # - grafana/config
+        - prometheus/metrics
+        - grafana/data
+        - grafana/config
       config:
         - file: prometheus.yaml.j2
           dst: prometheus/config/prometheus.yml
@@ -62,8 +86,15 @@ swarm:
         - convertx-data
     - name: media
       volumes:
-        - calibre-web
-
+        - prowlarr
+        - jellyseer
+        - sonarr
+        - radarr
+        - bazarr
+        - qbittorrent
+    - name: budget
+      volumes:
+        - actual-budget
 ############
 # glusterfs
 ############
