@@ -47,6 +47,7 @@ swarm:
     - name: system
       volumes:
         - portainer
+        # - filebrowser
     - name: monitoring
       volumes:
         - prometheus/config
@@ -61,8 +62,14 @@ swarm:
       volumes:
         - convertx-data
     - name: media
-      volumes:
-        - calibre-web
+      # volumes:
+        # - calibre-web
+        # - prowlarr
+        # - jellyseer
+        # - sonarr
+        # - radarr
+        # - bazarr
+        # - qbittorrent
 
 ############
 # glusterfs
