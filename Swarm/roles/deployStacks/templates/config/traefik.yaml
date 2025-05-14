@@ -1,0 +1,33 @@
+api:
+  dashboard: true
+  insecure: false
+
+log:
+  level: INFO
+
+providers:
+  swarm:
+    endpoint: "unix:///var/run/docker.sock"
+    exposedByDefault: false
+    network: proxy_network
+
+entryPoints:
+  web:
+    address: ":80"
+  websecure:
+    address: ":443"
+    http:
+      tls: 
+        certResolver: duckdns
+        domains:
+          - main: "{{ swarm.domain }}"
+            sans:
+              - "*.{{ swarm.domain }}"
+
+certificatesResolvers:
+  duckdns:
+    acme:
+      email: "{{ email }}"
+      storage: "/letsencrypt/acme.json"
+      dnsChallenge:
+        provider: duckdns

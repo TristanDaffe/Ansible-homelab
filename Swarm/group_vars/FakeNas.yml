@@ -1,0 +1,6 @@
+---
+
+target_ip : 192.168.129.120
+host_name: fake-nas
+
+mount_nas: false

@@ -18,7 +18,25 @@ services:
         - "traefik.http.routers.portainer.rule=Host(`portainer.{{ swarm.domain }}`)"
         - "traefik.http.routers.portainer.entrypoints=web"
         - "traefik.http.routers.portainer.entrypoints=websecure"
-        # - "traefik.http.routers.portainer.tls.certresolver={{ swarm.certresolver }}"
+
+  filebrowser:
+    image: hurlenko/filebrowser
+    user: "{{ nas.puid }}:{{ nas.pgid }}"
+    volumes:
+      - gfs_gluster:/data
+      - gfs_filebrowser:/config
+    environment:
+      - FB_BASEURL=/filebrowser
+    networks:
+      - proxy_network
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.swarm.network=proxy_network" 
+        - "traefik.http.services.filebrowser.loadbalancer.server.port=8080"
+        - "traefik.http.routers.filebrowser.rule=Host(`filebrowser.{{ swarm.domain }}`)"
+        - "traefik.http.routers.filebrowser.entrypoints=web"
+        - "traefik.http.routers.filebrowser.entrypoints=websecure"
 
 networks:
   proxy_network:
@@ -28,3 +46,9 @@ volumes:
   gfs_portainer:
     driver: "{{ gluster.gluster_alias }}"
     name: "{{ gluster.volume_name }}/swarm/portainer"
+  gfs_filebrowser:
+    driver: "{{ gluster.gluster_alias }}"
+    name: "{{ gluster.volume_name }}/swarm/filebrowser"
+  gfs_gluster:
+    driver: "{{ gluster.gluster_alias }}"
+    name: "{{ gluster.volume_name }}"
