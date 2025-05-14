@@ -1,0 +1,11 @@
+---
+
+- datetime:
+    text_size: xl
+    format:
+      timeStyle: short
+      hourCycle: h23
+
+- search:
+    provider: google
+    target: _blank

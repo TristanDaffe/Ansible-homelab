@@ -3,6 +3,7 @@
     src: "{{ nas.share }}"
     path: "{{ nas.mount }}"
     fstype: cifs
-    opts: 'nobrl,uid={{ nas.puid }},gid={{ nas.pgid }},rw'
+    opts: 'nobrl,uid={{ nas.puid }},gid={{ nas.pgid }},file_mode=0664,dir_mode=0775'
     state: mounted
   become: true
+  when: mount_nas | bool

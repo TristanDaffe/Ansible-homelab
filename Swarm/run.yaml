@@ -15,13 +15,20 @@
     - role: swarm
       tags: 
         - Swarm
+      when: "'Swarm' in group_names"
 
     - role: glusterfs
       become: true
       tags: 
         - GlusterFS
+      when: "'Gluster' in group_names"
 
     - role: deployStacks
       tags: 
         - DeployStacks
       when: "'Leader' in group_names"
+
+    - role: fakeNas
+      tags: 
+        - FakeNas
+      when: "'FakeNas' in group_names"

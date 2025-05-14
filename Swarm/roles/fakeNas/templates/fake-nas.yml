@@ -1,0 +1,44 @@
+services: 
+
+  filebrowser:
+    image: hurlenko/filebrowser
+    user: "{{ nas.puid }}:{{ nas.pgid }}"
+    volumes:
+      - "{{ fake.docker_dir }}:/data"
+      - "{{ fake.docker_dir }}/filebrowser:/config"
+    environment:
+      - FB_BASEURL=/filebrowser
+    ports:
+      - 4096:8080
+
+  calibre-web-automated:
+    image: crocodilestick/calibre-web-automated:latest
+    container_name: calibre-web-automated
+    environment:
+      - "PUID={{ nas.puid }}"
+      - "PGID={{ nas.pgid }}"
+      - "TZ={{ timezone }}" 
+    volumes:
+      - "{{ fake.docker_dir }}/calibre-web/config:/config"
+      - "{{ fake.nas_mount }}/books/librairy:/calibre-library"
+      - "{{ fake.nas_mount }}/books/downloads:/cwa-book-ingest"
+    restart: unless-stopped
+    ports:
+      - 8083:8083
+
+  jellyfin:
+    image: jellyfin/jellyfin
+    container_name: jellyfin
+    group_add:
+      - "{{ fake.igpu_group }}"
+    ports:
+      - 8096:8096
+    volumes:
+      - "{{ fake.docker_dir }}/jellyfin/config:/config"
+      - "{{ fake.docker_dir }}/jellyfin/cache:/cache"
+      - "{{ fake.nas_mount }}/media:/media"
+    devices:
+      - /dev/dri:/dev/dri
+    restart: unless-stopped
+
+### add immich and paperless ngx

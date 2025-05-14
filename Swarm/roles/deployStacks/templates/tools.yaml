@@ -12,7 +12,6 @@ services:
         - "traefik.http.routers.omni-tools.rule=Host(`omni-tools.{{ swarm.domain }}`)"
         - "traefik.http.routers.omni-tools.entrypoints=web"
         - "traefik.http.routers.omni-tools.entrypoints=websecure"
-        # - "traefik.http.routers.omni-tools.tls.certresolver={{ swarm.certresolver }}"
 
   it-tools:
     image: 'corentinth/it-tools:latest' 
@@ -26,7 +25,6 @@ services:
         - "traefik.http.routers.it-tools.rule=Host(`it-tools.{{ swarm.domain }}`)"
         - "traefik.http.routers.it-tools.entrypoints=web"
         - "traefik.http.routers.it-tools.entrypoints=websecure"
-        # - "traefik.http.routers.it-tools.tls.certresolver={{ swarm.certresolver }}"
   
   convertx:
     image: ghcr.io/c4illin/convertx:latest
@@ -45,7 +43,6 @@ services:
         - "traefik.http.routers.convertx.rule=Host(`convertx.{{ swarm.domain }}`)"
         - "traefik.http.routers.convertx.entrypoints=web"
         - "traefik.http.routers.convertx.entrypoints=websecure"
-        # - "traefik.http.routers.convertx.tls.certresolver={{ swarm.certresolver }}"
   
   stirling-pdf:
     image: stirlingtools/stirling-pdf:latest
@@ -59,7 +56,6 @@ services:
         - "traefik.http.routers.stirling-pdf.rule=Host(`stirling-pdf.{{ swarm.domain }}`)"
         - "traefik.http.routers.stirling-pdf.entrypoints=web"
         - "traefik.http.routers.stirling-pdf.entrypoints=websecure"
-        # - "traefik.http.routers.stirling-pdf.tls.certresolver={{ swarm.certresolver }}"
 
   mazanoke:
     container_name: mazanoke
@@ -74,7 +70,6 @@ services:
         - "traefik.http.routers.mazanoke.rule=Host(`mazanoke.{{ swarm.domain }}`)"
         - "traefik.http.routers.mazanoke.entrypoints=web"
         - "traefik.http.routers.mazanoke.entrypoints=websecure"
-        # - "traefik.http.routers.mazanoke.tls.certresolver={{ swarm.certresolver }}"
 
 networks:
   proxy_network:

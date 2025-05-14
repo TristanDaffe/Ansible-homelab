@@ -1,11 +1,8 @@
 [Dionysos]
-192.168.129.120
 
 [Hermes]
-192.168.129.121
 
 [Vulcan]
-192.168.129.122
 
 [all:vars]
 ansible_ssh_user=susu

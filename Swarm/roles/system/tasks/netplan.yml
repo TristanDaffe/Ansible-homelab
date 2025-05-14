@@ -5,7 +5,7 @@
     dest: /etc/netplan/00-static-ip.yaml
     owner: root
     group: root
-    mode: 0644
+    mode: 0600
   notify: Apply netplan config
 
 - meta: flush_handlers
