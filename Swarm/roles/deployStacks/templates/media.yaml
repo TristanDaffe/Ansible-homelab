@@ -1,35 +1,5 @@
 services:
 
-  calibre-web-automated:
-    image: crocodilestick/calibre-web-automated:latest
-    environment:
-      - "PUID={{ nas.puid }}"
-      - "PGID={{ nas.pgid }}"
-      - "TZ={{ timezone }}" 
-    volumes:
-      - gfs_calibre-web:/config
-      - "{{ nas.mount }}/books/librairy:/calibre-library"
-      - "{{ nas.mount }}/books/downloads:/cwa-book-ingest"
-    ports:
-      - target: 8083
-        published: 8083
-        protocol: tcp
-        mode: host
-    networks:
-      - proxy_network
-    deploy:
-      placement:
-        constraints:
-          - node.role == manager
-      labels:
-        - "traefik.enable=true"
-        - "traefik.swarm.network=proxy_network" 
-        - "traefik.http.services.calibre-web.loadbalancer.server.port=8083"
-        - "traefik.http.routers.calibre-web.rule=Host(`calibre-web.{{ swarm.domain }}`)"
-        - "traefik.http.routers.calibre-web.entrypoints=web"
-        - "traefik.http.routers.calibre-web.entrypoints=websecure"
-        # - "traefik.http.routers.calibre-web.tls.certresolver={{ swarm.certresolver }}"
-
   calibre-web-automated-book-downloader:
     image: ghcr.io/calibrain/calibre-web-automated-book-downloader:latest
     environment:
@@ -201,6 +171,7 @@ services:
         - "traefik.http.routers.qbit.entrypoints=web"
         - "traefik.http.routers.qbit.entrypoints=websecure"
         # - "traefik.http.routers.qbit.tls.certresolver={{ swarm.certresolver }}" 
+
 networks:
   proxy_network:
       external: true

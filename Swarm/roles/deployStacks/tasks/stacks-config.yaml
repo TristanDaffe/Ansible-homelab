@@ -1,13 +1,19 @@
 ---
-- name: Create folders
-  ansible.builtin.file:
+- name: Check if volume directories exist
+  ansible.builtin.stat:
     path: "{{ gluster.mount_dir }}/swarm/{{ item }}"
+  loop: "{{ stack.volumes }}"
+  register: volume_stats
+
+- name: Create folder if it doesn't exist
+  ansible.builtin.file:
+    path: "{{ gluster.mount_dir }}/swarm/{{ item.item }}"
     state: directory
     owner: "{{ username }}"
     group: "{{ username }}"
     mode: '0755'
-  loop: "{{ stack.volumes }}"
-  when: stack.volumes is defined
+  loop: "{{ volume_stats.results }}"
+  when: not item.stat.exists
   become: false
 
 - name: Create volumes

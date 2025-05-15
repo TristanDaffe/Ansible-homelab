@@ -27,6 +27,13 @@ nas:
   pgid: 1000
 
 ############
+# fake nas
+############
+
+fake:
+  docker_dir: /docker
+
+############
 # docker swarm
 ############
 
@@ -47,14 +54,13 @@ swarm:
     - name: system
       volumes:
         - portainer
-        # - filebrowser
+        - filebrowser
     - name: monitoring
       volumes:
         - prometheus/config
-        # not working when already exist because use of custom chown 472:root
-        # - prometheus/metrics
-        # - grafana/data
-        # - grafana/config
+        - prometheus/metrics
+        - grafana/data
+        - grafana/config
       config:
         - file: prometheus.yaml.j2
           dst: prometheus/config/prometheus.yml
@@ -62,14 +68,13 @@ swarm:
       volumes:
         - convertx-data
     - name: media
-      # volumes:
-        # - calibre-web
-        # - prowlarr
-        # - jellyseer
-        # - sonarr
-        # - radarr
-        # - bazarr
-        # - qbittorrent
+      volumes:
+        - prowlarr
+        - jellyseer
+        - sonarr
+        - radarr
+        - bazarr
+        - qbittorrent
 
 ############
 # glusterfs

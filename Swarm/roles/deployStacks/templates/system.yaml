@@ -24,7 +24,7 @@ services:
     image: hurlenko/filebrowser
     user: "{{ nas.puid }}:{{ nas.pgid }}"
     volumes:
-      - "{{ gluster.brick_dir }}:/data"
+      - "{{ gluster.mount_dir}}:/data"
       - gfs_filebrowser:/config
     environment:
       - FB_BASEURL=/filebrowser

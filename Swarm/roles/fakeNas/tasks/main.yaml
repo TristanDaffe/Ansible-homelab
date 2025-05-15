@@ -1,0 +1,22 @@
+---
+
+- name: Make sure that the docker folders exists
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: "directory"
+    group: "docker"
+    owner: "{{ username }}"
+    mode: "755"
+  loop:
+    - "{{ docker_dir }}"
+    - "{{ docker_dir }}/compose"
+    
+- name: Copy the compose file
+  template: 
+    src: templates/fake-nas.yaml
+    dest: "{{ docker_compose_dir }}/compose/compose.yaml"
+
+- name: Docker-compose up
+  community.docker.docker_compose_v2:
+    project_src: "{{ docker_compose_dir }}/compose"
+    pull: always
