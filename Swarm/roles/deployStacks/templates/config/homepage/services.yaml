@@ -45,6 +45,17 @@
         description: Téléchargement de livres
         ping: https://calibre-web-book-download.{{ swarm.domain }}
 
+- Paperless:
+    - Paperless-ngx:
+        icon: paperless.png
+        href: http://paperless.{{ local_domain }}
+        description: Gestion de documents
+        ping: http://paperless.{{ local_domain }}
+        widget:
+          type: paperlessngx
+          url: http://paperless.{{ local_domain }}
+          key: {{ paperless_token }}
+
 - Networking:
   - PiHole:
       icon: pi-hole.svg 

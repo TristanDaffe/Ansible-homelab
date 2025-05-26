@@ -41,4 +41,74 @@ services:
       - /dev/dri:/dev/dri
     restart: unless-stopped
 
-### add immich and paperless ngx
+############
+# Paperless-ngx
+############
+
+  broker:
+    image: docker.io/library/redis:8
+    restart: unless-stopped
+    networks:
+      - paperless
+    volumes:
+      - "{{ fake.docker_dir }}/paperless/redisdata:/data"
+
+  paperless-db:
+    image: docker.io/library/postgres:17
+    restart: unless-stopped
+    networks:
+      - paperless
+    volumes:
+      - "{{ fake.docker_dir }}/paperless/pgdata:/var/lib/postgresql/data"
+    environment:
+      POSTGRES_DB: "{{ postgres_db}}"
+      POSTGRES_USER: "{{ postgres_user }}"
+      POSTGRES_PASSWORD: "{{ postgres_pass }}"
+
+  paperless:
+    image: ghcr.io/paperless-ngx/paperless-ngx:latest
+    restart: unless-stopped
+    networks:
+      - paperless
+    depends_on:
+      - paperless-db
+      - broker
+      - gotenberg
+      - tika
+    ports:
+      - "8000:8000"
+    volumes:
+      - "{{ fake.docker_dir }}/paperless/data:/usr/src/paperless/data"
+      - "{{ fake.nas_mount }}/document/paperless:/usr/src/paperless/media"
+      - "{{ fake.docker_dir }}/paperless/export:/usr/src/paperless/export"
+      - "{{ fake.docker_dir }}/paperless/consume:/usr/src/paperless/consume"
+    environment:
+      COMPOSE_PROJECT_NAME: "{{ project_name }}"
+      PAPERLESS_REDIS: redis://broker:6379
+      PAPERLESS_DBHOST: paperless-db
+      PAPERLESS_TIKA_ENABLED: 1
+      PAPERLESS_TIKA_GOTENBERG_ENDPOINT: http://gotenberg:3000
+      PAPERLESS_TIKA_ENDPOINT: http://tika:9998
+      PAPERLESS_ADMIN_USER: "{{ paperless_user}}"
+      PAPERLESS_ADMIN_PASSWORD: "{{ paperless_pass }}"
+
+  gotenberg:
+    image: docker.io/gotenberg/gotenberg:8.20
+    restart: unless-stopped
+    networks:
+      - paperless
+    # The gotenberg chromium route is used to convert .eml files. We do not
+    # want to allow external content like tracking pixels or even javascript.
+    command:
+      - "gotenberg"
+      - "--chromium-disable-javascript=true"
+      - "--chromium-allow-list=file:///tmp/.*"
+
+  tika:
+    image: docker.io/apache/tika:latest
+    restart: unless-stopped
+    networks:
+      - paperless
+
+networks:
+  paperless:

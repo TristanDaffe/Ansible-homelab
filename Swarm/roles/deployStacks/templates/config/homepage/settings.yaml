@@ -42,6 +42,15 @@ layout:
     style: row
     columns: 4
 
+  Paperless:
+    header: false
+    style: row
+    columns: 2
+    Paperless-ngx:
+      header: true
+      style: row
+      columns: 2
+
   Media-consumption:
     header: false
     style: row
