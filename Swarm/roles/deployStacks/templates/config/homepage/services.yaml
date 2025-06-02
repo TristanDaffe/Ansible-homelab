@@ -8,6 +8,30 @@
       description: Home Assistant
       ping: http://ha.{{ local_domain }}
 
+- Admin:
+  - Server:
+    - Proxmox:
+        icon: proxmox.png
+        href: http://pve.{{ local_domain }}
+        description: Proxmox
+        ping: http://pve.{{ local_domain }}
+    - Portainer:
+        icon: portainer.png
+        href: https://portainer.{{ swarm.domain }}
+        description: Portainer
+        ping: https://portainer.{{ swarm.domain }}
+  - Monitoring:
+    - Grafana:
+        icon: grafana.png
+        href: https://grafana.{{ swarm.domain }}
+        description: Monitoring
+        ping: https://grafana.{{ swarm.domain }}
+    - Prometheus:
+        icon: prometheus.png
+        href: https://prometheus.{{ swarm.domain }}
+        description: Monitoring
+        ping: https://prometheus.{{ swarm.domain }}
+
 - Media-consumption: 
   - Media:
     - jellyfin:
@@ -90,8 +114,8 @@
       description: Whoami
       ping: https://whoami.{{ swarm.domain }}
 
-- Media-download:
-  - Download:
+- Bottom:
+  - Media-management:
     - Radarr:
         icon: radarr.png
         href: https://arr.{{ swarm.domain }}/radarr
@@ -128,6 +152,32 @@
           type: prowlarr
           url: https://arr.{{ swarm.domain }}/prowlarr
           key: {{ prowlarr_api }}
+  - Tools and stuff:
+    - OmniTools:
+        icon: omni-tools.png
+        href: https://omni-tools.{{ swarm.domain }}
+        description: Collection d'outils divers
+        ping: https://omni-tools.{{ swarm.domain }}
+    - ItTools:
+        icon: it-tools.png
+        href: https://it-tools.{{ swarm.domain }}
+        description: Outils divers pour l'IT
+        ping: https://it-tools.{{ swarm.domain }}
+    - Mazanoke:
+        icon: mazanoke.png
+        href: https://mazanoke.{{ swarm.domain }}
+        description: Conversion d'images
+        ping: https://mazanoke.{{ swarm.domain }}
+    - Stirling-pdf:
+        icon: stirling-pdf.png
+        href: https://stirling-pdf.{{ swarm.domain }}
+        description: Outils pour les PDF
+        ping: https://stirling-pdf.{{ swarm.domain }}
+    - Convertx:
+        icon: https://static1.xdaimages.com/wordpress/wp-content/uploads/2025/05/convertx-logo.png
+        href: https://convertx.{{ swarm.domain }}
+        description: Conversion de fichiers vers d'autres formats
+        ping: https://convertx.{{ swarm.domain }}
   - Torrent:
     - qBittorrent:
         icon: qbittorrent.png
@@ -140,53 +190,3 @@
           username: {{ qbit_user }}
           password: {{ qbit_pass }}
           enableLeechProgress: true
-- Admin:
-  - Server:
-    - Proxmox:
-        icon: proxmox.png
-        href: http://pve.{{ local_domain }}
-        description: Proxmox
-        ping: http://pve.{{ local_domain }}
-    - Portainer:
-        icon: portainer.png
-        href: https://portainer.{{ swarm.domain }}
-        description: Portainer
-        ping: https://portainer.{{ swarm.domain }}
-  - Monitoring:
-    - Grafana:
-        icon: grafana.png
-        href: https://grafana.{{ swarm.domain }}
-        description: Monitoring
-        ping: https://grafana.{{ swarm.domain }}
-    - Prometheus:
-        icon: prometheus.png
-        href: https://prometheus.{{ swarm.domain }}
-        description: Monitoring
-        ping: https://prometheus.{{ swarm.domain }}
-
-- Tools and stuff:
-  - OmniTools:
-      icon: omni-tools.png
-      href: https://omni-tools.{{ swarm.domain }}
-      description: Collection d'outils divers
-      ping: https://omni-tools.{{ swarm.domain }}
-  - ItTools:
-      icon: it-tools.png
-      href: https://it-tools.{{ swarm.domain }}
-      description: Outils divers pour l'IT
-      ping: https://it-tools.{{ swarm.domain }}
-  - Mazanoke:
-      icon: mazanoke.png
-      href: https://mazanoke.{{ swarm.domain }}
-      description: Conversion d'images
-      ping: https://mazanoke.{{ swarm.domain }}
-  - Stirling-pdf:
-      icon: stirling-pdf.png
-      href: https://stirling-pdf.{{ swarm.domain }}
-      description: Outils pour les PDF
-      ping: https://stirling-pdf.{{ swarm.domain }}
-  - Convertx:
-      icon: https://static1.xdaimages.com/wordpress/wp-content/uploads/2025/05/convertx-logo.png
-      href: https://convertx.{{ swarm.domain }}
-      description: Conversion de fichiers vers d'autres formats
-      ping: https://convertx.{{ swarm.domain }}

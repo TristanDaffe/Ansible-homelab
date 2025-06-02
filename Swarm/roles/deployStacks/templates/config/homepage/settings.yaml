@@ -65,20 +65,19 @@ layout:
       style: row
       columns: 2
 
-  Media-download:
+  Bottom:
     header: false
     style: row
     columns: 2
-    Download:
+    Media-management:
       header: true
       style: row
       columns: 2
-    Torrent:
+    Tools and stuff:
       header: true
       style: row
+      columns: 3
+    Torrent:
+      header: false
+      style: row
       columns: 1
-
-  Tools and stuff:
-    header: true
-    style: row
-    columns: 6
