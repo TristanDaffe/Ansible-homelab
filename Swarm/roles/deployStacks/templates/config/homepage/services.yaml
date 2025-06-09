@@ -69,7 +69,7 @@
         description: Téléchargement de livres
         ping: https://calibre-web-book-download.{{ swarm.domain }}
 
-- Paperless:
+- Storage:
     - Paperless-ngx:
         icon: paperless.png
         href: http://paperless.{{ local_domain }}
