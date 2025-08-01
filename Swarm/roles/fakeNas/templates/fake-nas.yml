@@ -48,27 +48,27 @@ services:
     restart: unless-stopped
     ports:
       - 8084:8083
-      
+
 ############
 # Tailscale Funnel Sidecar
 ############
 
-# tailscale funnel 8083
+ # tailscale funnel --bg 8083
   tailscale:
-    image: tailscale/tailscale
-    container_name: tailscale
-    hostname: calibre-tailscale
-    cap_add:
-      - NET_ADMIN
-      - NET_RAW
-    network_mode: "host"
-    volumes:
-      - /dev/net/tun:/dev/net/tun
-      - "{{ fake.docker_dir }}/tailscale:/var/lib/tailscale"
-    environment:
-      - TS_AUTHKEY={{ tailscale_key }}
-      - TS_ROUTES=  # leave empty if you just want Funnel
-    restart: unless-stopped
+     image: tailscale/tailscale
+     container_name: tailscale
+     hostname: calibre-tailscale
+     cap_add:
+       - NET_ADMIN
+       - NET_RAW
+     network_mode: "host"
+     volumes:
+       - /dev/net/tun:/dev/net/tun
+       - "{{ fake.docker_dir }}/tailscale:/var/lib/tailscale"
+     environment:
+       - TS_AUTHKEY={{ tailscale_key }}
+       - TS_ROUTES=  # leave empty if you just want Funnel
+     restart: unless-stopped
 
 ############
 # Jellyfin
@@ -93,39 +93,39 @@ services:
 # Tdarr
 ############
 
-  tdarr:
-    container_name: tdarr
-    image: ghcr.io/haveagitgat/tdarr:latest
-    ports:
-      - 8265:8265 # webUI port
-      - 8266:8266 # server port
-    group_add:
-      - "{{ fake.igpu_group }}"
-    environment:
-      - TZ={{ timezone }}
-      - PUID={{ nas.puid}}
-      - PGID={{ nas.pgid }}
-      - UMASK_SET=002
-      - serverIP=0.0.0.0
-      - serverPort=8266
-      - webUIPort=8265
-      - internalNode=true
-      - inContainer=true
-      - ffmpegVersion=7
-      - nodeName=FakeNasNode
-      - auth=false
-      - openBrowser=true
-      - maxLogSizeMB=10
-      - cronPluginUpdate=
-    volumes:
-      - "{{ fake.docker_dir }}/tdarr/servers:/app/server"
-      - "{{ fake.docker_dir }}/tdarr/configs:/app/configs"
-      - "{{ fake.docker_dir }}/tdarr/logs:/app/logs"
-      - "{{ fake.nas_mount }}/media:/media"
-      - "{{ fake.nas_mount }}/transcode_cache:/temp"
-    devices:
-      - /dev/dri:/dev/dri
-    restart: unless-stopped
+  # tdarr:
+  #   container_name: tdarr
+  #   image: ghcr.io/haveagitgat/tdarr:latest
+  #   ports:
+  #     - 8265:8265 # webUI port
+  #     - 8266:8266 # server port
+  #   group_add:
+  #     - "{{ fake.igpu_group }}"
+  #   environment:
+  #     - TZ={{ timezone }}
+  #     - PUID={{ nas.puid}}
+  #     - PGID={{ nas.pgid }}
+  #     - UMASK_SET=002
+  #     - serverIP=0.0.0.0
+  #     - serverPort=8266
+  #     - webUIPort=8265
+  #     - internalNode=true
+  #     - inContainer=true
+  #     - ffmpegVersion=7
+  #     - nodeName=FakeNasNode
+  #     - auth=false
+  #     - openBrowser=true
+  #     - maxLogSizeMB=10
+  #     - cronPluginUpdate=
+  #   volumes:
+  #     - "{{ fake.docker_dir }}/tdarr/servers:/app/server"
+  #     - "{{ fake.docker_dir }}/tdarr/configs:/app/configs"
+  #     - "{{ fake.docker_dir }}/tdarr/logs:/app/logs"
+  #     - "{{ fake.nas_mount }}/media:/media"
+  #     - "{{ fake.nas_mount }}/transcode_cache:/temp"
+  #   devices:
+  #     - /dev/dri:/dev/dri
+  #   restart: unless-stopped
 
 ############
 # Paperless-ngx
@@ -147,9 +147,9 @@ services:
     volumes:
       - "{{ fake.docker_dir }}/paperless/pgdata:/var/lib/postgresql/data"
     environment:
-      POSTGRES_DB: "{{ postgres_db}}"
-      POSTGRES_USER: "{{ postgres_user }}"
-      POSTGRES_PASSWORD: "{{ postgres_pass }}"
+      POSTGRES_DB: "{{ paperless.db }}"
+      POSTGRES_USER: "{{ paperless.db_user }}"
+      POSTGRES_PASSWORD: "{{ paperless.db_pass }}"
 
   paperless:
     image: ghcr.io/paperless-ngx/paperless-ngx:latest
@@ -169,14 +169,21 @@ services:
       - "{{ fake.docker_dir }}/paperless/export:/usr/src/paperless/export"
       - "{{ fake.docker_dir }}/paperless/consume:/usr/src/paperless/consume"
     environment:
-      COMPOSE_PROJECT_NAME: "{{ project_name }}"
+      COMPOSE_PROJECT_NAME: "{{ paperless.project_name }}"
       PAPERLESS_REDIS: redis://broker:6379
       PAPERLESS_DBHOST: paperless-db
       PAPERLESS_TIKA_ENABLED: 1
       PAPERLESS_TIKA_GOTENBERG_ENDPOINT: http://gotenberg:3000
       PAPERLESS_TIKA_ENDPOINT: http://tika:9998
-      PAPERLESS_ADMIN_USER: "{{ paperless_user}}"
-      PAPERLESS_ADMIN_PASSWORD: "{{ paperless_pass }}"
+      PAPERLESS_ADMIN_USER: "{{ paperless.user }}"
+      PAPERLESS_ADMIN_PASSWORD: "{{ paperless.pass }}"
+      PAPERLESS_APPS: allauth.socialaccount.providers.openid_connect
+      PAPERLESS_SOCIALACCOUNT_PROVIDERS: '{"openid_connect":{"SCOPE":["openid","profile","email"],"OAUTH_PKCE_ENABLED":true,"APPS":[{"provider_id":"pocket-id","name":"Pocket-ID","client_id":"{{ paperless.sso_client_id }}","secret":"{{ paperless.sso_client_id_secret }}","settings":{"server_url":"https://pocket-id.{{ swarm.domain }}"}}]}}'
+      PAPERLESS_ACCOUNT_DEFAULT_HTTP_PROTOCOL: http
+      PAPERLESS_SECURE_PROXY_SSL_HEADER: false
+      PAPERLESS_USE_X_FORWARDED_HOST: true
+      PAPERLESS_CSRF_COOKIE_SECURE: false
+      PAPERLESS_SESSION_COOKIE_SECURE: false
 
   gotenberg:
     image: docker.io/gotenberg/gotenberg:8.20

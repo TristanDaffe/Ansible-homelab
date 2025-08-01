@@ -31,6 +31,28 @@ services:
         - "traefik.http.routers.traefik.entrypoints=websecure"
         - "traefik.http.routers.traefik.service=api@internal"
   
+  pocket-id:
+    image: ghcr.io/pocket-id/pocket-id:v1
+    restart: unless-stopped
+    environment: 
+      - APP_URL=https://pocket-id.{{ swarm.domain }}
+      - TRUST_PROXY=true
+      - MAXMIND_LICENSE_KEY=
+      - PUID={{ nas.puid }}
+      - PGID={{ nas.pgid }}
+    volumes:
+      - gfs_pocket_id:/app/data
+    networks:
+      - proxy_network
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.swarm.network=proxy_network" 
+        - "traefik.http.services.pocket-id.loadbalancer.server.port=1411"
+        - "traefik.http.routers.pocket-id.rule=Host(`pocket-id.{{ swarm.domain }}`)"
+        - "traefik.http.routers.pocket-id.entrypoints=web"
+        - "traefik.http.routers.pocket-id.entrypoints=websecure"
+
   whoami:
     image: "traefik/whoami"
     networks:
@@ -43,7 +65,7 @@ services:
         - "traefik.http.routers.whoami.rule=Host(`whoami.{{ swarm.domain }}`)"
         - "traefik.http.routers.whoami.entrypoints=web"
         - "traefik.http.routers.whoami.entrypoints=websecure"
-
+        - "traefik.http.routers.whoami.middlewares=tinyauth-network"
   homepage:
     image: ghcr.io/gethomepage/homepage:latest
     volumes:
@@ -63,6 +85,36 @@ services:
         - "traefik.http.routers.homepage.entrypoints=web"
         - "traefik.http.routers.homepage.entrypoints=websecure"
         
+################
+# TinyAuth middlewares
+################
+
+{% for item in tinyauth_groups %}
+  tinyauth-{{ item.name }}:
+    image: ghcr.io/steveiliop56/tinyauth
+    networks:
+      - proxy_network
+    environment:
+      - SECRET={{ item.secret }}
+      - APP_URL=https://auth-{{ item.name }}.{{ swarm.domain }}
+      - APP_TITLE=TinyAuth - {{ item.name }}
+      - GENERIC_CLIENT_ID={{ item.sso_client_id }}
+      - GENERIC_CLIENT_SECRET={{ item.sso_client_id_secret }}
+      - GENERIC_AUTH_URL=https://pocket-id.{{ swarm.domain }}/authorize
+      - GENERIC_TOKEN_URL=https://pocket-id.{{ swarm.domain }}/api/oidc/token
+      - GENERIC_USER_URL=https://pocket-id.{{ swarm.domain }}/api/oidc/userinfo
+      - GENERIC_SCOPES=openid email profile groups
+      - GENERIC_NAME=Pocket ID
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.tinyauth-{{ item.name }}.rule=Host(`auth-{{ item.name }}.{{ swarm.domain }}`)"
+        - "traefik.http.routers.tinyauth-{{ item.name }}.entrypoints=websecure"
+        - "traefik.http.services.tinyauth-{{ item.name }}.loadbalancer.server.port=3000"
+        - "traefik.http.middlewares.tinyauth-{{ item.name }}.forwardauth.address=http://tinyauth-{{ item.name }}:3000/api/auth/traefik"
+{% endfor %}
+
+
 networks:
   proxy_network:
       external: true
@@ -71,6 +123,10 @@ volumes:
   gfs_traefik:
     driver: "{{ gluster.gluster_alias }}"
     name: "{{ gluster.volume_name }}/swarm/traefik"
+
+  gfs_pocket_id:
+    driver: "{{ gluster.gluster_alias }}"
+    name: "{{ gluster.volume_name }}/swarm/pocket-id"
 
   gfs_homepage:
     driver: "{{ gluster.gluster_alias }}"

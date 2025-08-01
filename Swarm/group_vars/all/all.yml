@@ -54,9 +54,11 @@ swarm:
 
   stacks: 
     - name: network
+      compose: network.yaml.j2
       volumes:
         - traefik
         - homepage
+        - pocket-id
       config:
         - file: traefik.yaml
           dst: traefik/traefik.yaml
