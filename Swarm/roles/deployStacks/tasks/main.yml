@@ -12,7 +12,7 @@
 
 - name: Copy the compose files
   template: 
-    src: "templates/{{ item.name }}.yaml"
+    src: "templates/{{ (item.compose | default(item.name + '.yaml')) }}"
     dest: "{{ swarm.docker_dir }}/compose/{{ item.name }}.yaml"
   loop: "{{ swarm.stacks }}"
 
@@ -34,6 +34,7 @@
 - name: Deploy stacks
   docker_stack:
     state: present
+    prune: true
     name: "{{ item.name }}"
     compose:
       - "{{ swarm.docker_dir }}/compose/{{ item.name }}.yaml"

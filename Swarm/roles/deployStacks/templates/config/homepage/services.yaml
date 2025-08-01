@@ -1,41 +1,16 @@
 
 ---
 
+################
+# Main tab
+################
+
 - Home:
   - Home Assistant:
       icon: home-assistant.png
       href: http://ha.{{ local_domain }}
       description: Home Assistant
       ping: http://ha.{{ local_domain }}
-
-- Admin:
-  - Server:
-    - Proxmox:
-        icon: proxmox.png
-        href: http://pve.{{ local_domain }}
-        description: Proxmox
-        ping: http://pve.{{ local_domain }}
-    - Portainer:
-        icon: portainer.png
-        href: https://portainer.{{ swarm.domain }}
-        description: Portainer
-        ping: https://portainer.{{ swarm.domain }}
-    - Filebrowser:
-        icon: filebrowser.png
-        href: https://filebrowser.{{ swarm.domain }}
-        description: Filebrowser
-        ping: https://filebrowser.{{ swarm.domain }}
-  - Monitoring:
-    - Grafana:
-        icon: grafana.png
-        href: https://grafana.{{ swarm.domain }}
-        description: Monitoring
-        ping: https://grafana.{{ swarm.domain }}
-    - Prometheus:
-        icon: prometheus.png
-        href: https://prometheus.{{ swarm.domain }}
-        description: Monitoring
-        ping: https://prometheus.{{ swarm.domain }}
 
 - Media-consumption: 
   - Media:
@@ -52,11 +27,12 @@
         icon: jellyseerr.png
         href: https://jellyseer.{{ swarm.domain }}
         description: Demande de films et series
-        ping: https://jellyseer.{{ swarm.domain }}
+        ping: http://jellyseer:5055
         widget:
           type: jellyseerr
-          url: https://jellyseer.{{ swarm.domain }}
+          url: http://jellyseer:5055
           key: {{ jellyseerr_api }}
+
   - Books:
     - Calibre:
         icon: calibre.png
@@ -66,30 +42,170 @@
         widget:
           type: calibreweb
           url: http://calibre.{{ local_domain }}
+          username: {{ calibre_user }}
+          password: {{ calibre_pass }}    
+    - Calibre maman:
+        icon: calibre.png
+        href: http://calibre-maman.{{ local_domain }}
+        description: Gestionnaire de livres
+        ping: http://calibre-maman.{{ local_domain }}
+        widget:
+          type: calibreweb
+          url: http://calibre-maman.{{ local_domain }}
           username: {{ calibre_user }}
           password: {{ calibre_pass }}
-    - Calibre Downloader:
+    - Téléchargement de livres:
         icon: https://developer.asustor.com/uploadIcons/0020_999_1573465183_calibre-web_256.png
         href: https://calibre-web-book-download.{{ swarm.domain }}
         description: Téléchargement de livres
-        ping: https://calibre-web-book-download.{{ swarm.domain }}
+        ping: http://calibre-web-automated-book-downloader:8084   
+    - Téléchargement de livres maman:
+        icon: https://developer.asustor.com/uploadIcons/0020_999_1573465183_calibre-web_256.png
+        href: https://book-download-maman.{{ swarm.domain }}
+        description: Téléchargement de livres
+        ping: http://calibre-web-automated-book-downloader-2:8084   
 
-- Storage:
-    - Paperless-ngx:
-        icon: paperless.png
-        href: http://paperless.{{ local_domain }}
-        description: Gestion de documents
-        ping: http://paperless.{{ local_domain }}
+- Torrenting:
+  - Media-management:
+    - Download-management:
+      - Radarr:
+          icon: radarr.png
+          href: https://arr.{{ swarm.domain }}/radarr
+          description: Téléchargement de films
+          ping: http://radarr:7878
+          widget:
+            type: radarr
+            url: http://radarr:7878
+            key: {{ radarr_api }}  
+      - Sonarr:
+          icon: sonarr.png
+          href: https://arr.{{ swarm.domain }}/sonarr
+          description: Téléchargement de séries
+          ping: http://sonarr:8989
+          widget:
+            type: sonarr
+            url: http://sonarr:8989
+            key: {{ sonarr_api }} 
+      - Bazarr:
+          icon: bazarr.png
+          href: https://arr.{{ swarm.domain }}/bazarr
+          description: Téléchargement de sous-titres
+          ping: http://bazarr:6767/bazarr
+          widget:
+            type: bazarr
+            url: http://bazarr:6767/bazarr
+            key: {{ bazarr_api }}
+      - Prowlarr:
+          icon: prowlarr.png
+          href: https://arr.{{ swarm.domain }}/prowlarr
+          description: Gestion des indexeurs
+          ping: http://prowlarr:9696
+          widget:
+            type: prowlarr
+            url: http://prowlarr:9696
+            key: {{ prowlarr_api }}
+      # - Tdarr:
+      #     icon: tdarr.png
+      #     href: http://tdarr.{{ local_domain }}
+      #     description: Optimisation des médias
+      #     ping: http://tdarr.{{ local_domain }}
+      #     widget:
+      #       type: tdarr
+      #       url: http://tdarr.{{ local_domain }}
+    - Torrent:
+      - qBittorrent:
+          icon: qbittorrent.png
+          href: https://qbit.{{ swarm.domain }}
+          description: Téléchargement de torrents
+          ping: http://qbittorrent:8080
+          widget:
+            type: qbittorrent
+            url: http://qbittorrent:8080
+            username: {{ qbit_user }}
+            password: {{ qbit_pass }}
+            enableLeechProgress: true
+  - Calendar:
+    - Calendar:
         widget:
-          type: paperlessngx
-          url: http://paperless.{{ local_domain }}
-          key: {{ paperless_token }}
-    - actual-budget:
-        icon: actual-budget.png
-        href: https://actual-budget.{{ swarm.domain }}
-        description: Gestion de budget
-        ping: https://actual-budget.{{ swarm.domain }}
+          type: calendar
+          view: monthly 
+          maxEvents: 10 
+          showTime: true
+          timezone: {{ timezone }}
+          integrations:
+            - type: sonarr 
+              service_group: Download-management
+              service_name: Sonarr
+              color: teal 
+              baseUrl: https://arr.{{ swarm.domain }}/sonarr 
+            - type: radarr 
+              service_group: Download-management
+              service_name: Radarr
+              color: red
+              baseUrl: https://arr.{{ swarm.domain }}/radarr 
+               
+- Tools and stuff:
+  - OmniTools:
+      icon: omni-tools.png
+      href: https://omni-tools.{{ swarm.domain }}
+      description: Collection d'outils divers
+      ping: http://omni-tools:80
+  - ItTools:
+      icon: it-tools.png
+      href: https://it-tools.{{ swarm.domain }}
+      description: Outils divers pour l'IT
+      ping: http://it-tools:80
+  - Mazanoke:
+      icon: mazanoke.png
+      href: https://mazanoke.{{ swarm.domain }}
+      description: Conversion d'images
+      ping: http://mazanoke:80
+  - Stirling-pdf:
+      icon: stirling-pdf.png
+      href: https://stirling-pdf.{{ swarm.domain }}
+      description: Outils pour les PDF
+      ping: http://stirling-pdf:8080
+  - Convertx:
+      icon: https://static1.xdaimages.com/wordpress/wp-content/uploads/2025/05/convertx-logo.png
+      href: https://convertx.{{ swarm.domain }}
+      description: Conversion de fichiers vers d'autres formats
+      ping: http://convertx:3000
 
+################
+# Admin tab
+################
+
+- Header:
+  - Server:
+    - Proxmox:
+        icon: proxmox.png
+        href: http://pve.{{ local_domain }}
+        description: Proxmox
+        ping: http://pve.{{ local_domain }}
+    - Portainer:
+        icon: portainer.png
+        href: https://portainer.{{ swarm.domain }}
+        description: Portainer
+        ping: http://portainer:9000
+    - Filebrowser:
+        icon: filebrowser.png
+        href: https://filebrowser.{{ swarm.domain }}
+        description: Filebrowser
+        ping: http://filebrowser:8080
+  - Monitoring:
+    - Grafana:
+        icon: grafana.png
+        href: https://grafana.{{ swarm.domain }}
+        description: Monitoring
+        ping: http://grafana:3000
+    - Prometheus:
+        icon: prometheus.png
+        href: https://prometheus.{{ swarm.domain }}
+        description: Monitoring
+        ping: http://prometheus:9090
+        widget:
+          type: prometheus
+          url: http://prometheus:9090
 - Networking:
   - PiHole:
       icon: pi-hole.svg 
@@ -115,97 +231,41 @@
       icon: traefik.png
       href: https://traefik.{{ swarm.domain }}
       description: Traefik
-      ping: https://traefik.{{ swarm.domain }}
+      ping: http://traefik:80
       widget:
         type: traefik
         url: https://traefik.{{ swarm.domain }}
+  - Pocket-ID:
+      icon: pocket-id.png
+      href: https://pocket-id.{{ swarm.domain }}
+      description: Gestion des identités
+      ping: http://pocket-id:1411
+  # - Tiny-auth:
+  #     icon: tinyauth.png
+  #     href: https://auth.{{ swarm.domain }}
+  #     description: Authentification via proxy
+  #     ping: https://auth.{{ swarm.domain }}
   - Whoami:
       href: https://whoami.{{ swarm.domain }}
       description: Whoami
-      ping: https://whoami.{{ swarm.domain }}
+      ping: http://whoami:80
 
-- Bottom:
-  - Media-management:
-    - Radarr:
-        icon: radarr.png
-        href: https://arr.{{ swarm.domain }}/radarr
-        description: Téléchargement de films
-        ping: https://arr.{{ swarm.domain }}/radarr
+################
+# Paper work   tab
+################
+
+- Paper-work:
+    - Paperless-ngx:
+        icon: paperless.png
+        href: http://paperless.{{ local_domain }}
+        description: Gestion de documents
+        ping: http://paperless.{{ local_domain }}
         widget:
-          type: radarr
-          url: https://arr.{{ swarm.domain }}/radarr
-          key: {{ radarr_api }}  
-    - Sonarr:
-        icon: sonarr.png
-        href: https://arr.{{ swarm.domain }}/sonarr
-        description: Téléchargement de séries
-        ping: https://arr.{{ swarm.domain }}/sonarr
-        widget:
-          type: sonarr
-          url: https://arr.{{ swarm.domain }}/sonarr
-          key: {{ sonarr_api }} 
-    - Bazarr:
-        icon: bazarr.png
-        href: https://arr.{{ swarm.domain }}/bazarr
-        description: Téléchargement de sous-titres
-        ping: https://arr.{{ swarm.domain }}/bazarr
-        widget:
-          type: bazarr
-          url: https://arr.{{ swarm.domain }}/bazarr
-          key: {{ bazarr_api }}
-    - Prowlarr:
-        icon: prowlarr.png
-        href: https://arr.{{ swarm.domain }}/prowlarr
-        description: Gestion des indexeurs
-        ping: https://arr.{{ swarm.domain }}/prowlarr
-        widget:
-          type: prowlarr
-          url: https://arr.{{ swarm.domain }}/prowlarr
-          key: {{ prowlarr_api }}
-    - Tdarr:
-        icon: tdarr.png
-        href: http://tdarr.{{ local_domain }}
-        description: Optimisation des médias
-        ping: http://tdarr.{{ local_domain }}
-        widget:
-          type: tdarr
-          url: http://tdarr.{{ local_domain }}
-          
-  - Tools and stuff:
-    - OmniTools:
-        icon: omni-tools.png
-        href: https://omni-tools.{{ swarm.domain }}
-        description: Collection d'outils divers
-        ping: https://omni-tools.{{ swarm.domain }}
-    - ItTools:
-        icon: it-tools.png
-        href: https://it-tools.{{ swarm.domain }}
-        description: Outils divers pour l'IT
-        ping: https://it-tools.{{ swarm.domain }}
-    - Mazanoke:
-        icon: mazanoke.png
-        href: https://mazanoke.{{ swarm.domain }}
-        description: Conversion d'images
-        ping: https://mazanoke.{{ swarm.domain }}
-    - Stirling-pdf:
-        icon: stirling-pdf.png
-        href: https://stirling-pdf.{{ swarm.domain }}
-        description: Outils pour les PDF
-        ping: https://stirling-pdf.{{ swarm.domain }}
-    - Convertx:
-        icon: https://static1.xdaimages.com/wordpress/wp-content/uploads/2025/05/convertx-logo.png
-        href: https://convertx.{{ swarm.domain }}
-        description: Conversion de fichiers vers d'autres formats
-        ping: https://convertx.{{ swarm.domain }}
-  - Torrent:
-    - qBittorrent:
-        icon: qbittorrent.png
-        href: https://qbit.{{ swarm.domain }}
-        description: Téléchargement de torrents
-        ping: https://qbit.{{ swarm.domain }}
-        widget:
-          type: qbittorrent
-          url: https://qbit.{{ swarm.domain }}
-          username: {{ qbit_user }}
-          password: {{ qbit_pass }}
-          enableLeechProgress: true
+          type: paperlessngx
+          url: http://paperless.{{ local_domain }}
+          key: {{ paperless.token }}
+    - actual-budget:
+        icon: actual-budget.png
+        href: https://actual-budget.{{ swarm.domain }}
+        description: Gestion de budget
+        ping: http://actual-budget:5006

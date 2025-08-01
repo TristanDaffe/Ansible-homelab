@@ -11,6 +11,8 @@ services:
       APP_ENV: prod
       UID: "{{ nas.puid }}"
       GID: "{{ nas.pgid }}"
+      CUSTOM_DNS: cloudflare
+      USE_DOH: "true"
     volumes:
       - "{{ nas.mount }}/books/downloads:/cwa-book-ingest"
     networks:
@@ -35,6 +37,8 @@ services:
       APP_ENV: prod
       UID: "{{ nas.puid }}"
       GID: "{{ nas.pgid }}"
+      CUSTOM_DNS: cloudflare
+      USE_DOH: "true"
     volumes:
       - "{{ nas.mount }}/books-maman/downloads:/cwa-book-ingest"
     networks:
@@ -67,6 +71,7 @@ services:
         - "traefik.http.routers.prowlarr.rule=Host(`arr.{{ swarm.domain }}`) && PathPrefix(`/prowlarr`)"
         - "traefik.http.routers.prowlarr.entrypoints=web"
         - "traefik.http.routers.prowlarr.entrypoints=websecure"
+        - "traefik.http.routers.prowlarr.middlewares=tinyauth-media"
 
   flaresolverr:
     image: 'ghcr.io/flaresolverr/flaresolverr:latest'
@@ -110,7 +115,7 @@ services:
         - "traefik.http.routers.sonarr.rule=Host(`arr.{{ swarm.domain }}`) && PathPrefix(`/sonarr`)"
         - "traefik.http.routers.sonarr.entrypoints=web"
         - "traefik.http.routers.sonarr.entrypoints=websecure"
-
+        - "traefik.http.routers.sonarr.middlewares=tinyauth-media"
   radarr:
     image: lscr.io/linuxserver/radarr:latest
     environment:
@@ -131,6 +136,7 @@ services:
         - "traefik.http.routers.radarr.rule=Host(`arr.{{ swarm.domain }}`) && PathPrefix(`/radarr`)"
         - "traefik.http.routers.radarr.entrypoints=web"
         - "traefik.http.routers.radarr.entrypoints=websecure"
+        - "traefik.http.routers.radarr.middlewares=tinyauth-media"
 
   bazarr:
     image: lscr.io/linuxserver/bazarr:latest
@@ -152,6 +158,7 @@ services:
         - "traefik.http.routers.bazarr.rule=Host(`arr.{{ swarm.domain }}`) && PathPrefix(`/bazarr`)"
         - "traefik.http.routers.bazarr.entrypoints=web"
         - "traefik.http.routers.bazarr.entrypoints=websecure"
+        - "traefik.http.routers.bazarr.middlewares=tinyauth-media"
 
   qbittorrent:
     image: lscr.io/linuxserver/qbittorrent:latest
@@ -176,6 +183,7 @@ services:
         - "traefik.http.routers.qbit.rule=Host(`qbit.{{ swarm.domain }}`)"
         - "traefik.http.routers.qbit.entrypoints=web"
         - "traefik.http.routers.qbit.entrypoints=websecure"
+        - "traefik.http.routers.qbit.middlewares=tinyauth-media"
 
 networks:
   proxy_network:

@@ -42,3 +42,11 @@
     name: '{{ ansible_ssh_user }}'
     groups: docker 
     append: yes
+
+- name: Prune unused Docker data
+  community.docker.docker_prune:
+    containers: true
+    images: true
+    volumes: true
+    builder_cache_all: true
+  when: swarm.prune_docker | default(true)

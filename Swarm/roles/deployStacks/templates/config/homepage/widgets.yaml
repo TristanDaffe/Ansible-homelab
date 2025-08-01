@@ -9,3 +9,4 @@
 - search:
     provider: google
     target: _blank
+    

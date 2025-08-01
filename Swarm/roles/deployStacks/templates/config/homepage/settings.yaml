@@ -8,23 +8,74 @@ statusStyle: "dot"
 headerStyle: boxed
 language: fr
 hideVersion: true
-# disableCollapse: true
+disableCollapse: true
 
 background:
   image: https://images.unsplash.com/photo-1740568439805-b610a1115fc3?q=80&w=3264&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D?auto=format&fit=crop&w=2560&q=80
-  blur: sm # sm, "", md, xl... see https://tailwindcss.com/docs/backdrop-blur
-  saturate: 50 # 0, 50, 100... see https://tailwindcss.com/docs/backdrop-saturate
-  brightness: 50 # 0, 50, 75... see https://tailwindcss.com/docs/backdrop-brightness
-  opacity: 50 # 0-100
+  blur: sm
+  saturate: 50
+  brightness: 50
+  opacity: 50
 
 layout:
 
+  # === MAIN TAB ===
+
   Home:
-    header: true
+    tab: Main
     style: row
     columns: 4
+
+  Media-consumption:
+    tab: Main
+    header: false
+    style: row
+    columns: 2
+    Media: 
+      style: row
+      columns: 2
+    Books:
+      style: row
+      columns: 2
+
+  Books:
+    tab: Main
+    header: true
+    style: row
+    columns: 2
+
+  Torrenting:
+    tab: Main
+    header: false
+    style: row
+    columns: 2
+    Media-management:
+      header: true
+      style: row
+      columns: 1
+      Download-management:
+        style: row
+        columns: 2
+        header: false
+      Torrent:
+        style: row
+        columns: 1
+        header: false
+    Calendar:
+      header: true 
+      style: row
+      columns: 1
     
-  Admin:
+  Tools and stuff:
+    tab: Main
+    header: true
+    style: row
+    columns: 3
+
+  # === ADMIN TAB ===
+
+  Header:
+    tab: Admin
     header: false
     style: row
     columns: 2
@@ -32,53 +83,22 @@ layout:
       header: true
       style: row
       columns: 2
+
     Monitoring:
       header: true
       style: row
       columns: 2
 
   Networking:
-    initiallyCollapsed: true
+    tab: Admin
     header: true
     style: row
     columns: 4
 
-  Storage:
+  # === PAPER WORK TAB ===
+
+  Paper-work:
+    tab: Paper work
     header: true
     style: row
     columns: 2
-    Paperless-ngx:
-      header: true
-      style: row
-      columns: 2
-
-  Media-consumption:
-    header: false
-    style: row
-    columns: 2
-  
-    Media:
-      header: true
-      style: row
-      columns: 2
-    Books:
-      header: true
-      style: row
-      columns: 2
-
-  Bottom:
-    header: false
-    style: row
-    columns: 2
-    Media-management:
-      header: true
-      style: row
-      columns: 2
-    Tools and stuff:
-      header: true
-      style: row
-      columns: 3
-    Torrent:
-      header: false
-      style: row
-      columns: 1

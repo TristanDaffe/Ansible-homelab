@@ -21,4 +21,5 @@
   community.docker.docker_compose_v2:
     project_src: "{{ fake.docker_dir }}/compose"
     pull: always
+    # remove_orphans: true
   become: false
