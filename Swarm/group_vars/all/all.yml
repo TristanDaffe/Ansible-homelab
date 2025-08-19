@@ -59,6 +59,7 @@ swarm:
         - traefik
         - homepage
         - pocket-id
+        - speedtest-tracker
       config:
         - file: traefik.yaml
           dst: traefik/traefik.yaml

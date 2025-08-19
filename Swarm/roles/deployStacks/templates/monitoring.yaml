@@ -52,6 +52,7 @@ services:
         - "traefik.http.routers.prometheus.rule=Host(`prometheus.{{ swarm.domain }}`)"
         - "traefik.http.routers.prometheus.entrypoints=web"
         - "traefik.http.routers.prometheus.entrypoints=websecure"
+        - "traefik.http.routers.prometheus.middlewares=tinyauth-network"
 
   node-exporter:
     image: prom/node-exporter:latest

@@ -184,7 +184,7 @@ services:
         - "traefik.http.routers.qbit.entrypoints=web"
         - "traefik.http.routers.qbit.entrypoints=websecure"
         - "traefik.http.routers.qbit.middlewares=tinyauth-media"
-
+    
 networks:
   proxy_network:
       external: true
