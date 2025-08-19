@@ -58,7 +58,6 @@ services:
         - "traefik.http.routers.stirling-pdf.entrypoints=websecure"
 
   mazanoke:
-    container_name: mazanoke
     image: ghcr.io/civilblur/mazanoke:latest
     networks:
       - proxy_network
@@ -70,6 +69,19 @@ services:
         - "traefik.http.routers.mazanoke.rule=Host(`mazanoke.{{ swarm.domain }}`)"
         - "traefik.http.routers.mazanoke.entrypoints=web"
         - "traefik.http.routers.mazanoke.entrypoints=websecure"
+
+  mesh-mini:
+    image: brytonsalisbury/mesh-mini:amd64
+    networks:
+      - proxy_network
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.swarm.network=proxy_network" 
+        - "traefik.http.services.mesh-mini.loadbalancer.server.port=3000"
+        - "traefik.http.routers.mesh-mini.rule=Host(`mesh-mini.{{ swarm.domain }}`)"
+        - "traefik.http.routers.mesh-mini.entrypoints=web"
+        - "traefik.http.routers.mesh-mini.entrypoints=websecure"
 
 networks:
   proxy_network:

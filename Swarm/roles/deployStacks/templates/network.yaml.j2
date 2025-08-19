@@ -27,10 +27,17 @@ services:
       labels:
         - "traefik.enable=true"
         - "traefik.http.services.dummy-svc.loadbalancer.server.port=9999"
+        # Public dashboard route (protected)
         - "traefik.http.routers.traefik.rule=Host(`traefik.{{ swarm.domain }}`)"
         - "traefik.http.routers.traefik.entrypoints=websecure"
         - "traefik.http.routers.traefik.service=api@internal"
-  
+        - "traefik.http.routers.traefik.middlewares=tinyauth-network"
+
+        # Internal service for API (unprotected, only for the internal network)
+        - "traefik.http.routers.api-internal.rule=PathPrefix(`/api`)"
+        - "traefik.http.routers.api-internal.entrypoints=internal"
+        - "traefik.http.routers.api-internal.service=api@internal"
+
   pocket-id:
     image: ghcr.io/pocket-id/pocket-id:v1
     restart: unless-stopped
@@ -66,6 +73,7 @@ services:
         - "traefik.http.routers.whoami.entrypoints=web"
         - "traefik.http.routers.whoami.entrypoints=websecure"
         - "traefik.http.routers.whoami.middlewares=tinyauth-network"
+
   homepage:
     image: ghcr.io/gethomepage/homepage:latest
     volumes:
@@ -84,7 +92,35 @@ services:
         - "traefik.http.routers.homepage.rule=Host(`homepage.{{ swarm.domain }}`)"
         - "traefik.http.routers.homepage.entrypoints=web"
         - "traefik.http.routers.homepage.entrypoints=websecure"
-        
+      
+  speedtest-tracker:
+    image: lscr.io/linuxserver/speedtest-tracker:latest
+    environment:
+        - PUID={{ nas.puid }}
+        - PGID={{ nas.pgid }}
+        # echo -n 'base64:'; openssl rand -base64 32;
+        - APP_KEY={{ secret_64 }}
+        - DB_CONNECTION=sqlite
+        - DISPLAY_TIMEZONE={{ timezone }}
+        - SPEEDTEST_SCHEDULE=*/15 * * * *
+        - SPEEDTEST_SERVER={{ speedtest_tracker.servers | default('') }}
+        - CHART_DATETIME_FORMAT=j/m G:i
+        - DATETIME_FORMAT=j M Y, G:i:s
+        - PUBLIC_DASHBOARD=true
+    volumes:
+        - gfs_speedtest_tracker:/config
+    networks:
+      - proxy_network
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.swarm.network=proxy_network" 
+        - "traefik.http.services.speedtest-tracker.loadbalancer.server.port=80"
+        - "traefik.http.routers.speedtest-tracker.rule=Host(`speedtest.{{ swarm.domain }}`)"
+        - "traefik.http.routers.speedtest-tracker.entrypoints=web"
+        - "traefik.http.routers.speedtest-tracker.entrypoints=websecure"
+        - "traefik.http.routers.speedtest-tracker.middlewares=tinyauth-network"
+
 ################
 # TinyAuth middlewares
 ################
@@ -105,6 +141,9 @@ services:
       - GENERIC_USER_URL=https://pocket-id.{{ swarm.domain }}/api/oidc/userinfo
       - GENERIC_SCOPES=openid email profile groups
       - GENERIC_NAME=Pocket ID
+
+      - OAUTH_AUTO_REDIRECT=generic
+      - DISABLE_CONTINUE=true
     deploy:
       labels:
         - "traefik.enable=true"
@@ -131,3 +170,7 @@ volumes:
   gfs_homepage:
     driver: "{{ gluster.gluster_alias }}"
     name: "{{ gluster.volume_name }}/swarm/homepage"
+
+  gfs_speedtest_tracker:
+    driver: "{{ gluster.gluster_alias }}"
+    name: "{{ gluster.volume_name }}/swarm/speedtest-tracker"

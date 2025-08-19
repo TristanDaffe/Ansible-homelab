@@ -14,6 +14,8 @@ providers:
 entryPoints:
   web:
     address: ":80"
+  internal:
+    address: ":8080"
   websecure:
     address: ":443"
     http:

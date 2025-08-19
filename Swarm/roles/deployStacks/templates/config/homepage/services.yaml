@@ -234,7 +234,18 @@
       ping: http://traefik:80
       widget:
         type: traefik
-        url: https://traefik.{{ swarm.domain }}
+        url: http://traefik:8080
+  - speedtest-tracker:
+      icon: speedtest-tracker.png
+      href: https://speedtest.{{ swarm.domain }}
+      description: Suivi des tests de vitesse
+      ping: http://speedtest-tracker:80
+      widget:
+        type: speedtest
+        url: http://speedtest-tracker:80
+        version: 2
+        key: {{ speedtest_tracker.api_key }}
+        bitratePrecision: 0
   - Pocket-ID:
       icon: pocket-id.png
       href: https://pocket-id.{{ swarm.domain }}

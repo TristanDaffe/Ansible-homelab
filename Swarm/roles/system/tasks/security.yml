@@ -1,0 +1,49 @@
+---
+- name: Set the name of a sudo group
+  set_fact:
+    sudo_group: sudo
+
+- name: Ensure the necessary groupsexists
+  group:
+    name: "{{ item }}"
+    state: present
+  loop:
+      - "{{ username }}"
+      - docker
+      - admin
+
+- name: Allow '{{ sudo_group }}' group to have passwordless sudo
+  lineinfile:
+    path: /etc/sudoers
+    state: present
+    regexp: '^%{{ sudo_group }}'
+    line: '%{{ sudo_group }} ALL=(ALL) NOPASSWD: ALL'
+    validate: '/usr/sbin/visudo -cf %s'
+
+- name: Ensure password authentication is disabled
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^PasswordAuthentication'
+    line: 'PasswordAuthentication no'
+    state: present
+  notify: Restart SSH
+
+- name: Restrict SSH access to 'admin' group
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^AllowGroups'
+    line: 'AllowGroups admin'
+  notify: Restart SSH
+
+- name: Install fail2ban
+  package:
+    name: fail2ban
+    state: present
+
+- name: Ensure fail2ban service is enabled
+  service:
+    name: fail2ban
+    state: started
+    enabled: true
+
+- meta: flush_handlers

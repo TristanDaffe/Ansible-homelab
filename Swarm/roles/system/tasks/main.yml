@@ -1,5 +1,6 @@
 ---
 - include_tasks: essential.yml
 - include_tasks: netplan.yml
+- include_tasks: security.yml
 - include_tasks: user.yml
 - include_tasks: nas.yml

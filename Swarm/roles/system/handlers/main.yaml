@@ -2,3 +2,8 @@
 - name: Apply netplan config
   command:
     cmd: netplan apply
+
+- name: Restart SSH
+  service:
+    name: ssh
+    state: restarted
