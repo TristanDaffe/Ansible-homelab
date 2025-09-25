@@ -1,0 +1,44 @@
+---
+- name: Install ufw
+  apt:
+    name: ufw
+    state: present
+
+- name: Set default policies
+  ufw:
+    state: enabled
+    policy: "{{ item.policy }}"
+    direction: "{{ item.direction }}"
+  loop:
+    - { direction: incoming, policy: deny }
+    - { direction: outgoing, policy: allow }
+
+- name: Allow SSH connections
+  ufw:
+    rule: allow
+    name: OpenSSH
+
+- name: Allow HTTP connections
+  ufw:
+    rule: limit
+    port: '80'
+    proto: tcp
+
+- name: Allow HTTPS connections
+  ufw:
+    rule: limit
+    port: '443'
+    proto: tcp
+
+- name: Allow Node Exporter from Tailscale only
+  ufw:
+    rule: allow
+    port: '9100'
+    proto: tcp
+    from_ip: "{{ tailscale_network | default('100.64.0.0/10') }}"
+  when: "'Monitoring' in group_names"
+
+- name: Enable UFW with logging
+  ufw:
+    state: enabled
+    logging: 'on'

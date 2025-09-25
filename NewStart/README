@@ -1,0 +1,4 @@
+```bash
+ansible-galaxy collection install artis3n.tailscale
+ansible-galaxy collection install grafana.grafana
+```

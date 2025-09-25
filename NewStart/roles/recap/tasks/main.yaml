@@ -1,0 +1,17 @@
+---
+- name: System Deployment Summary
+  debug:
+    msg: 
+      - ""
+      - "╔════════════════════════════════════════════════════════════════════════════════╗"
+      - "║                      🚀 System Deployment Summary                              ║"
+      - "╠════════════════════════════════════════════════════════════════════════════════╣"
+      - "║ {{ '%-16s' | format('Nodes') }}{% for host in ansible_play_hosts %}│ {{ '%-18s' | format(host) }}{% endfor %}│ ║"
+      - "║ {{ '%-16s' | format('Tailscale IP') }}{% for host in ansible_play_hosts %}│ {{ '%-18s' | format(hostvars[host].tailscale_ip | default('N/A')) }}{% endfor %}│ ║"
+      - "║ {{ '%-16s' | format('Docker Version') }}{% for host in ansible_play_hosts %}│ {{ '%-18s' | format(hostvars[host].docker_version.stdout | default('N/A') | regex_replace('Docker version ([0-9.]+),.*', '\\1')) }}{% endfor %}│ ║"
+      - "║ {{ '%-16s' | format('Pkgs Upgraded') }}{% for host in ansible_play_hosts %}│ {% set count = hostvars[host].upgrade_result.stdout_lines | default([]) | select('match', '^Inst ') | list | length %}{{ '%-18s' | format(hostvars[host].upgrade_result.changed | default(false) | ternary('✓ Yes (' ~ count ~ ')', '✗ None')) }}{% endfor %}│ ║"
+      - "║ {{ '%-16s' | format('Pkgs Installed') }}{% for host in ansible_play_hosts %}│ {% set count = hostvars[host].install_result.results | default([]) | selectattr('changed', 'equalto', true) | list | length if hostvars[host].install_result.results is defined else (1 if hostvars[host].install_result.changed | default(false) else 0) %}{{ '%-18s' | format((count | string) if count > 0 else '✗ None') }}{% endfor %}│ ║"
+      - "║ {{ '%-16s' | format('Reboot Required') }}{% for host in ansible_play_hosts %}│ {{ '%-18s' | format(hostvars[host].reboot_required_file.stat.exists | default(false) | ternary('⚠ YES', '✓ No')) }}{% endfor %}│ ║"
+      - "╚════════════════════════════════════════════════════════════════════════════════╝"
+      - ""
+  run_once: true

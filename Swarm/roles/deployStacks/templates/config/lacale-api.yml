@@ -1,0 +1,259 @@
+{% raw %}
+---
+id: lacale-api
+name: La Cale (API)
+description: 'La Cale is a French Private Tracker for Movies, TV, Music, Games, Software, Ebooks and XXX'
+language: fr-FR
+type: private
+encoding: UTF-8
+# Cloudflare may be enabled, FlareSolverr might be required
+requestDelay: 2
+
+links:
+  - https://la-cale.space
+
+caps:
+  categorymappings:
+    # Video (parent + children)
+    - {id: video, cat: Movies, desc: 'Vidéo'}
+    - {id: films, cat: Movies, desc: 'Films'}
+    - {id: films-4k, cat: Movies/UHD, desc: 'Films 4K'}
+    - {id: films-hd, cat: Movies/HD, desc: 'Films HD'}
+    - {id: animation, cat: Movies, desc: 'Animation'}
+    - {id: series, cat: TV, desc: 'Séries TV'}
+    - {id: s-ries-hd, cat: TV/HD, desc: 'Séries HD'}
+    - {id: spectacles, cat: TV/Other, desc: 'Spectacles'}
+    # Audio (parent + children)
+    - {id: audio, cat: Audio, desc: 'Audio'}
+    - {id: music, cat: Audio, desc: 'Musique'}
+    - {id: flac, cat: Audio/Lossless, desc: 'FLAC'}
+    - {id: mp3, cat: Audio/MP3, desc: 'MP3'}
+    - {id: m4a, cat: Audio/Other, desc: 'M4A'}
+    - {id: audio-divers, cat: Audio/Other, desc: 'Audio divers'}
+    # Games (parent + children)
+    - {id: games, cat: PC/Games, desc: 'Jeux'}
+    - {id: pc, cat: PC/Games, desc: 'PC'}
+    - {id: consoles, cat: Console, desc: 'Consoles'}
+    - {id: jeux-mobiles, cat: PC/Mobile-Other, desc: 'Jeux mobiles'}
+    # Applications (parent + children)
+    - {id: applications, cat: PC/0day, desc: 'Applications'}
+    - {id: software, cat: PC/0day, desc: 'Logiciels'}
+    - {id: linux, cat: PC/0day, desc: 'Linux'}
+    - {id: systemes, cat: PC/ISO, desc: 'Systèmes'}
+    # E-books (parent + children)
+    - {id: ebooks, cat: Books/EBook, desc: 'E-books'}
+    - {id: romans, cat: Books/EBook, desc: 'Romans'}
+    - {id: bd, cat: Books/Comics, desc: 'BD'}
+    - {id: documentaires, cat: Books/Technical, desc: 'Documentaires'}
+    # E-books & Documents (parent + children)
+    - {id: ebooks-documents, cat: Books/EBook, desc: 'E-books & Documents'}
+    - {id: livres, cat: Books/EBook, desc: 'Livres'}
+    - {id: presse, cat: Books/Mags, desc: 'Presse'}
+    - {id: education, cat: Books/Technical, desc: 'Éducation'}
+    # XXX (parent + children, default: false)
+    - {id: xxx, cat: XXX, desc: 'XXX', default: false}
+    - {id: xxx-hetero, cat: XXX, desc: 'Hétéro', default: false}
+    - {id: xxx-gay, cat: XXX, desc: 'Gay', default: false}
+    - {id: xxx-lesbien, cat: XXX, desc: 'Lesbien', default: false}
+    - {id: xxx-trans, cat: XXX, desc: 'Trans', default: false}
+    # Other (parent + children)
+    - {id: autres, cat: Other/Misc, desc: 'Autres'}
+    - {id: divers, cat: Other/Misc, desc: 'Divers'}
+
+  modes:
+    search: [q]
+    tv-search: [q, season, ep]
+    movie-search: [q]
+    music-search: [q]
+    book-search: [q]
+
+settings:
+  - name: passkey
+    type: password
+    label: Passkey
+    default: ''
+    help: Personal key required to access the La Cale API
+  - name: info_passkey
+    type: info
+    label: About your Passkey
+    default: "Your passkey can be found on your <a href=\"https://la-cale.space/profile\" target=\"_blank\">profile page</a>. Never share it!"
+  - name: info_flaresolverr
+    type: info_flaresolverr
+  - name: info_ratio
+    type: info
+    label: Ratio Requirements
+    default: "Minimum ratio: 1.0 | Minimum seed time: 48 hours | Currently: Global Freeleech active!"
+  - name: info_updates
+    type: info
+    label: Updates
+    default: "This is a custom indexer that requires manual updates. Get the latest version at <a href=\"https://github.com/JigSawFr/lacale-prowlarr-indexer\" target=\"_blank\">github.com/JigSawFr/lacale-prowlarr-indexer</a>"
+
+login:
+  path: api/external
+  method: get
+  inputs:
+    passkey: '{{ .Config.passkey }}'
+    q: test
+  test:
+    path: api/external
+    inputs:
+      passkey: '{{ .Config.passkey }}'
+      q: test
+
+search:
+  paths:
+    - path: api/external
+      response:
+        type: json
+        noResultsMessage: '[]'
+
+  keywordsfilters:
+    - name: trim
+    - name: re_replace
+      # Cleans dashes, dots, slashes, exclamation marks and normalizes spaces
+      args: ['[\-\.\/!\s]+', ' ']
+
+  inputs:
+    passkey: '{{ .Config.passkey }}'
+    q: '{{ .Keywords }}'
+    # API accepts multiple cat parameters (e.g., &cat=films&cat=series)
+    $raw: '{{ range .Categories }}&cat={{.}}{{end}}'
+
+  rows:
+    selector: $
+    missingAttributeEqualsNoResults: true
+
+  fields:
+    _id:
+      selector: guid
+    title:
+      selector: title
+    category:
+      selector: category
+      filters:
+        # Video - order matters: more specific patterns first
+        - name: re_replace
+          args: ["(?i)^s[ée]ries?\\s*hd$", "s-ries-hd"]
+        - name: re_replace
+          args: ["(?i)^s[ée]ries?(\\s*tv)?$", "series"]
+        - name: re_replace
+          args: ["(?i)^animations?$", "animation"]
+        - name: re_replace
+          args: ["(?i)^films?\\s*4k$", "films-4k"]
+        - name: re_replace
+          args: ["(?i)^films?\\s*hd$", "films-hd"]
+        - name: re_replace
+          args: ["(?i)^films?$", "films"]
+        - name: re_replace
+          args: ["(?i)^spectacles?$", "spectacles"]
+        - name: re_replace
+          args: ["(?i)^vid[ée]o$", "video"]
+        # Audio - order matters: more specific patterns first
+        - name: re_replace
+          args: ["(?i)^audio\\s*divers$", "audio-divers"]
+        - name: re_replace
+          args: ["(?i)^flac$", "flac"]
+        - name: re_replace
+          args: ["(?i)^mp3$", "mp3"]
+        - name: re_replace
+          args: ["(?i)^m4a$", "m4a"]
+        - name: re_replace
+          args: ["(?i)^musiques?$", "music"]
+        - name: re_replace
+          args: ["(?i)^audio$", "audio"]
+        # Games
+        - name: re_replace
+          args: ["(?i)^jeux\\s*mobiles?$", "jeux-mobiles"]
+        - name: re_replace
+          args: ["(?i)^consoles?$", "consoles"]
+        - name: re_replace
+          args: ["(?i)^pc(\\s*games?)?$", "pc"]
+        - name: re_replace
+          args: ["(?i)^jeux$", "games"]
+        # Applications
+        - name: re_replace
+          args: ["(?i)^linux$", "linux"]
+        - name: re_replace
+          args: ["(?i)^syst[eè]mes?$", "systemes"]
+        - name: re_replace
+          args: ["(?i)^(logiciels?|software)$", "software"]
+        - name: re_replace
+          args: ["(?i)^applications?$", "applications"]
+        # E-books & Documents
+        - name: re_replace
+          args: ["(?i)^romans?$", "romans"]
+        - name: re_replace
+          args: ["(?i)^(bd|bande[s-]?dessin[ée]e?s?)$", "bd"]
+        - name: re_replace
+          args: ["(?i)^documentaires?$", "documentaires"]
+        - name: re_replace
+          args: ["(?i)^livres?$", "livres"]
+        - name: re_replace
+          args: ["(?i)^presse$", "presse"]
+        - name: re_replace
+          args: ["(?i)^[ée]ducation$", "education"]
+        - name: re_replace
+          args: ["(?i)^e-?books?$", "ebooks"]
+        - name: re_replace
+          args: ["(?i)^e-?books?\\s*[&e]\\s*documents?$", "ebooks-documents"]
+        # XXX
+        - name: re_replace
+          args: ["(?i)^xxx[\\s-]*h[ée]t[ée]ro$", "xxx-hetero"]
+        - name: re_replace
+          args: ["(?i)^xxx[\\s-]*gay$", "xxx-gay"]
+        - name: re_replace
+          args: ["(?i)^xxx[\\s-]*lesbien(ne)?s?$", "xxx-lesbien"]
+        - name: re_replace
+          args: ["(?i)^xxx[\\s-]*trans$", "xxx-trans"]
+        - name: re_replace
+          args: ["(?i)^h[ée]t[ée]ro$", "xxx-hetero"]
+        - name: re_replace
+          args: ["(?i)^gay$", "xxx-gay"]
+        - name: re_replace
+          args: ["(?i)^lesbien(ne)?s?$", "xxx-lesbien"]
+        - name: re_replace
+          args: ["(?i)^trans$", "xxx-trans"]
+        - name: re_replace
+          args: ["(?i)^xxx$", "xxx"]
+        # Other
+        - name: re_replace
+          args: ["(?i)^divers$", "divers"]
+        - name: re_replace
+          args: ["(?i)^autres?$", "autres"]
+    details:
+      # Use download link as details page (API doesn't return page slug)
+      selector: link
+    infohash:
+      selector: infoHash
+    download:
+      # Download via infoHash endpoint (works without session)
+      text: '{{ .Result.infohash }}'
+      filters:
+        - name: prepend
+          args: '/api/torrents/download/'
+        - name: append
+          args: '?passkey={{ .Config.passkey }}'
+    size:
+      selector: size
+    date:
+      # API returns ISO 8601 but Cardigann pre-converts to US format (MM/DD/YYYY HH:mm:ss)
+      selector: pubDate
+      filters:
+        - name: dateparse
+          args: '01/02/2006 15:04:05'
+    seeders:
+      selector: seeders
+    leechers:
+      selector: leechers
+    downloadvolumefactor:
+      # 0 = Freeleech (download doesn't count)
+      text: 0
+    uploadvolumefactor:
+      # 1 = Normal upload
+      text: 1
+    minimumratio:
+      text: 1.0
+    minimumseedtime:
+      # 48 hours in seconds
+      text: 172800
+{% endraw %}

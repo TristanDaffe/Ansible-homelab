@@ -45,8 +45,9 @@ fake:
 swarm:
   advertise_addr: 192.168.129.111:2377
   docker_dir: /mnt/glusterfs/swarm
-  domain: autostack.duckdns.org
-  certresolver: duckdns
+  # domain: autostack.duckdns.org
+  domain: autostack.ovh
+  cert_resolver: ovh
 
   docker_networks:
     - proxy_network
@@ -90,14 +91,24 @@ swarm:
     - name: media
       volumes:
         - prowlarr
+        - custom-indexers
         - jellyseer
         - sonarr
         - radarr
         - bazarr
         - qbittorrent
+      config:
+        - file: ygg-cookie.yml
+          dst: custom-indexers/ygg-cookie.yml
+        # - file: lacale-api.yml
+        #   dst: custom-indexers/lacale-api.yml
     - name: budget
       volumes:
         - actual-budget
+    - name: meal
+      volumes:
+        - mealie
+        - mealie-pgdata
 ############
 # glusterfs
 ############

@@ -1,0 +1,65 @@
+---
+- name: Update package cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600  # Cache valid for 1 hour
+
+- name: Perform package upgrades
+  apt:
+    upgrade: "{{ 'safe' if safe_upgrades_only | default(true) else 'dist' }}"
+    update_cache: yes
+    autoremove: yes
+    autoclean: yes
+  register: upgrade_result
+
+- name: Install extra packages
+  package:
+    name: "{{ extra_packages | default([]) }}"
+    state: present
+  when: extra_packages is defined and (extra_packages | length > 0)
+  register: install_result
+
+- name: Set install_result when no packages to install
+  set_fact:
+    install_result:
+      changed: false
+      skipped: true
+  when: extra_packages is not defined or (extra_packages | length == 0)
+
+- name: Check if reboot is required
+  stat:
+    path: /var/run/reboot-required
+  register: reboot_required_file
+
+- name: Display reboot requirement status
+  debug:
+    msg: "Reboot required: {{ reboot_required_file.stat.exists }}"
+
+- name: Check what requires reboot
+  shell: cat /var/run/reboot-required.pkgs
+  register: reboot_packages
+  when: reboot_required_file.stat.exists
+  changed_when: false
+  failed_when: false
+
+- name: Log packages requiring reboot
+  debug:
+    msg: "Packages requiring reboot: {{ reboot_packages.stdout_lines }}"
+  when: reboot_required_file.stat.exists and reboot_packages.stdout_lines is defined
+
+- name: Schedule reboot (controlled)
+  reboot:
+    msg: "Rebooting due to kernel/system updates: {{ reboot_packages.stdout | default('unspecified') }}"
+    pre_reboot_delay: "{{ reboot_delay | default(30) }}"
+    post_reboot_delay: "{{ post_reboot_delay | default(60) }}"
+    reboot_timeout: "{{ reboot_timeout | default(600) }}"
+  when: 
+    - reboot_required_file.stat.exists
+    - allow_reboot | default(false)
+
+- name: Warn about pending reboot
+  debug:
+    msg: "WARNING: System requires reboot but auto-reboot is disabled. Manual reboot needed."
+  when: 
+    - reboot_required_file.stat.exists 
+    - not (allow_reboot | default(false))

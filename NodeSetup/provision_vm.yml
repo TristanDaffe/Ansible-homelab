@@ -1,0 +1,81 @@
+---
+- name: Check if VM {{ vm.name }} (ID {{ vm.vmid }}) exists
+  command: "qm status {{ vm.vmid }}"
+  register: vm_status
+  failed_when: false
+  changed_when: false
+
+- name: Create VM skeleton when absent
+  command: >-
+    qm create {{ vm.vmid }}
+    --name {{ vm.name }}
+    --memory {{ vm.memory | default(2048) }}
+    --cores {{ vm.cores | default(2) }}
+    --net0 virtio,bridge={{ proxmox_bridge }}
+    --scsihw virtio-scsi-pci
+    --ide2 {{ proxmox_storage }}:cloudinit
+    --agent enabled=1
+  when: vm_status.rc != 0
+
+- name: Import Ubuntu cloud image disk when VM newly created
+  command: >-
+    qm importdisk {{ vm.vmid }}
+    /var/lib/vz/template/iso/{{ ubuntu_cloudimg_filename }}
+    {{ proxmox_storage }} --format qcow2
+  when: vm_status.rc != 0
+
+- name: Attach imported disk and set boot
+  command: >-
+    qm set {{ vm.vmid }}
+    --scsi0 {{ proxmox_storage }}:vm-{{ vm.vmid }}-disk-0
+    --boot order=scsi0
+    --serial0 socket
+    --vga std
+  when: vm_status.rc != 0
+
+- name: Resize disk if requested
+  command: "qm resize {{ vm.vmid }} scsi0 {{ vm.disk_gb }}G"
+  when:
+    - vm_status.rc != 0
+    - vm.disk_gb is defined
+
+- name: Write SSH public key to file for cloud-init
+  copy:
+    dest: "/var/lib/vz/snippets/{{ vm.name }}-sshkeys.pub"
+    content: "{{ ssh_public_key }}\n"
+    mode: '0644'
+  # Ensure key file exists/updated for all VMs
+
+- name: Write cloud-init user-data for keyboard + qemu-guest-agent
+  copy:
+    dest: "/var/lib/vz/snippets/{{ vm.name }}-user-data.yml"
+    mode: '0644'
+    content: |
+      #cloud-config
+      ssh_pwauth: true
+      chpasswd:
+        list: "{{ vm.ciuser | default('ubuntu') }}:{{ cipassword }}"
+        expire: false
+      packages:
+        - qemu-guest-agent
+      runcmd:
+        - systemctl enable --now qemu-guest-agent || true
+        - sed -ri 's/^XKBLAYOUT=.*/XKBLAYOUT={{ keyboard_layout }}/' /etc/default/keyboard
+        - dpkg-reconfigure -f noninteractive keyboard-configuration || true
+  # Ensure cloud-init user-data is present/updated for all VMs
+
+- name: Configure cloud-init options
+  command: >-
+    qm set {{ vm.vmid }}
+    --ciuser {{ vm.ciuser | default('ubuntu') }}
+    --cipassword {{ cipassword }}
+    {{ '--ipconfig0 ip=dhcp' if (vm.ipconfig0 is defined and (vm.ipconfig0 | lower) == 'dhcp') else ('--ipconfig0 ' ~ vm.ipconfig0) if (vm.ipconfig0 is defined) else '' }}
+    {{ '--nameserver ' + vm.nameserver if (vm.nameserver is defined) else '' }}
+    --sshkeys /var/lib/vz/snippets/{{ vm.name }}-sshkeys.pub
+    --cicustom "user={{ proxmox_snippets_storage }}:snippets/{{ vm.name }}-user-data.yml"
+    --onboot 1
+  # Apply cloud-init config to existing and new VMs
+
+- name: Start VM if not running
+  command: "qm start {{ vm.vmid }}"
+  when: vm_status.rc != 0 or ('stopped' in (vm_status.stdout | default('')))

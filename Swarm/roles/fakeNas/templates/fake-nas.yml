@@ -68,7 +68,8 @@ services:
      environment:
        - TS_AUTHKEY={{ tailscale_key }}
        - TS_ROUTES=  # leave empty if you just want Funnel
-      #  - TS_SERVE_CONFIG=/var/lib/tailscale/serve.json
+       - TS_SERVE_CONFIG=/var/lib/tailscale/serve.json
+       - TS_STATE_DIR=/var/lib/tailscale
      restart: unless-stopped
 
 ############

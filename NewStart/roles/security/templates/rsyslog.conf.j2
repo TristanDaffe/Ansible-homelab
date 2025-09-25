@@ -1,0 +1,5 @@
+# Enhanced rsyslog configuration
+$ModLoad imuxsock
+$ModLoad imklog
+$ActionFileDefaultTemplate RSYSLOG_TraditionalFileFormat
+$IncludeConfig /etc/rsyslog.d/*.conf

@@ -19,7 +19,12 @@ services:
     networks:
       - proxy_network
     environment:
-      - DUCKDNS_TOKEN={{ duckdns_token }}
+      # - DUCKDNS_TOKEN={{ duckdns_token }}
+      - "TZ={{ timezone }}"
+      - "OVH_ENDPOINT=ovh-eu"
+      - "OVH_APPLICATION_KEY={{ ovh.application_key }}"
+      - "OVH_APPLICATION_SECRET={{ ovh.application_secret }}"
+      - "OVH_CONSUMER_KEY={{ ovh.consumer_key }}"
     deploy:
       placement:
         constraints:
@@ -134,15 +139,24 @@ services:
       - SECRET={{ item.secret }}
       - APP_URL=https://auth-{{ item.name }}.{{ swarm.domain }}
       - APP_TITLE=TinyAuth - {{ item.name }}
-      - GENERIC_CLIENT_ID={{ item.sso_client_id }}
-      - GENERIC_CLIENT_SECRET={{ item.sso_client_id_secret }}
-      - GENERIC_AUTH_URL=https://pocket-id.{{ swarm.domain }}/authorize
-      - GENERIC_TOKEN_URL=https://pocket-id.{{ swarm.domain }}/api/oidc/token
-      - GENERIC_USER_URL=https://pocket-id.{{ swarm.domain }}/api/oidc/userinfo
-      - GENERIC_SCOPES=openid email profile groups
-      - GENERIC_NAME=Pocket ID
 
-      - OAUTH_AUTO_REDIRECT=generic
+      - PROVIDERS_POCKETID_CLIENT_ID={{ item.sso_client_id }}
+      - PROVIDERS_POCKETID_CLIENT_SECRET={{ item.sso_client_id_secret }}
+      - PROVIDERS_POCKETID_AUTH_URL=https://pocket-id.{{ swarm.domain }}/authorize
+      - PROVIDERS_POCKETID_TOKEN_URL=https://pocket-id.{{ swarm.domain }}/api/oidc/token
+      - PROVIDERS_POCKETID_USER_INFO_URL=https://pocket-id.{{ swarm.domain }}/api/oidc/userinfo
+      - PROVIDERS_POCKETID_SCOPES=openid email profile groups
+      - PROVIDERS_POCKETID_NAME=Pocket ID
+
+      # - GENERIC_CLIENT_ID={{ item.sso_client_id }}
+      # - GENERIC_CLIENT_SECRET={{ item.sso_client_id_secret }}
+      # - GENERIC_AUTH_URL=https://pocket-id.{{ swarm.domain }}/authorize
+      # - GENERIC_TOKEN_URL=https://pocket-id.{{ swarm.domain }}/api/oidc/token
+      # - GENERIC_USER_URL=https://pocket-id.{{ swarm.domain }}/api/oidc/userinfo
+      # - GENERIC_SCOPES=openid email profile groups
+      # - GENERIC_NAME=Pocket ID
+
+      - OAUTH_AUTO_REDIRECT=pocketid
       - DISABLE_CONTINUE=true
     deploy:
       labels:

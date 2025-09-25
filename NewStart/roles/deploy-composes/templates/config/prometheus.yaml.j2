@@ -1,0 +1,22 @@
+---
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'prometheus'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'node_exporter'
+    static_configs:
+{% for host in groups['Monitoring'] %}
+      - targets:
+        {% if host == inventory_hostname %}
+          - '127.0.0.1:9100'
+        {% else %}
+          - '{{ hostvars[host].node_exporter_host }}:9100'
+        {% endif %}       
+        labels:
+          node: '{{ hostvars[host].hostname }}'
+{% endfor %}

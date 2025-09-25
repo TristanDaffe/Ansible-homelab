@@ -1,0 +1,20 @@
+---
+- name: Install fail2ban
+  package:
+    name: fail2ban
+    state: present
+
+- name: Copy fail2ban local configuration
+  template:
+    src: fail2ban.local
+    dest: /etc/fail2ban/jail.d/defaults-debian.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart fail2ban
+
+- name: Ensure fail2ban service is enabled
+  service:
+    name: fail2ban
+    state: started
+    enabled: true

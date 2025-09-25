@@ -1,0 +1,40 @@
+---
+services: 
+
+  prometheus:
+    image: prom/prometheus
+    user: "{{ uid }}:{{ gid }}"
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - "{{ docker.docker_dir}}/volumes/monitoring/prometheus:/etc/prometheus"
+      - "{{ docker.docker_dir}}/volumes/monitoring/prometheus_data:/prometheus"
+    networks:
+      - proxy_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.prometheus.loadbalancer.server.port=9090"
+      - "traefik.http.routers.prometheus.rule=Host(`prometheus.{{ docker.domain }}`)"
+      - "traefik.http.routers.prometheus.entrypoints=web"
+      - "traefik.http.routers.prometheus.entrypoints=websecure"
+
+  loki:
+    image: grafana/loki:latest
+    restart: always
+    command: -config.file=/etc/loki/local-config.yaml
+    ports:
+      - "{{ services_ip }}:3100:3100"
+    volumes:
+      - "{{ docker.docker_dir}}/volumes/loki:/etc/loki"
+    networks:
+      - proxy_network 
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.loki.loadbalancer.server.port=3100"
+      - "traefik.http.routers.loki.rule=Host(`loki.{{ docker.domain }}`)"
+      - "traefik.http.routers.loki.entrypoints=web"
+      - "traefik.http.routers.loki.entrypoints=websecure"
+
+networks:
+  proxy_network:
+    external: true

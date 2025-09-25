@@ -1,0 +1,39 @@
+---
+- name: Get all Docker containers
+  community.docker.docker_host_info:
+    containers: true
+  register: docker_info
+
+- name: Define allowed compose projects
+  ansible.builtin.set_fact:
+    allowed_projects: "{{ docker.composes | map(attribute='name') | list }}"
+
+- name: Build regex pattern for allowed projects
+  ansible.builtin.set_fact:
+    allowed_pattern: "^/?({{ allowed_projects | map('regex_escape') | join('|') }})([-_]|$)"
+
+- name: Split containers into allowed and forbidden based on name prefix
+  ansible.builtin.set_fact:
+    allowed_containers: >-
+      {{
+        docker_info.containers
+        | selectattr('Names', 'defined')
+        | selectattr('Names.0', 'match', allowed_pattern)
+        | map(attribute='Id')
+        | list
+      }}
+    forbidden_containers: >-
+      {{
+        docker_info.containers
+        | selectattr('Names', 'defined')
+        | rejectattr('Names.0', 'match', allowed_pattern)
+        | map(attribute='Id')
+        | list
+      }}
+
+- name: Remove forbidden containers
+  community.docker.docker_container:
+    name: "{{ item }}"
+    state: absent
+  loop: "{{ forbidden_containers }}"
+  when: forbidden_containers | length > 0
