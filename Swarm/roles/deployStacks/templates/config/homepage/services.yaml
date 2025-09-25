@@ -11,6 +11,16 @@
       href: http://ha.{{ local_domain }}
       description: Home Assistant
       ping: http://ha.{{ local_domain }}
+  - mealie: 
+      icon: mealie.png
+      href: https://mealie.{{ swarm.domain }}
+      description: Gestion de recettes
+      ping: https://mealie.{{ swarm.domain }}
+      widget:
+        type: mealie
+        url: https://mealie.{{ swarm.domain }}
+        key: {{ mealie.api_key }}
+        version: 2
 
 - Media-consumption: 
   - Media:
@@ -23,6 +33,7 @@
           type: jellyfin
           url: http://jellyflix.{{ local_domain }}
           key: {{ jellyfin_api }}
+          # enableMediaControl: false
     - Jellyseerr:
         icon: jellyseerr.png
         href: https://jellyseer.{{ swarm.domain }}

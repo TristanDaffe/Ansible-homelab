@@ -1,0 +1,23 @@
+---
+# Docker Maintenance Tasks
+# Run this separately from installation, not on every playbook run!
+
+- name: Remove stopped containers
+  community.docker.docker_prune:
+    containers: yes
+    containers_filters:
+      until: "{{ prune_containers_older_than | default('24h') }}"
+  when: prune_containers | default(false)
+
+- name: Remove unused images
+  community.docker.docker_prune:
+    images: yes
+    images_filters:
+      dangling: false
+      until: "{{ prune_images_older_than | default('168h') }}"  # 7 days
+  when: prune_images | default(false)
+
+- name: Remove unused volumes
+  community.docker.docker_prune:
+    volumes: yes
+  when: prune_volumes | default(false)

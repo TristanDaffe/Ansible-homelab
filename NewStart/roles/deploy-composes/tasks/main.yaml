@@ -1,0 +1,53 @@
+---
+- name: Create the base folders
+  ansible.builtin.file:
+    path: "{{ item }}"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: '0755'
+    state: directory
+  loop:
+    - "{{ docker.docker_dir }}"
+    - "{{ docker.docker_dir }}/compose"
+
+- name: Create compose directories
+  ansible.builtin.file:
+    path: "{{ docker.docker_dir }}/compose/{{ item.name }}"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: '0755'
+    state: directory
+  loop: "{{ docker.composes }}"
+
+- name: Copy the compose files
+  template: 
+    src: "templates/{{ (item.compose | default(item.name + '.yaml')) }}"
+    dest: "{{ docker.docker_dir }}/compose/{{ item.name }}/compose.yaml"
+  loop: "{{ docker.composes }}"
+
+- name: Create networks
+  community.docker.docker_network:
+    name: "{{ item }}"
+    attachable: true
+  loop: "{{ docker.docker_networks }}"
+  when: docker.docker_networks is defined
+
+- name: Configuration for compose
+  include_tasks: compose-config.yaml
+  loop: "{{ docker.composes }}"
+  loop_control:
+    loop_var: compose
+
+- name: Deploy compose compose 
+  community.docker.docker_compose_v2:
+    pull: always
+    remove_orphans: true
+    project_name: "{{ item.name }}"
+    project_src: "{{ docker.docker_dir }}/compose/{{ item.name }}"
+    state: present
+  loop: "{{ docker.composes }}"
+  when: docker.composes is defined
+
+- name: Clean up containers
+  include_tasks: clean-up-containers.yaml
+  # when: docker.cleanup is defined and docker.cleanup

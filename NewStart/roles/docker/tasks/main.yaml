@@ -1,0 +1,127 @@
+---
+- name: Install Docker SDK for Python
+  apt:
+    name: python3-docker
+    state: present
+
+- name: Install prerequisites for Docker
+  apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg
+      - gnupg-agent
+      - lsb-release
+      - software-properties-common
+    state: present
+    update_cache: yes
+
+- name: Create directory for Docker GPG key
+  file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: "0755"
+
+- name: Remove old Docker GPG key (if exists)
+  file:
+    path: /etc/apt/keyrings/docker.gpg
+    state: absent
+
+- name: Remove old Docker repository (if exists)
+  apt_repository:
+    repo: "deb https://download.docker.com/linux/ubuntu bionic stable"
+    state: absent
+  failed_when: false
+
+- name: Remove old Docker repository with GPG key (if exists)
+  apt_repository:
+    repo: "deb [signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+    state: absent
+  failed_when: false
+
+- name: Download Docker GPG key
+  get_url:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    dest: /etc/apt/keyrings/docker.asc
+    mode: '0644'
+
+- name: Add Docker repository
+  apt_repository:
+    repo: "deb [signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+    state: present
+    filename: docker
+
+- name: Install Docker packages
+  apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+    state: present
+    update_cache: yes
+
+- name: Ensure Docker group exists
+  group:
+    name: docker
+    state: present
+
+- name: Add user to docker group
+  user:
+    name: "{{ username }}"
+    groups: docker
+    append: yes
+
+- name: Create Docker configuration directory
+  file:
+    path: /etc/docker
+    state: directory
+    mode: "0755"
+
+- name: Start and enable Docker service
+  service:
+    name: docker
+    state: started
+    enabled: yes
+
+- name: Start and enable containerd service
+  service:
+    name: containerd
+    state: started
+    enabled: yes
+
+- name: Install Docker Compose (standalone - backup method)
+  get_url:
+    url: "https://github.com/docker/compose/releases/download/{{ docker_compose_version | default('v2.24.0') }}/docker-compose-linux-{{ system_arch.stdout }}"
+    dest: /usr/local/bin/docker-compose
+    mode: "0755"
+  when: install_compose_standalone | default(false)
+
+- name: Configure Docker log rotation
+  copy:
+    content: |
+      /var/lib/docker/containers/*/*.log {
+        rotate 7
+        daily
+        compress
+        size=10M
+        missingok
+        delaycompress
+        copytruncate
+      }
+    dest: /etc/logrotate.d/docker-containers
+    mode: "0644"
+
+- name: Verify Docker installation
+  command: docker run --rm hello-world
+  register: docker_test
+  changed_when: false
+  failed_when: docker_test.rc != 0
+
+- name: Display Docker version
+  command: docker --version
+  register: docker_version
+  changed_when: false
+

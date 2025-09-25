@@ -1,0 +1,54 @@
+---
+- name: Create groups
+  group:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - admin
+    - docker
+    - sudo
+
+- name: Create user account
+  user:
+    name: "{{ username }}"
+    groups: "{{ username }},{{ ssh_group }},{{ sudo_group }},docker,sudo"
+    shell: /bin/bash
+    create_home: yes
+    state: present
+
+- name: Add SSH public key for user
+  authorized_key:
+    user: "{{ username }}"
+    key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"    
+    state: present
+
+- name: Allow '{{ sudo_group }}' group to have passwordless sudo
+  lineinfile:
+    path: /etc/sudoers
+    state: present
+    regexp: '^%{{ sudo_group }}'
+    line: '%{{ sudo_group }} ALL=(ALL) NOPASSWD: ALL'
+    validate: '/usr/sbin/visudo -cf %s'
+
+- name: Ensure password authentication is disabled
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^PasswordAuthentication'
+    line: 'PasswordAuthentication no'
+    state: present
+  notify: Restart SSH
+
+- name: Disable root SSH login
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^PermitRootLogin'
+    line: 'PermitRootLogin no'
+    state: present
+  notify: Restart SSH
+
+- name: Restrict SSH access to '{{ ssh_group }}' group
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^AllowGroups'
+    line: 'AllowGroups {{ ssh_group }}'
+  notify: Restart SSH

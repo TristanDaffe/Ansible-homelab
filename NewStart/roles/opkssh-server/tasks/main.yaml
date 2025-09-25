@@ -1,0 +1,44 @@
+---
+- name: Ensure opkssh is installed
+  command: opkssh -v 
+  register: opkssh_version
+  changed_when: false
+  ignore_errors: true
+
+- name: Install opkssh
+  shell: wget -qO- "https://raw.githubusercontent.com/openpubkey/opkssh/main/scripts/install-linux.sh" | bash
+  when: opkssh_version.rc != 0
+
+- name: Update sshd_config lines
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: "^{{ item.key }} "
+    line: "{{ item.line }}"
+    state: present
+    create: yes
+  loop:
+    - { key: 'Include', line: '#Include /etc/ssh/sshd_config.d/*.conf' }
+    - { key: 'AuthorizedKeysCommand', line: 'AuthorizedKeysCommand /usr/local/bin/opkssh verify %u %k %t' }
+    - { key: 'AuthorizedKeysCommandUser', line: 'AuthorizedKeysCommandUser opksshuser' }
+    - { key: 'PubkeyAuthentication', line: 'PubkeyAuthentication yes' }
+    - { key: 'PasswordAuthentication', line: 'PasswordAuthentication no' }
+  notify: Restart SSH
+
+- name: Configure opkssh authentication IDs
+  copy:
+    dest: /etc/opk/auth_id
+    content: |
+      {% for entry in opkssh_users %}
+      {{ entry.username }} {{ entry.email }} {{ entry.provider_url }}
+      {% endfor %}
+    owner: root
+    group: opksshuser 
+    mode: '0640'
+
+- name: Configure opkssh provider_url
+  template:
+    src: providers.j2
+    dest: /etc/opk/providers
+    owner: root
+    group: opksshuser
+    mode: '0640'

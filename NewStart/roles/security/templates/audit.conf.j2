@@ -1,0 +1,4 @@
+log_file = /var/log/audit/audit.log
+log_format = RAW
+max_log_file = {{ audit_log_size | default(50) }}
+max_log_file_action = ROTATE

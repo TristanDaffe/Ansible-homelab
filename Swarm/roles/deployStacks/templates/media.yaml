@@ -11,12 +11,16 @@ services:
       APP_ENV: prod
       UID: "{{ nas.puid }}"
       GID: "{{ nas.pgid }}"
-      CUSTOM_DNS: cloudflare
+      CUSTOM_DNS: google
       USE_DOH: "true"
+      USE_CF_BYPASS: "true"
+      EXT_BYPASSER_URL: http://flaresolverr:8191
+      PRIORITIZE_WELIB: "True"
     volumes:
       - "{{ nas.mount }}/books/downloads:/cwa-book-ingest"
     networks:
       - proxy_network
+      - indexer
     deploy:
       labels:
         - "traefik.enable=true"
@@ -37,12 +41,15 @@ services:
       APP_ENV: prod
       UID: "{{ nas.puid }}"
       GID: "{{ nas.pgid }}"
-      CUSTOM_DNS: cloudflare
+      CUSTOM_DNS: google
       USE_DOH: "true"
+      # EXT_BYPASSER_URL: http://flaresolverr:8191
+      # PRIORITIZE_WELIB: "True"
     volumes:
       - "{{ nas.mount }}/books-maman/downloads:/cwa-book-ingest"
     networks:
       - proxy_network
+      - indexer
     deploy:
       labels:
         - "traefik.enable=true"
@@ -60,6 +67,7 @@ services:
       - TZ="{{ timezone }}"
     volumes:
       - gfs_prowlarr:/config
+      - gfs_custom-indexers:/config/Definitions/Custom
     networks:
       - proxy_network
       - indexer
@@ -78,7 +86,7 @@ services:
     environment:
         - LOG_LEVEL=info
     networks:
-        - indexer
+        - indexer  
 
   jellyseer: 
     image: fallenbagel/jellyseerr:latest 
@@ -174,7 +182,7 @@ services:
       - 6881:6881
       - 6881:6881/udp
     networks:
-      - proxy_network
+      - proxy_network   # Traefik frontend access
     deploy:
       labels:
         - "traefik.enable=true"
@@ -197,6 +205,9 @@ volumes:
   gfs_prowlarr:
     driver: "{{ gluster.gluster_alias }}"
     name: "{{ gluster.volume_name }}/swarm/prowlarr"
+  gfs_custom-indexers:
+    driver: "{{ gluster.gluster_alias }}"
+    name: "{{ gluster.volume_name }}/swarm/custom-indexers"
   gfs_jellyseer:
     driver: "{{ gluster.gluster_alias }}"
     name: "{{ gluster.volume_name }}/swarm/jellyseer"

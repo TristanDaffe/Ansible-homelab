@@ -8,7 +8,7 @@ log:
   level: INFO
 
 providers:
-  swarm:
+  docker:
     endpoint: "unix:///var/run/docker.sock"
     exposedByDefault: false
     network: proxy_network
@@ -22,19 +22,22 @@ entryPoints:
     address: ":443"
     http:
       tls: 
-        certResolver: "{{ swarm.cert_resolver }}"
+        certResolver: "{{ docker.cert_resolver }}"
         domains:
-          - main: "{{ swarm.domain }}"
+          - main: "{{ docker.domain }}"
             sans:
-              - "*.{{ swarm.domain }}"
+              - "*.{{ docker.domain }}"
+  # tailscale:
+  #   address: "{{ services_ip }}:8443"
+  #   http:
+  #     tls: 
+  #       certResolver: "{{ docker.cert_resolver }}"
+  #       domains:
+  #         - main: "{{ docker.domain }}"
+  #           sans:
+  #             - "*.{{ docker.domain }}"
 
 certificatesResolvers:
-  # duckdns:
-  #   acme:
-  #     email: "{{ email }}"
-  #     storage: "/letsencrypt/acme.json"
-  #     dnsChallenge:
-  #       provider: duckdns
   ovh:
     acme:
       email: "{{ email }}"

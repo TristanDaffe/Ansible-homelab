@@ -18,12 +18,13 @@
       when: "'Swarm' in group_names"
 
     - role: glusterfs
-      become: true
+      become: yes
       tags: 
         - GlusterFS
       when: "'Gluster' in group_names"
 
     - role: deployStacks
+      become: yes
       tags: 
         - DeployStacks
       when: "'Leader' in group_names"

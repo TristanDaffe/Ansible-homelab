@@ -1,0 +1,70 @@
+services:
+  mealie:
+    image: ghcr.io/mealie-recipes/mealie:latest
+    volumes:
+      - gfs_mealie:/app/data/
+    environment:
+      # Set Backend ENV Variables Here
+      ALLOW_SIGNUP: "false"
+      PUID: {{ nas.puid }}
+      PGID: {{ nas.pgid }}
+      TZ: "{{ timezone }}"
+      BASE_URL: https://mealie.{{ swarm.domain }}
+      # Database Settings
+      DB_ENGINE: postgres 
+      POSTGRES_USER: {{ mealie.db_user }}
+      POSTGRES_PASSWORD: {{ mealie.db_pass }}
+      POSTGRES_SERVER: meal_postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: {{ mealie.db_name }}
+      # SSO Settings
+      OIDC_AUTH_ENABLED: "true"
+      OIDC_SIGNUP_ENABLED: "true"
+      OIDC_CLIENT_ID: {{ mealie.sso_client_id }}
+      OIDC_CLIENT_SECRET: {{ mealie.sso_client_id_secret }} 
+      OAUTH_PROVIDER_NAME: Pocket ID
+      OIDC_CONFIGURATION_URL: https://pocket-id.{{ swarm.domain }}/.well-known/openid-configuration
+    networks:
+      - proxy_network
+      - meal
+    deploy:
+      resources:
+        limits:
+          memory: 1000M 
+      labels:
+        - "traefik.enable=true"
+        - "traefik.swarm.network=proxy_network" 
+        - "traefik.http.services.mealie.loadbalancer.server.port=9000"
+        - "traefik.http.routers.mealie.rule=Host(`mealie.{{ swarm.domain }}`)"
+        - "traefik.http.routers.mealie.entrypoints=web"
+        - "traefik.http.routers.mealie.entrypoints=websecure"
+
+  postgres:
+    image: postgres:17
+    volumes:
+      - gfs_mealie_pgdata:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: {{ mealie.db_pass }}
+      POSTGRES_USER: {{ mealie.db_user }}
+      PGUSER: {{ mealie.db_user }}
+      POSTGRES_DB: {{ mealie.db_name }}
+    healthcheck:
+      test: ["CMD", "pg_isready"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    networks: 
+      - meal
+
+networks:
+  proxy_network:
+    external: true
+  meal:
+
+volumes:
+  gfs_mealie:
+    driver: "{{ gluster.gluster_alias }}"
+    name: "{{ gluster.volume_name }}/swarm/mealie"
+  gfs_mealie_pgdata:
+    driver: "{{ gluster.gluster_alias }}"
+    name: "{{ gluster.volume_name }}/swarm/mealie-pgdata"

@@ -1,0 +1,30 @@
+
+services: 
+  n8n:
+    image: docker.n8n.io/n8nio/n8n
+    restart: always
+    networks: 
+      - proxy_network
+    labels:
+        - "traefik.enable=true"
+        - "traefik.http.services.n8n.loadbalancer.server.port=5678"
+        - "traefik.http.routers.n8n.rule=Host(`n8n.{{ docker.domain }}`)"
+        - "traefik.http.routers.n8n.entrypoints=web"
+        - "traefik.http.routers.n8n.entrypoints=websecure"
+    environment:
+      - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
+      - N8N_HOST=n8n.{{ docker.domain }}
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=https
+      - N8N_RUNNERS_ENABLED=true
+      - NODE_ENV=production
+      - WEBHOOK_URL=https://n8n.{{ docker.domain }}/
+      - GENERIC_TIMEZONE={{ timezone }}
+      - TZ={{ timezone }}
+    volumes:
+      - "{{ docker.docker_dir }}/volumes/n8n:/home/node/.n8n"
+      - "{{ docker.docker_dir }}/volumes/n8n/files:/files"
+
+networks:
+  proxy_network:
+    external: true

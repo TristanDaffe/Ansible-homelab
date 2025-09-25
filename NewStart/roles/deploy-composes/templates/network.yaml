@@ -1,0 +1,37 @@
+services:
+
+  traefik:
+    image: traefik:latest
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    command:
+      - "--configFile=/letsencrypt/traefik.yaml"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - "{{ docker.docker_dir }}/volumes/letsencrypt:/letsencrypt"
+    networks:
+      - proxy_network
+    environment:
+      - "TZ={{ timezone }}"
+      - "OVH_ENDPOINT=ovh-eu"
+      - "OVH_APPLICATION_KEY={{ ovh.application_key }}"
+      - "OVH_APPLICATION_SECRET={{ ovh.application_secret }}"
+      - "OVH_CONSUMER_KEY={{ ovh.consumer_key }}"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.dummy-svc.loadbalancer.server.port=9999"
+      # Public dashboard route (protected)
+      - "traefik.http.routers.traefik.rule=Host(`traefik.{{ hostname }}.{{ docker.domain }}`)"
+      - "traefik.http.routers.traefik.entrypoints=websecure"
+      - "traefik.http.routers.traefik.service=api@internal"
+
+      # Internal service for API (unprotected, only for the internal network)
+      - "traefik.http.routers.api-internal.rule=PathPrefix(`/api`)"
+      - "traefik.http.routers.api-internal.entrypoints=internal"
+      - "traefik.http.routers.api-internal.service=api@internal"
+
+networks:
+  proxy_network:
+    external: true

@@ -1,0 +1,14 @@
+---
+- name: Apply netplan config
+  command:
+    cmd: netplan apply
+
+- name: Restart SSH
+  service:
+    name: ssh
+    state: restarted
+
+- name: Restart fail2ban
+  service:
+    name: fail2ban
+    state: restarted

@@ -1,0 +1,44 @@
+---
+- hosts: all 
+
+  roles: 
+    - role: Security
+      become: yes
+      tags: 
+        - Security
+    
+    - role: Opkssh-server
+      become: yes
+      tags:
+        - Opkssh-server 
+
+    - role: Tailscale
+      become: yes
+      tags:
+        - Tailscale 
+        
+    - role: Monitoring
+      become: yes
+      tags:
+        - Monitoring
+      when: "'Monitoring' in groups"
+
+    - role: Docker
+      become: yes
+      tags: 
+        - Docker
+
+    - role: Deploy-composes
+      become: yes
+      tags:
+        - Deploy-composes
+
+    - role: Recap
+      become: yes
+      tags:
+        - Recap
+
+    - role: docker-maintenance
+      become: yes
+      tags: 
+        - Docker-maintenance
