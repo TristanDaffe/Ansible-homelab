@@ -8,6 +8,11 @@
     - docker
     - sudo
 
+- name: Ensure primary group exists
+  ansible.builtin.group:
+    name: "{{ username }}"
+    state: present
+
 - name: Create user account
   user:
     name: "{{ username }}"

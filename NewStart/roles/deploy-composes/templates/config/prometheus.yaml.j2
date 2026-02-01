@@ -18,5 +18,5 @@ scrape_configs:
           - '{{ hostvars[host].node_exporter_host }}:9100'
         {% endif %}       
         labels:
-          node: '{{ hostvars[host].hostname }}'
+          node: '{{ hostvars[host].ansible_hostname }}'
 {% endfor %}

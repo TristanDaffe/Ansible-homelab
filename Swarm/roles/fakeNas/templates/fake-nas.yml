@@ -26,13 +26,14 @@ services:
       - "PUID={{ nas.puid }}"
       - "PGID={{ nas.pgid }}"
       - "TZ={{ timezone }}" 
+      - NETWORK_SHARE_MODE=true
     volumes:
       - "{{ fake.docker_dir }}/calibre-web/config:/config"
       - "{{ fake.nas_mount }}/books/librairy:/calibre-library"
       - "{{ fake.nas_mount }}/books/downloads:/cwa-book-ingest"
     restart: unless-stopped
     ports:
-      - 8083:80
+      - 8083:8083
 
   calibre-web-automated-2:
     image: crocodilestick/calibre-web-automated:latest
@@ -41,6 +42,7 @@ services:
       - "PUID={{ nas.puid }}"
       - "PGID={{ nas.pgid }}"
       - "TZ={{ timezone }}" 
+      - NETWORK_SHARE_MODE=true
     volumes:
       - "{{ fake.docker_dir }}/calibre-web-2/config:/config"
       - "{{ fake.nas_mount }}/books-maman/librairy:/calibre-library"

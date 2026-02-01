@@ -1,0 +1,127 @@
+---
+
+- name: Create LXC container
+  community.proxmox.proxmox:
+    api_host: "{{ proxmox_api_host }}"
+    api_user: "{{ proxmox_api_user | default('root@pam') }}"
+    api_password: "{{ proxmox_api_password }}"
+    api_token_id: "{{ proxmox_api_token_id }}"
+    api_token_secret: "{{ proxmox_api_token_secret }}"
+    validate_certs: false
+    node: "{{ proxmox_node }}"
+
+    vmid: "{{ ct.ctid }}"
+    hostname: "{{ ct.hostname }}"
+    ostemplate: "local:vztmpl/{{ ubuntu_lxc_template }}"
+    cores: "{{ ct.cores | default(1) }}"
+    memory: "{{ ct.memory | default(1024) }}"
+    swap: 0
+    disk: "{{ proxmox_storage }}:{{ ct.rootfs_gb | default(8) }}"
+    password: "{{ clear_pass | default('ChangeMe123!') }}"
+    pubkey: "{{ ssh_public_key | default(omit) }}"
+    unprivileged: "{{ not (ct.privileged | default(false)) }}"
+    features: "{{ ct.features | default(lxc_features | default(omit)) }}"
+    mounts: "{{ ct.mounts | default(lxc_mounts | default(omit)) }}"
+
+    onboot: "{{ ct.autostart | default(omit) }}"
+    startup: "{{ ct.startup | default(omit) }}"
+    state: present
+    netif:
+      net0: "name=eth0,bridge={{ proxmox_bridge | default('vmbr0') }},type=veth,link_down=0,{{ 'ip=dhcp' if ct.ipconfig == 'dhcp' else 'ip=' ~ ct.ipconfig }}"
+  delegate_to: localhost
+  become: false
+  register: container
+
+- name: Ensure Docker-friendly LXC config
+  block:
+    - name: Ensure Docker-friendly LXC config (AppArmor unconfined)
+      ansible.builtin.lineinfile:
+        path: "/etc/pve/lxc/{{ ct.ctid }}.conf"
+        regexp: "^lxc.apparmor.profile: unconfined$"
+        line: "lxc.apparmor.profile: unconfined"
+        insertafter: EOF
+
+    - name: Ensure Docker-friendly LXC config (allow all devices)
+      ansible.builtin.lineinfile:
+        path: "/etc/pve/lxc/{{ ct.ctid }}.conf"
+        regexp: "^lxc.cgroup2.devices.allow: a$"
+        line: "lxc.cgroup2.devices.allow: a"
+        insertafter: EOF
+
+    - name: Ensure Docker-friendly LXC config (no capabilities drop)
+      ansible.builtin.lineinfile:
+        path: "/etc/pve/lxc/{{ ct.ctid }}.conf"
+        regexp: "^lxc.cap.drop:\\s*$"
+        line: "lxc.cap.drop:"
+        insertafter: EOF
+  when: ct.privileged | default(false)
+  become: true
+
+- name: Ensure Docker sysctl settings for unprivileged LXC
+  ansible.builtin.lineinfile:
+    path: "/etc/pve/lxc/{{ ct.ctid }}.conf"
+    regexp: "^lxc.sysctl.net.ipv4.ip_unprivileged_port_start=0$"
+    line: "lxc.sysctl.net.ipv4.ip_unprivileged_port_start=0"
+    insertafter: EOF
+  when: not (ct.privileged | default(false))
+
+- name: Allow TUN device in container (cgroup2)
+  ansible.builtin.lineinfile:
+    path: "/etc/pve/lxc/{{ ct.ctid }}.conf"
+    regexp: "^lxc.cgroup2.devices.allow: c 10:200 rwm$"
+    line: "lxc.cgroup2.devices.allow: c 10:200 rwm"
+    insertafter: EOF
+  when: ct.enable_tun | default(false)
+
+- name: Bind-mount /dev/net/tun into container
+  ansible.builtin.lineinfile:
+    path: "/etc/pve/lxc/{{ ct.ctid }}.conf"
+    regexp: "^lxc.mount.entry: /dev/net/tun dev/net/tun none bind,create=file$"
+    line: "lxc.mount.entry: /dev/net/tun dev/net/tun none bind,create=file"
+    insertafter: EOF
+  when: ct.enable_tun | default(false)
+
+# TO IMPROVE
+# need to configure the host before being able to pass the igpu (see obsidian note)
+
+# - name: Allow iGPU devices in container (cgroup2)
+#   ansible.builtin.lineinfile:
+#     path: "/etc/pve/lxc/{{ ct.ctid }}.conf"
+#     regexp: "^lxc.cgroup2.devices.allow: c 226:\\* rwm$"
+#     line: "lxc.cgroup2.devices.allow: c 226:* rwm"
+#     insertafter: EOF
+#   when: enable_igpu | bool
+
+# - name: Bind-mount /dev/dri into container
+#   ansible.builtin.lineinfile:
+#     path: "/etc/pve/lxc/{{ ct.ctid }}.conf"
+#     regexp: "^lxc.mount.entry: /dev/dri dev/dri none bind,create=dir$"
+#     line: "lxc.mount.entry: /dev/dri dev/dri none bind,create=dir"
+#     insertafter: EOF
+#   when: enable_igpu | bool
+
+- name: Start LXC container
+  community.proxmox.proxmox:
+    api_host: "{{ proxmox_api_host | default(hostvars[proxmox_node].ansible_host | default(proxmox_node)) }}"
+    api_user: "{{ proxmox_api_user | default('root@pam') }}"
+    api_password: "{{ proxmox_api_password | default(lookup('env','PROXMOX_PASSWORD')) }}"
+    api_token_id: "{{ proxmox_api_token_id | default(omit) }}"
+    api_token_secret: "{{ proxmox_api_token_secret | default(omit) }}"
+    validate_certs: false
+    vmid: "{{ ct.ctid }}"
+    node: "{{ proxmox_node }}"
+    state: started
+  delegate_to: localhost
+  become: false 
+
+- name: Downgrade and hold containerd.io in LXC
+  block:
+    - name: Install pinned containerd.io version
+      ansible.builtin.command: >-
+        pct exec {{ ct.ctid }} -- bash -lc
+        "apt-get update && apt-get install -y --allow-downgrades containerd.io={{ containerd_io_version }}"
+
+    - name: Hold containerd.io package
+      ansible.builtin.command: >-
+        pct exec {{ ct.ctid }} -- bash -lc "apt-mark hold containerd.io"
+  when: containerd_io_version is defined

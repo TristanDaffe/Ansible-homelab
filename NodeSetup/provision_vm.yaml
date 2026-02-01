@@ -1,0 +1,56 @@
+---
+
+- name: Create VM from Ubuntu cloud image
+  community.proxmox.proxmox_kvm:
+    api_host: "{{ proxmox_api_host }}"
+    api_user: "{{ proxmox_api_user | default('root@pam') }}"
+    api_password: "{{ proxmox_api_password | default(omit) }}"
+    api_token_id: "{{ proxmox_api_token_id | default(omit) }}"
+    api_token_secret: "{{ proxmox_api_token_secret | default(omit) }}"
+    validate_certs: false
+    node: "{{ proxmox_node }}"
+    vmid: "{{ vm.vmid }}"
+
+    name: "{{ vm.name }}"
+    memory: "{{ vm.memory | default(2048) }}"
+    cores: "{{ vm.cores | default(2) }}"
+    keyboard: "{{ keyboard_layout | default(omit) }}"
+    scsihw: virtio-scsi-pci
+    net:
+      net0: "virtio,bridge={{ proxmox_bridge | default('vmbr0') }}"
+    ipconfig:
+      ipconfig0: "{{ vm.ipconfig0 | default(omit) }}"
+    ciuser: "{{ vm.ciuser | default(omit) }}"
+    cipassword: "{{ vm.cipassword | default(clear_pass | default(omit)) }}"
+    sshkeys: "{{ ssh_public_key | default(omit) }}"
+    onboot: "{{ vm.autostart | default(omit) }}" 
+    agent: enabled=1
+    ide:
+      ide2: "{{ proxmox_storage | default(proxmox_snippets_storage) }}:cloudinit,format=raw"
+    scsi:
+      scsi0: "{{ vm.storage | default(proxmox_storage | default('local-lvm')) }}:0,import-from=/var/lib/vz/template/iso/{{ ubuntu_cloudimg_filename }}"
+    boot: "order=scsi0;ide2"
+    state: present
+  delegate_to: localhost
+  become: false
+  register: created_vm
+
+- name: Resize VM disk before start
+  ansible.builtin.command: "qm resize {{ vm.vmid }} scsi0 {{ vm.disk_gb }}G"
+  changed_when: true
+  when: vm.disk_gb is defined
+  become: true
+
+- name: Start VM
+  community.proxmox.proxmox_kvm:
+    api_host: "{{ proxmox_api_host }}"
+    api_user: "{{ proxmox_api_user | default('root@pam') }}"
+    api_password: "{{ proxmox_api_password | default(omit) }}"
+    api_token_id: "{{ proxmox_api_token_id | default(omit) }}"
+    api_token_secret: "{{ proxmox_api_token_secret | default(omit) }}"
+    validate_certs: false
+    node: "{{ proxmox_node }}"
+    vmid: "{{ vm.vmid }}"
+    state: started
+  delegate_to: localhost
+  become: false

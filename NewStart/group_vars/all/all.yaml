@@ -42,6 +42,14 @@ docker:
   cert_resolver: "ovh"
   docker_networks:
     - proxy_network
+  composes: 
+    - name: traefik
+      compose: network.yaml
+      volumes:
+        - letsencrypt
+      config:
+        - file: traefik.yaml
+          dst: letsencrypt/traefik.yaml
 
 #######################
 # Monitoring

@@ -1,5 +1,5 @@
 ---
-- name: Provision VMs on Proxmox
+- name: Configure Proxmox host and provision VMs and LXC containers 
   hosts: proxmox
   become: true
   gather_facts: false
@@ -14,6 +14,15 @@
       when: ssh_public_key is not defined
 
   tasks:
+    - name: Install powertop
+      package:
+        name: powertop
+        state: present
+
+    - name: Autotune powertop
+      ansible.builtin.command: powertop --auto-tune
+      changed_when: false
+
     - name: Ensure ISO template directory exists
       file:
         path: /var/lib/vz/template/iso
@@ -25,6 +34,23 @@
         path: /var/lib/vz/snippets
         state: directory
         mode: '0755'
+
+    - name: Ensure LXC template cache directory exists
+      file:
+        path: /var/lib/vz/template/cache
+        state: directory
+        mode: '0755'
+
+    - name: Check if Ubuntu LXC template is present
+      stat:
+        path: "/var/lib/vz/template/cache/{{ ubuntu_lxc_template }}"
+      register: lxc_template_stat
+
+    - name: Download Ubuntu LXC template
+      ansible.builtin.command: "pveam download local {{ ubuntu_lxc_template }}"
+      args:
+        creates: /var/lib/vz/template/cache/{{ ubuntu_lxc_template }}
+      when: not lxc_template_stat.stat.exists
 
     - name: Check if Ubuntu cloud image is present
       stat:
@@ -40,8 +66,15 @@
       when: not cloudimg_stat.stat.exists
 
     - name: Provision each VM
-      include_tasks: provision_vm.yml
+      include_tasks: provision_vm.yaml
       loop: "{{ vms }}"
       loop_control:
         loop_var: vm
         label: "{{ vm.name }}"
+
+    - name: Provision each LXC container
+      include_tasks: provision_lxc.yaml
+      loop: "{{ lxc_containers | default([]) }}"
+      loop_control:
+        loop_var: ct
+        label: "{{ ct.hostname }}"

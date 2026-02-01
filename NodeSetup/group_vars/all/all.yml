@@ -15,25 +15,68 @@ proxmox_bridge: vmbr0
 proxmox_snippets_storage: local
 
 # Keyboard layout to configure via cloud-init
-keyboard_layout: be-latin1
+keyboard_layout: fr-be
 
 # Ubuntu LTS cloud image URL (24.04 default; change as desired)
 ubuntu_lts_image_url: "https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img"
 
+# Ubuntu LTS LXC template name (must exist in `pveam available`)
+ubuntu_lxc_template: "ubuntu-24.04-standard_24.04-2_amd64.tar.zst"
+
+# Containerd.io version to pin inside LXC containers (Docker workaround)
+containerd_io_version: "1.7.28-1~ubuntu.24.04~noble"
+
+# Optional LXC features to enable (e.g., ['nesting=1'])
+lxc_features:
+  - keyctl=1
+  - nesting=1
+
+# Optional LXC mount points (mp0, mp1, ...)
+# lxc_mounts:
+#   mp0: "local-lvm:8,mp=/mnt/data"
+
 # VM definitions
 vms:
-  - name: demo-vm-1
+  - name: docker-2
     vmid: 101
-    memory: 2048
+    memory: 4096
     cores: 2
-    disk_gb: 20
-    ciuser: ubuntu
-    ipconfig0: dhcp  # or "ip=192.168.1.50/24,gw=192.168.1.1"
+    disk_gb: 32
+    ciuser: susu 
+    autostart: true
+    ipconfig0: ip=192.168.129.124/23,gw=192.168.128.1
 
-  - name: demo-vm-2
+  - name: docker-test 
     vmid: 102
     memory: 4096
     cores: 2
-    disk_gb: 30
-    ciuser: ubuntu
-    ipconfig0: dhcp
+    disk_gb: 32
+    ciuser: susu 
+    autostart: true
+    ipconfig0: ip=192.168.129.125/23,gw=192.168.128.1
+
+# LXC containers (Ubuntu LTS)
+lxc_containers:
+  - hostname: demo-ct-1
+    ctid: 201
+    memory: 1024
+    cores: 1
+    rootfs_gb: 16
+    ipconfig: "192.168.129.126/23,gw=192.168.128.1"
+    privileged: false   
+    autostart: false
+    enable_tun: true
+    enable_igpu: false
+
+  - hostname: demo-ct-2
+    ctid: 202
+    memory: 2048
+    cores: 2
+    rootfs_gb: 16
+    ipconfig: "192.168.129.123/23,gw=192.168.128.1"
+    privileged: true
+    autostart: true
+    features:
+      - nesting=1
+    enable_tun: true
+    enable_igpu: true
