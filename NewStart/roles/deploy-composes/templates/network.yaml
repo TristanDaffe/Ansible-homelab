@@ -23,7 +23,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.services.dummy-svc.loadbalancer.server.port=9999"
       # Public dashboard route (protected)
-      - "traefik.http.routers.traefik.rule=Host(`traefik.{{ hostname }}.{{ docker.domain }}`)"
+      - "traefik.http.routers.traefik.rule=Host(`traefik.{{ ansible_hostname }}.{{ docker.domain }}`)"
       - "traefik.http.routers.traefik.entrypoints=websecure"
       - "traefik.http.routers.traefik.service=api@internal"
 

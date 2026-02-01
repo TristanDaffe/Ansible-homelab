@@ -11,7 +11,8 @@ hideVersion: true
 disableCollapse: true
 
 background:
-  image: https://images.unsplash.com/photo-1740568439805-b610a1115fc3?q=80&w=3264&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D?auto=format&fit=crop&w=2560&q=80
+  # image: https://images.unsplash.com/photo-1740568439805-b610a1115fc3?q=80&w=3264&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D?auto=format&fit=crop&w=2560&q=80
+  image: https://images.unsplash.com/photo-1769863467291-23cf7902f686?q=80&w=1064&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D
   blur: sm
   saturate: 50
   brightness: 50

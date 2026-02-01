@@ -15,7 +15,7 @@
         - targets:
             - localhost
           labels:
-            host: "{{ hostname }}"
+            host: "{{ ansible_hostname }}"
             job: varlogs
             __path__: /var/log/*.log
     - job_name: docker_log_scrape
