@@ -65,6 +65,44 @@
         force: true
       when: not cloudimg_stat.stat.exists
 
+    - name: Identify unprivileged LXCs requiring iGPU passthrough
+      ansible.builtin.set_fact:
+        igpu_lxcs: >-
+          {{ lxc_containers | default([])
+             | selectattr('enable_igpu', 'equalto', true)
+             | rejectattr('privileged', 'equalto', true)
+             | list }}
+
+    - name: Configure Proxmox host for iGPU LXC passthrough
+      when: igpu_lxcs | length > 0
+      block:
+        - name: Get video group GID
+          ansible.builtin.command: getent group video
+          register: video_group_entry
+          changed_when: false
+
+        - name: Get render group GID
+          ansible.builtin.command: getent group render
+          register: render_group_entry
+          changed_when: false
+
+        - name: Set iGPU GID facts
+          ansible.builtin.set_fact:
+            igpu_video_gid: "{{ video_group_entry.stdout.split(':')[2] | int }}"
+            igpu_render_gid: "{{ render_group_entry.stdout.split(':')[2] | int }}"
+
+        - name: Allow root to map video group GID into unprivileged LXC
+          ansible.builtin.lineinfile:
+            path: /etc/subgid
+            line: "root:{{ igpu_video_gid }}:1"
+            regexp: "^root:{{ igpu_video_gid }}:"
+
+        - name: Allow root to map render group GID into unprivileged LXC
+          ansible.builtin.lineinfile:
+            path: /etc/subgid
+            line: "root:{{ igpu_render_gid }}:1"
+            regexp: "^root:{{ igpu_render_gid }}:"
+
     - name: Provision each VM
       include_tasks: provision_vm.yaml
       loop: "{{ vms }}"

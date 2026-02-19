@@ -33,6 +33,8 @@
   register: container
 
 - name: Ensure Docker-friendly LXC config
+  when: ct.privileged | default(false)
+  become: true
   block:
     - name: Ensure Docker-friendly LXC config (AppArmor unconfined)
       ansible.builtin.lineinfile:
@@ -54,51 +56,55 @@
         regexp: "^lxc.cap.drop:\\s*$"
         line: "lxc.cap.drop:"
         insertafter: EOF
-  when: ct.privileged | default(false)
-  become: true
 
-- name: Ensure Docker sysctl settings for unprivileged LXC
-  ansible.builtin.lineinfile:
-    path: "/etc/pve/lxc/{{ ct.ctid }}.conf"
-    regexp: "^lxc.sysctl.net.ipv4.ip_unprivileged_port_start=0$"
-    line: "lxc.sysctl.net.ipv4.ip_unprivileged_port_start=0"
-    insertafter: EOF
-  when: not (ct.privileged | default(false))
-
-- name: Allow TUN device in container (cgroup2)
-  ansible.builtin.lineinfile:
-    path: "/etc/pve/lxc/{{ ct.ctid }}.conf"
-    regexp: "^lxc.cgroup2.devices.allow: c 10:200 rwm$"
-    line: "lxc.cgroup2.devices.allow: c 10:200 rwm"
-    insertafter: EOF
+- name: Configure TUN device passthrough
   when: ct.enable_tun | default(false)
+  block:
+    - name: Allow TUN device in container (cgroup2)
+      ansible.builtin.lineinfile:
+        path: "/etc/pve/lxc/{{ ct.ctid }}.conf"
+        regexp: "^lxc.cgroup2.devices.allow: c 10:200 rwm$"
+        line: "lxc.cgroup2.devices.allow: c 10:200 rwm"
+        insertafter: EOF
 
-- name: Bind-mount /dev/net/tun into container
-  ansible.builtin.lineinfile:
-    path: "/etc/pve/lxc/{{ ct.ctid }}.conf"
-    regexp: "^lxc.mount.entry: /dev/net/tun dev/net/tun none bind,create=file$"
-    line: "lxc.mount.entry: /dev/net/tun dev/net/tun none bind,create=file"
-    insertafter: EOF
-  when: ct.enable_tun | default(false)
+    - name: Bind-mount /dev/net/tun into container
+      ansible.builtin.lineinfile:
+        path: "/etc/pve/lxc/{{ ct.ctid }}.conf"
+        regexp: "^lxc.mount.entry: /dev/net/tun dev/net/tun none bind,create=file$"
+        line: "lxc.mount.entry: /dev/net/tun dev/net/tun none bind,create=file"
+        insertafter: EOF
 
-# TO IMPROVE
-# need to configure the host before being able to pass the igpu (see obsidian note)
+- name: Configure Intel iGPU passthrough for unprivileged LXC
+  when: (ct.enable_igpu | default(false)) and not (ct.privileged | default(false))
+  block:
+    - name: Allow DRM device class in cgroup2
+      ansible.builtin.lineinfile:
+        path: "/etc/pve/lxc/{{ ct.ctid }}.conf"
+        regexp: "^lxc.cgroup2.devices.allow: c 226:"
+        line: "lxc.cgroup2.devices.allow: c 226:* rwm"
+        insertafter: EOF
 
-# - name: Allow iGPU devices in container (cgroup2)
-#   ansible.builtin.lineinfile:
-#     path: "/etc/pve/lxc/{{ ct.ctid }}.conf"
-#     regexp: "^lxc.cgroup2.devices.allow: c 226:\\* rwm$"
-#     line: "lxc.cgroup2.devices.allow: c 226:* rwm"
-#     insertafter: EOF
-#   when: enable_igpu | bool
+    - name: Bind-mount /dev/dri into container
+      ansible.builtin.lineinfile:
+        path: "/etc/pve/lxc/{{ ct.ctid }}.conf"
+        regexp: "^lxc.mount.entry: /dev/dri "
+        line: "lxc.mount.entry: /dev/dri dev/dri none bind,create=dir"
+        insertafter: EOF
 
-# - name: Bind-mount /dev/dri into container
-#   ansible.builtin.lineinfile:
-#     path: "/etc/pve/lxc/{{ ct.ctid }}.conf"
-#     regexp: "^lxc.mount.entry: /dev/dri dev/dri none bind,create=dir$"
-#     line: "lxc.mount.entry: /dev/dri dev/dri none bind,create=dir"
-#     insertafter: EOF
-#   when: enable_igpu | bool
+    # Punch holes in the GID mapping so that the host's video (44) and render (104)
+    # groups map directly into the container instead of being offset to 100000+.
+    # This makes /dev/dri device ownership work correctly inside the container.
+    - name: Set UID/GID idmap to pass through video and render groups
+      ansible.builtin.blockinfile:
+        path: "/etc/pve/lxc/{{ ct.ctid }}.conf"
+        marker: "# {mark} ANSIBLE MANAGED: iGPU idmap"
+        block: |
+          lxc.idmap: u 0 100000 65536
+          lxc.idmap: g 0 100000 {{ igpu_video_gid }}
+          lxc.idmap: g {{ igpu_video_gid }} {{ igpu_video_gid }} 1
+          lxc.idmap: g {{ igpu_video_gid + 1 }} {{ igpu_video_gid + 100001 }} {{ igpu_render_gid - igpu_video_gid - 1 }}
+          lxc.idmap: g {{ igpu_render_gid }} {{ igpu_render_gid }} 1
+          lxc.idmap: g {{ igpu_render_gid + 1 }} {{ igpu_render_gid + 100001 }} {{ 65535 - igpu_render_gid }}
 
 - name: Start LXC container
   community.proxmox.proxmox:
@@ -114,14 +120,3 @@
   delegate_to: localhost
   become: false 
 
-- name: Downgrade and hold containerd.io in LXC
-  block:
-    - name: Install pinned containerd.io version
-      ansible.builtin.command: >-
-        pct exec {{ ct.ctid }} -- bash -lc
-        "apt-get update && apt-get install -y --allow-downgrades containerd.io={{ containerd_io_version }}"
-
-    - name: Hold containerd.io package
-      ansible.builtin.command: >-
-        pct exec {{ ct.ctid }} -- bash -lc "apt-mark hold containerd.io"
-  when: containerd_io_version is defined

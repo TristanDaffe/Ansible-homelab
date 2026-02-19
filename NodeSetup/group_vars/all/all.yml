@@ -23,9 +23,6 @@ ubuntu_lts_image_url: "https://cloud-images.ubuntu.com/noble/current/noble-serve
 # Ubuntu LTS LXC template name (must exist in `pveam available`)
 ubuntu_lxc_template: "ubuntu-24.04-standard_24.04-2_amd64.tar.zst"
 
-# Containerd.io version to pin inside LXC containers (Docker workaround)
-containerd_io_version: "1.7.28-1~ubuntu.24.04~noble"
-
 # Optional LXC features to enable (e.g., ['nesting=1'])
 lxc_features:
   - keyctl=1
@@ -74,7 +71,7 @@ lxc_containers:
     cores: 2
     rootfs_gb: 16
     ipconfig: "192.168.129.123/23,gw=192.168.128.1"
-    privileged: true
+    privileged: false  
     autostart: true
     features:
       - nesting=1
