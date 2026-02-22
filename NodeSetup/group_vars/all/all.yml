@@ -34,17 +34,8 @@ lxc_features:
 
 # VM definitions
 vms:
-  - name: docker-2
-    vmid: 101
-    memory: 4096
-    cores: 2
-    disk_gb: 32
-    ciuser: susu 
-    autostart: true
-    ipconfig0: ip=192.168.129.124/23,gw=192.168.128.1
-
-  - name: docker-test 
-    vmid: 102
+  - name: master
+    vmid: 125
     memory: 4096
     cores: 2
     disk_gb: 32
@@ -54,26 +45,28 @@ vms:
 
 # LXC containers (Ubuntu LTS)
 lxc_containers:
-  - hostname: demo-ct-1
-    ctid: 201
-    memory: 1024
-    cores: 1
-    rootfs_gb: 16
-    ipconfig: "192.168.129.126/23,gw=192.168.128.1"
-    privileged: false   
-    autostart: false
-    enable_tun: true
-    enable_igpu: false
-
-  - hostname: demo-ct-2
-    ctid: 202
-    memory: 2048
+  - hostname: media
+    ctid: 223
+    memory: 4096
     cores: 2
     rootfs_gb: 16
     ipconfig: "192.168.129.123/23,gw=192.168.128.1"
+    privileged: false   
+    autostart: true 
+    features:
+      - nesting=1
+    enable_tun: true
+    enable_igpu: true 
+
+  - hostname: tools
+    ctid: 224
+    memory: 2048
+    cores: 2
+    rootfs_gb: 16
+    ipconfig: "192.168.129.124/23,gw=192.168.128.1"
     privileged: false  
     autostart: true
     features:
       - nesting=1
     enable_tun: true
-    enable_igpu: true
+    enable_igpu: false 

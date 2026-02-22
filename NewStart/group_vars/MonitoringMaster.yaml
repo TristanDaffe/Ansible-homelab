@@ -1,3 +1,44 @@
 ---
 
+hostname: master
+tailscale_ip: 100.118.178.83 # fill in after first Tailscale provisioning
+
+uid: 1000
+gid: 1002
+
+#######################
+# Docker
+#######################
+
+docker:
+  docker_dir: "/docker"
+  domain: monitoring.dev.autostack.ovh
+  cert_resolver: "ovh"
+  docker_networks:
+    - proxy_network
+  composes:
+    - name: traefik
+      compose: network.yaml
+      volumes:
+        - letsencrypt
+      config:
+        - file: traefik.yaml
+          dst: letsencrypt/traefik.yaml
+    - name: monitoring
+      compose: monitoring.yaml
+      volumes:
+        - monitoring/prometheus
+        - monitoring/prometheus_data
+        - loki
+      config:
+        - file: prometheus.yaml.j2
+          dst: monitoring/prometheus/prometheus.yml
+        - file: loki.yaml
+          dst: loki/local-config.yaml
+    - name: urbackup
+      compose: urbackup.yaml
+      volumes:
+        - urbackup/db
+        - urbackup/backups
+
 master_ip: "{{ services_ip }}"

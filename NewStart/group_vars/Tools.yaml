@@ -1,0 +1,27 @@
+---
+
+hostname: tools
+tailscale_ip: 100.108.212.65  # fill in after first Tailscale provisioning
+
+#######################
+# Docker
+#######################
+
+docker:
+  docker_dir: "/docker"
+  domain: tools.dev.autostack.ovh
+  cert_resolver: "ovh"
+  docker_networks:
+    - proxy_network
+  composes:
+    - name: traefik
+      compose: network.yaml
+      volumes:
+        - letsencrypt
+      config:
+        - file: traefik.yaml
+          dst: letsencrypt/traefik.yaml
+    - name: urbackup-client
+      compose: slave-containers.yaml
+      volumes:
+        - urbackup-client

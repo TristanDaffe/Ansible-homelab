@@ -1,0 +1,24 @@
+services:
+
+  urbackup:
+    image: uroni/urbackup-server:latest
+    restart: always
+    ports:
+      - "{{ services_ip }}:55413:55413"
+      - "{{ services_ip }}:55415:55415"
+    networks:
+      - proxy_network
+    environment:
+      - TZ={{ timezone }}
+    volumes:
+      - "{{ docker.docker_dir }}/volumes/urbackup/db:/var/urbackup"
+      - "{{ docker.docker_dir }}/backups:/backups"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.urbackup.loadbalancer.server.port=55414"
+      - "traefik.http.routers.urbackup.rule=Host(`backup.{{ docker.domain }}`)"
+      - "traefik.http.routers.urbackup.entrypoints=websecure"
+
+networks:
+  proxy_network:
+    external: true

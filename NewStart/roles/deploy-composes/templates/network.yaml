@@ -32,6 +32,17 @@ services:
       - "traefik.http.routers.api-internal.entrypoints=internal"
       - "traefik.http.routers.api-internal.service=api@internal"
 
+  whoami:
+    image: "traefik/whoami"
+    restart: always
+    networks:
+      - proxy_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.whoami.loadbalancer.server.port=80"
+      - "traefik.http.routers.whoami.rule=Host(`whoami.{{ docker.domain }}`)"
+      - "traefik.http.routers.whoami.entrypoints=web,websecure"
+
 networks:
   proxy_network:
     external: true

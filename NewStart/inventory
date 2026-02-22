@@ -1,27 +1,27 @@
-[Node1]
-192.168.129.124
-
-[Node2]
-
-[Lxc]
-192.168.129.126
-192.168.129.123
-
-[Vm]
-192.168.129.124
+[MonitoringMaster]
 192.168.129.125
 
+[Tools]
+192.168.129.124
+
+[Media]
+192.168.129.123
+
+[Vm:children]
+MonitoringMaster
+
+[Lxc:children]
+Tools
+Media
+
 [docker_hosts:children]
-Vm
-Lxc
+Tools
+Media
+MonitoringMaster
 
 [Monitoring:children]
-MonitoringMaster
 Vm
 Lxc
-
-[MonitoringMaster:children]
-Node1
 
 [Tailscale:children]
 Vm
@@ -31,4 +31,4 @@ Lxc
 ansible_ssh_user=susu
 
 [Lxc:vars]
-ansible_ssh_user=root
+ansible_ssh_user=susu

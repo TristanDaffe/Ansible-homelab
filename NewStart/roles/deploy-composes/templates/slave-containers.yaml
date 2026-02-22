@@ -1,0 +1,13 @@
+services:
+
+  urbackup-client:
+    image: uroni/urbackup-client:latest
+    restart: always
+    environment:
+      - TZ={{ timezone }}
+      - URBACKUP_SERVER_NAME={{ urbackup.server_host }}
+      - URBACKUP_CLIENT_NAME={{ ansible_hostname }}
+      - URBACKUP_CLIENT_AUTHKEY={{ urbackup.authkey }}
+    volumes:
+      - "{{ docker.docker_dir }}/volumes/urbackup-client:/var/urbackup"
+      - "{{ docker.docker_dir }}:/backup"

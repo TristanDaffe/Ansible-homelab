@@ -35,11 +35,34 @@ This is a HomeLab Ansible monorepo with three active projects, each a self-conta
 **Deploy-composes role pattern:**
 The `docker.composes` list in group_vars drives deployment. Each entry maps to a Jinja2 template in `roles/deploy-composes/templates/` and is deployed to `{{ docker.docker_dir }}/compose/<name>/compose.yaml` on the target host. Config files (e.g. `traefik.yaml`, `prometheus.yaml.j2`) are templated separately into subdirectories under `docker_dir`.
 
+**DNS strategy:**
+Each node gets its own wildcard subdomain at OVH, pointing to that node's single LAN IP:
+- `*.media.dev.autostack.ovh` → IP of the media node
+- `*.monitoring.dev.autostack.ovh` → IP of the monitoring node
+- etc.
+
+Each node runs its own Traefik instance and owns a subdomain. Services on that node use `<service>.<node-subdomain>` as their Traefik `Host` rule. No multi-node Traefik aggregation, no shared state needed. Do not suggest Traefik Kop or Consul for this setup.
+
 **Inventory groups** (`NewStart/inventory`):
-- `Vm` — Ubuntu cloud-init VMs (SSH as `susu`)
-- `Lxc` — LXC containers (SSH as `root`)
-- `Monitoring` — hosts that get monitoring stack; `MonitoringMaster` sub-group gets Prometheus+Loki
+- `Vm` / `MonitoringMaster` — `master` VM at .125, SSH as `susu`, runs monitoring + UrBackup server
+- `Lxc` / `Tools` — `tools` LXC at .124, SSH as `root`, runs tooling stacks
+- `Lxc` / `Media` — `media` LXC at .123, SSH as `root`, runs media stacks + iGPU
+- `Monitoring` — all nodes get node_exporter + promtail; `MonitoringMaster` gets Prometheus + Loki
 - `Tailscale` — all nodes joined to the VPN mesh
+
+**Node domains** (per-node `docker.domain` in group_vars):
+- `MonitoringMaster` → `monitoring.dev.autostack.ovh`
+- `Tools` → `tools.dev.autostack.ovh`
+- `Media` → `media.dev.autostack.ovh`
+
+**UrBackup backup setup:**
+- Server runs on `MonitoringMaster` via `urbackup.yaml` compose; web UI at `backup.monitoring.dev.autostack.ovh`
+- Clients run on all other nodes via `slave-containers.yaml`; mount the full `docker.docker_dir` at `/backup`
+- `urbackup.server_host` resolves automatically via `hostvars[groups['MonitoringMaster'][0]].services_ip`
+- `urbackup.backup_storage` (default `/backups`) must exist on the host with `mode: 0777` — the container runs as internal `urbackup` user (uid 107), not root. The deploy-composes role creates this automatically when the urbackup compose is present.
+- `urbackup.authkey` belongs in `secret.all.yaml`; generate it in the UrBackup web UI under Settings → Internet
+
+**Common template pitfall:** always use `{{ docker.docker_dir }}` (nested under `docker`), never a bare `{{ docker_dir }}` — that variable does not exist.
 
 ### NodeSetup
 
@@ -65,6 +88,10 @@ Each passthrough feature is a `block:` with the `when:` condition at block level
 - LXC config: `lxc.cgroup2.devices.allow: c 226:* rwm`, bind-mount `/dev/dri`, and a full `lxc.idmap` block that punches holes for GID 44 and 104 so device ownership works inside the container
 - Inside the container: install `intel-media-va-driver-non-free`, add app user to `render` group (GID 104), set `LIBVA_DRIVER_NAME=iHD`
 - `intel_gpu_top` and `vainfo` are **not reliable test tools inside LXC** — verify by checking actual application behavior (e.g. Jellyfin dashboard showing VAAPI transcoding)
+
+## Future work (not urgent)
+
+- **Stack file cleanup** — when a stack is removed from `docker.composes`, its containers are already cleaned up by `clean-up-containers.yaml`, but compose files (`/docker/compose/<name>/`) and config/volume dirs on disk are left behind. A cleanup task could remove those orphaned directories.
 
 ## Secrets
 
