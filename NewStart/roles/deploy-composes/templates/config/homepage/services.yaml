@@ -1,0 +1,279 @@
+
+---
+
+################
+# Main tab
+################
+
+- Home:
+  - Home Assistant:
+      icon: home-assistant.png
+      href: http://ha.{{ local_domain }}
+      description: Home Assistant
+      ping: http://ha.{{ local_domain }}
+  - mealie: 
+      icon: mealie.png
+      href: https://meal.{{ docker.domain }}
+      description: Gestion de recettes
+      ping: https://meal.{{ docker.domain }}
+      widget:
+        type: mealie
+        url: https://meal.{{ docker.domain }}
+        key: {{ mealie.api_key }}
+        version: 2
+
+- Media-consumption: 
+  - Media:
+    - jellyfin:
+        icon: jellyfin.png
+        href: http://jellyflix.{{ local_domain }}
+        description: Jellyfin
+        ping: http://jellyflix.{{ local_domain }}
+        widget:
+          type: jellyfin
+          url: http://jellyflix.{{ local_domain }}
+          key: {{ jellyfin_api }}
+          # enableMediaControl: false
+    - Seer:
+        icon: seerr.png
+        href: https://seer.{{ docker.domain }}
+        description: Demande de films et series
+        ping: https://seer.{{ docker.domain }}
+        widget:
+          type: seerr
+          url: https://seer.{{ docker.domain }}
+          key: {{ jellyseerr_api }}
+
+  - Books:
+    - Calibre:
+        icon: calibre.png
+        href: http://calibre.{{ local_domain }}
+        description: Gestionnaire de livres
+        ping: http://calibre.{{ local_domain }}
+        widget:
+          type: calibreweb
+          url: http://calibre.{{ local_domain }}
+          username: {{ calibre_user }}
+          password: {{ calibre_pass }}    
+    - Calibre maman:
+        icon: calibre.png
+        href: http://calibre-maman.{{ local_domain }}
+        description: Gestionnaire de livres
+        ping: http://calibre-maman.{{ local_domain }}
+        widget:
+          type: calibreweb
+          url: http://calibre-maman.{{ local_domain }}
+          username: {{ calibre_user }}
+          password: {{ calibre_pass }}
+    - Téléchargement de livres:
+        icon: https://developer.asustor.com/uploadIcons/0020_999_1573465183_calibre-web_256.png
+        href: https://shelfmark.{{ docker.domain }}
+        description: Téléchargement de livres
+        ping: https://shelfmark.{{ docker.domain }}
+    - Téléchargement de livres maman:
+        icon: https://developer.asustor.com/uploadIcons/0020_999_1573465183_calibre-web_256.png
+        href: https://shelfmark-maman.{{ docker.domain }}
+        description: Téléchargement de livres
+        ping: https://shelfmark-maman.{{ docker.domain }}   
+
+- Torrenting:
+  - Media-management:
+    - Download-management:
+      - Radarr:
+          icon: radarr.png
+          href: https://arr.{{ docker.domain }}/radarr
+          description: Téléchargement de films
+          ping: https://arr.{{ docker.domain }}/radarr
+          widget:
+            type: radarr
+            url: https://arr.{{ docker.domain }}/radarr
+            key: {{ radarr_api }}  
+      - Sonarr:
+          icon: sonarr.png
+          href: https://arr.{{ docker.domain }}/sonarr
+          description: Téléchargement de séries
+          ping: https://arr.{{ docker.domain }}/sonarr
+          widget:
+            type: sonarr
+            url: https://arr.{{ docker.domain }}/sonarr
+            key: {{ sonarr_api }} 
+      - Bazarr:
+          icon: bazarr.png
+          href: https://arr.{{ docker.domain }}/bazarr
+          description: Téléchargement de sous-titres
+          ping: https://arr.{{ docker.domain }}/bazarr
+          widget:
+            type: bazarr
+            url: https://arr.{{ docker.domain }}/bazarr
+            key: {{ bazarr_api }}
+      - Prowlarr:
+          icon: prowlarr.png
+          href: https://arr.{{ docker.domain }}/prowlarr
+          description: Gestion des indexeurs
+          ping: https://arr.{{ docker.domain }}/prowlarr
+          widget:
+            type: prowlarr
+            url: https://arr.{{ docker.domain }}/prowlarr
+            key: {{ prowlarr_api }}
+    - Torrent:
+      - qBittorrent:
+          icon: qbittorrent.png
+          href: https://qbit.{{ docker.domain }}
+          description: Téléchargement de torrents
+          ping: https://qbit.{{ docker.domain }}
+          widget:
+            type: qbittorrent
+            url: https://qbit.{{ docker.domain }}
+            username: {{ qbit_user }}
+            password: {{ qbit_pass }}
+            enableLeechProgress: true
+  - Calendar:
+    - Calendar:
+        widget:
+          type: calendar
+          view: monthly 
+          maxEvents: 10 
+          showTime: true
+          timezone: {{ timezone }}
+          integrations:
+            - type: sonarr 
+              service_group: Download-management
+              service_name: Sonarr
+              color: teal 
+              baseUrl: https://arr.{{ docker.domain }}/sonarr 
+            - type: radarr 
+              service_group: Download-management
+              service_name: Radarr
+              color: red
+              baseUrl: https://arr.{{ docker.domain }}/radarr 
+               
+- Tools and stuff:
+  - ItTools:
+      icon: it-tools.png
+      href: https://it.tools.{{ docker.domain }}
+      description: Outils divers pour l'IT
+      ping: https://it.tools.{{ docker.domain }} 
+  - Stirling-pdf:
+      icon: stirling-pdf.png
+      href: https://pdf.tools.{{ docker.domain }}
+      description: Outils pour les PDF
+      ping: https://pdf.tools.{{ docker.domain }}
+
+################
+# Admin tab
+################
+
+- Header:
+  - Server:
+    - Proxmox:
+        icon: proxmox.png
+        href: https://192.168.129.110:8006
+        description: Proxmox
+        ping: https://192.168.129.110:8006
+    - Portainer:
+        icon: portainer.png
+        href: https://portainer.{{ docker.domain }}
+        description: Portainer
+        ping: https://portainer.{{ docker.domain }}
+    - Mesh-mini:
+        icon: meshcentral.png
+        href: https://mesh-mini.{{ docker.domain }}
+        description: Mesh-mini
+        ping: https://mesh-mini.{{ docker.domain }}
+
+  - Monitoring:
+    - Grafana:
+        icon: grafana.png
+        href: https://grafana.{{ docker.domain }}
+        description: Monitoring
+        ping: http://grafana:3000
+    - Prometheus:
+        icon: prometheus.png
+        href: https://prometheus.{{ docker.domain }}
+        description: Monitoring
+        ping: http://prometheus:9090
+        widget:
+          type: prometheus
+          url: http://prometheus:9090
+  - Backup:
+      - Zerobyte:
+          icon: zerobyte.png
+          href: https://zerobyte.{{ docker.domain }}
+          description: Gestion des sauvegardes
+          ping: https://zerobyte.{{ docker.domain }}
+      - UrBackup:
+          icon: urbackup.png
+          href: https://backup.{{ docker.domain }}
+          description: Gestion des sauvegardes
+          ping: https://backup.{{ docker.domain }}
+
+- Networking:
+  - PiHole:
+      icon: pi-hole.svg 
+      href: http://pi.{{ local_domain }}/admin
+      description: Server DNS
+      ping: http://pi.{{ local_domain }}/admin
+      # widget:
+      #   type: pihole
+      #   url: http://pi.{{ local_domain }}/admin
+      #   version: 6
+      #   key: {{pihole_api}}
+  - NPM:
+      icon: nginx-proxy-manager.png
+      href: http://npm.{{ local_domain }}
+      description: Nginx Proxy Manager
+      ping: http://npm.{{ local_domain }}
+      widget:
+        type: npm
+        url: http://npm.{{ local_domain }}
+        username: {{ npm_user }} 
+        password: {{ npm_pass }}
+  - Traefik:
+      icon: traefik.png
+      href: https://traefik.{{ ansible_hostname }}.{{ docker.domain }}
+      description: Traefik
+      ping: http://traefik:80
+      widget:
+        type: traefik
+        url: http://traefik:8080
+  - speedtest-tracker:
+      icon: speedtest-tracker.png
+      href: https://speedtest.{{ docker.domain }}
+      description: Suivi des tests de vitesse
+      ping: http://speedtest-tracker:80
+      widget:
+        type: speedtest
+        url: https://speedtest.{{ docker.domain }}
+        version: 2
+        key: {{ speedtest_tracker.api_key }}
+        bitratePrecision: 0
+  - Pocket-ID:
+      icon: pocket-id.png
+      href: https://pocket-id.{{ docker.domain }}
+      description: Gestion des identités
+      ping: https://pocket-id.{{ docker.domain }} 
+
+  - Whoami:
+      href: https://whoami.{{ docker.domain }}
+      description: Whoami
+      ping: https://whoami.{{ docker.domain }} 
+
+################
+# Paper work tab
+################
+
+- Paper-work:
+    - Paperless-ngx:
+        icon: paperless.png
+        href: https://paper.{{ docker.domain }}
+        description: Gestion de documents
+        ping: https://paper.{{ docker.domain }}
+        widget:
+          type: paperlessngx
+          url: https://paper.{{ docker.domain }}
+          key: {{ paperless.token }}
+    - actual-budget:
+        icon: actual-budget.png
+        href: https://budget.{{ docker.domain }}
+        description: Gestion de budget
+        ping: http://budget.{{ docker.domain }}

@@ -12,6 +12,11 @@ providers:
     endpoint: "unix:///var/run/docker.sock"
     exposedByDefault: false
     network: proxy_network
+{% if traefik_peers is defined and traefik_peers | length > 0 %}
+  file:
+    filename: "/letsencrypt/peers.yaml"
+    watch: true
+{% endif %}
 
 entryPoints:
   web:
@@ -27,6 +32,9 @@ entryPoints:
           - main: "{{ docker.domain }}"
             sans:
               - "*.{{ docker.domain }}"
+{% if docker.subdomain is defined %}
+          - main: "*.{{ docker.subdomain }}.{{ docker.domain }}"
+{% endif %}
   # tailscale:
   #   address: "{{ services_ip }}:8443"
   #   http:

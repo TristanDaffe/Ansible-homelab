@@ -1,0 +1,94 @@
+services:
+
+  pocket-id:
+    image: ghcr.io/pocket-id/pocket-id:v1
+    restart: unless-stopped
+    networks:
+      - proxy_network
+    environment:
+      - APP_URL=https://pocket-id.{{ docker.domain }}
+      - TRUST_PROXY=true
+      - MAXMIND_LICENSE_KEY=
+      - PUID={{ docker.puid }}
+      - PGID={{ docker.pgid }}
+    volumes:
+      - "{{ docker.docker_dir }}/volumes/pocket-id:/app/data"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.pocket-id.loadbalancer.server.port=1411"
+      - "traefik.http.routers.pocket-id.rule=Host(`pocket-id.{{ docker.domain }}`)"
+      - "traefik.http.routers.pocket-id.entrypoints=websecure"
+
+{% for item in tinyauth_groups %}
+  tinyauth-{{ item.name }}:
+    image: ghcr.io/steveiliop56/tinyauth
+    restart: unless-stopped
+    networks:
+      - proxy_network
+    environment:
+      - TINYAUTH_APPURL=https://auth-{{ item.name }}.{{ docker.domain }}
+      - TINYAUTH_UI_TITLE=TinyAuth - {{ item.name }}
+      - TINYAUTH_OAUTH_PROVIDERS_POCKETID_CLIENTID={{ item.sso_client_id }}
+      - TINYAUTH_OAUTH_PROVIDERS_POCKETID_CLIENTSECRET={{ item.sso_client_id_secret }}
+      - TINYAUTH_OAUTH_PROVIDERS_POCKETID_AUTHURL=https://pocket-id.{{ docker.domain }}/authorize
+      - TINYAUTH_OAUTH_PROVIDERS_POCKETID_TOKENURL=https://pocket-id.{{ docker.domain }}/api/oidc/token
+      - TINYAUTH_OAUTH_PROVIDERS_POCKETID_USERINFOURL=https://pocket-id.{{ docker.domain }}/api/oidc/userinfo
+      - TINYAUTH_OAUTH_PROVIDERS_POCKETID_REDIRECTURL=https://auth-{{ item.name }}.{{ docker.domain }}/api/oauth/callback/pocketid
+      - TINYAUTH_OAUTH_PROVIDERS_POCKETID_SCOPES=openid email profile groups
+      - TINYAUTH_OAUTH_PROVIDERS_POCKETID_NAME=Pocket ID
+      - TINYAUTH_OAUTH_AUTOREDIRECT=pocketid
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.tinyauth-{{ item.name }}.rule=Host(`auth-{{ item.name }}.{{ docker.domain }}`)"
+      - "traefik.http.routers.tinyauth-{{ item.name }}.entrypoints=websecure"
+      - "traefik.http.services.tinyauth-{{ item.name }}.loadbalancer.server.port=3000"
+      - "traefik.http.middlewares.tinyauth-{{ item.name }}.forwardauth.address=http://tinyauth-{{ item.name }}:3000/api/auth/traefik"
+      - "traefik.http.middlewares.tinyauth-{{ item.name }}.forwardauth.trustForwardHeader=true"
+{% endfor %}
+
+  homepage:
+    image: ghcr.io/gethomepage/homepage:latest
+    restart: unless-stopped
+    networks:
+      - proxy_network
+    environment:
+      - TZ={{ timezone }}
+      - HOMEPAGE_ALLOWED_HOSTS=home.{{ docker.domain }}
+      - PUID={{ docker.puid }}
+      - PGID={{ docker.pgid }}
+    volumes:
+      - "{{ docker.docker_dir }}/volumes/homepage/config:/app/config"
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.homepage.loadbalancer.server.port=3000"
+      - "traefik.http.routers.homepage.rule=Host(`home.{{ docker.domain }}`)"
+      - "traefik.http.routers.homepage.entrypoints=websecure"
+
+  speedtest-tracker:
+    image: lscr.io/linuxserver/speedtest-tracker:latest
+    restart: unless-stopped
+    networks:
+      - proxy_network
+    environment:
+      - PUID={{ docker.puid }}
+      - PGID={{ docker.pgid }}
+      - APP_KEY={{ speedtest_tracker.app_key }}
+      - DB_CONNECTION=sqlite
+      - DISPLAY_TIMEZONE={{ timezone }}
+      - SPEEDTEST_SCHEDULE=*/15 * * * *
+      - SPEEDTEST_SERVER={{ speedtest_tracker.servers | default('') }}
+      - CHART_DATETIME_FORMAT=j/m G:i
+      - DATETIME_FORMAT=j M Y, G:i:s
+      - PUBLIC_DASHBOARD=true
+    volumes:
+      - "{{ docker.docker_dir }}/volumes/speedtest-tracker:/config"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.speedtest-tracker.loadbalancer.server.port=80"
+      - "traefik.http.routers.speedtest-tracker.rule=Host(`speedtest.{{ docker.domain }}`)"
+      - "traefik.http.routers.speedtest-tracker.entrypoints=websecure"
+
+networks:
+  proxy_network:
+    external: true

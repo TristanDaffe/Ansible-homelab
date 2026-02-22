@@ -1,0 +1,34 @@
+services:
+
+  portainer:
+    image: portainer/portainer-ce:latest
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - "{{ docker.docker_dir }}/volumes/portainer:/data"
+    networks:
+      - proxy_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.portainer.loadbalancer.server.port=9000"
+      - "traefik.http.routers.portainer.rule=Host(`portainer.{{ docker.domain }}`)"
+      - "traefik.http.routers.portainer.entrypoints=websecure"
+
+  mesh-mini:
+    image: brytonsalisbury/mesh-mini:amd64
+    restart: unless-stopped
+    networks:
+      - proxy_network
+    environment:
+      - COMPUTER_PATH=/config/computers.json
+    volumes:
+      - "{{ docker.docker_dir }}/volumes/mesh-mini:/config"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.mesh-mini.loadbalancer.server.port=3000"
+      - "traefik.http.routers.mesh-mini.rule=Host(`mesh-mini.{{ docker.domain }}`)"
+      - "traefik.http.routers.mesh-mini.entrypoints=websecure"
+      
+networks:
+  proxy_network:
+    external: true

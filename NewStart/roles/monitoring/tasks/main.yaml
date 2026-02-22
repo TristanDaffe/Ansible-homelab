@@ -4,6 +4,7 @@
   include_tasks: node-exporter.yaml
   when: node_exporter_enabled 
 
-- name: Promtail
-  include_tasks: promtail.yaml
-  when: node_promtail_enabled
+- name: Alloy
+  include_tasks: alloy.yaml
+  when: node_alloy_enabled
+

@@ -1,0 +1,48 @@
+services:
+
+  urbackup:
+    image: uroni/urbackup-server:latest
+    restart: always
+    ports:
+      - "{{ services_ip }}:55413:55413"
+      - "{{ services_ip }}:55415:55415"
+    networks:
+      - proxy_network
+      - backup
+    environment:
+      - PUID={{ docker.puid }}
+      - PGID={{ docker.pgid }}
+      - TZ={{ timezone }}
+    volumes:
+      - "{{ docker.docker_dir }}/volumes/urbackup/db:/var/urbackup"
+      - "{{ docker.docker_dir }}/backups:/backups"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.urbackup.loadbalancer.server.port=55414"
+      - "traefik.http.routers.urbackup.rule=Host(`backup.{{ docker.domain }}`)"
+      - "traefik.http.routers.urbackup.entrypoints=websecure"
+
+  zerobyte:
+    image: ghcr.io/nicotsx/zerobyte:latest
+    restart: unless-stopped
+    environment:
+      - "TZ={{ timezone }}"
+      - "BASE_URL=https://zerobyte.{{ docker.domain }}"
+      - "APP_SECRET={{ zerobyte.app_secret }}" 
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - "{{ docker.docker_dir }}/volumes/zerobyte:/var/lib/zerobyte"
+      - "{{ docker.docker_dir }}:/data:ro"
+      - "{{ docker.docker_dir }}/test/backups:/backups"
+    networks:
+      - proxy_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.zerobyte.loadbalancer.server.port=4096"
+      - "traefik.http.routers.zerobyte.rule=Host(`zerobyte.{{ docker.domain }}`)"
+      - "traefik.http.routers.zerobyte.entrypoints=websecure"
+
+networks:
+  proxy_network:
+    external: true
+  backup:

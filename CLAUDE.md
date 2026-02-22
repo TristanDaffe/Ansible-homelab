@@ -35,11 +35,39 @@ This is a HomeLab Ansible monorepo with three active projects, each a self-conta
 **Deploy-composes role pattern:**
 The `docker.composes` list in group_vars drives deployment. Each entry maps to a Jinja2 template in `roles/deploy-composes/templates/` and is deployed to `{{ docker.docker_dir }}/compose/<name>/compose.yaml` on the target host. Config files (e.g. `traefik.yaml`, `prometheus.yaml.j2`) are templated separately into subdirectories under `docker_dir`.
 
+**DNS strategy:**
+All nodes share a single unified wildcard domain `*.dev.autostack.ovh` with round-robin DNS pointing to all node LAN IPs:
+- `*.dev.autostack.ovh` → 192.168.129.125 (master), 192.168.129.123 (media), 192.168.129.124 (tools)
+
+Each node runs its own Traefik instance. When a request lands on a node that doesn't host the requested service, Traefik forwards it to peer nodes via **TCP passthrough** (`HostSNI(*) priority:1` in a file provider). The file provider config is rendered from `peers.yaml.j2` to `letsencrypt/peers.yaml` and only activated when `traefik_peers` is defined for that node.
+
+**Known limitation:** non-existent hostnames cause a forwarding loop between nodes resulting in `SSL_ERROR_SYSCALL`. Only requests for actually-hosted services route correctly.
+
 **Inventory groups** (`NewStart/inventory`):
-- `Vm` — Ubuntu cloud-init VMs (SSH as `susu`)
-- `Lxc` — LXC containers (SSH as `root`)
-- `Monitoring` — hosts that get monitoring stack; `MonitoringMaster` sub-group gets Prometheus+Loki
+- `Vm` / `MonitoringMaster` — `master` VM at .125, SSH as `susu`, runs monitoring + UrBackup server
+- `Lxc` / `Tools` — `tools` LXC at .124, SSH as `root`, runs tooling stacks
+- `Lxc` / `Media` — `media` LXC at .123, SSH as `root`, runs media stacks + iGPU
+- `Monitoring` — all nodes get node_exporter + promtail; `MonitoringMaster` gets Prometheus + Loki
 - `Tailscale` — all nodes joined to the VPN mesh
+
+**Node domains** (per-node `docker.domain` in group_vars):
+- All nodes → `dev.autostack.ovh`
+
+**UrBackup backup setup:**
+- Server runs on `MonitoringMaster` via `backup.yaml` compose (alongside Zerobyte); web UI at `backup.dev.autostack.ovh`
+- `urbackup.yaml` contains both the server and the master's own client. They share a dedicated internal `backup` Docker network so the client can reach the server by service name (`urbackup`). Do not put the client only in the default compose network — it won't be able to reach the server which is on `proxy_network`.
+- Clients on remote nodes run via `slave-containers.yaml`; mount the full `docker.docker_dir` at `/backup`
+- `urbackup.server_host` on remote nodes resolves via `hostvars[groups['MonitoringMaster'][0]].services_ip`; on the master it is set to the server's Docker service name (`urbackup`)
+- The urbackup client daemon reconnects to the server automatically after a few minutes — no autoheal or container restart logic is needed for reconnection handling
+- `/backups` inside the server container must have `mode: 0777` — the container runs as internal `urbackup` user (uid 107), not root
+- `urbackup.authkey` belongs in `secret.all.yaml`; generate it in the UrBackup web UI under Settings → Internet
+
+**Monitoring — node_exporter on MonitoringMaster:**
+- `node_exporter_listen_address` (defaults to `node_exporter_host`, i.e. the Tailscale IP) is overridden to `""` on MonitoringMaster so node_exporter binds to all interfaces. This is required because Prometheus runs in Docker (source IP `172.x.x.x`) and cannot reach a process that only listens on the Tailscale IP.
+- UFW on MonitoringMaster allows port 9100 from `172.16.0.0/12` (Docker bridge range) in addition to `100.64.0.0/10` (Tailscale). This does not expose port 9100 externally — `172.16.0.0/12` is not internet-routable.
+- The scrape target in `prometheus.yaml.j2` still uses `node_exporter_host` (Tailscale IP) — only the listen address differs.
+
+**Common template pitfall:** always use `{{ docker.docker_dir }}` (nested under `docker`), never a bare `{{ docker_dir }}` — that variable does not exist.
 
 ### NodeSetup
 
@@ -65,6 +93,10 @@ Each passthrough feature is a `block:` with the `when:` condition at block level
 - LXC config: `lxc.cgroup2.devices.allow: c 226:* rwm`, bind-mount `/dev/dri`, and a full `lxc.idmap` block that punches holes for GID 44 and 104 so device ownership works inside the container
 - Inside the container: install `intel-media-va-driver-non-free`, add app user to `render` group (GID 104), set `LIBVA_DRIVER_NAME=iHD`
 - `intel_gpu_top` and `vainfo` are **not reliable test tools inside LXC** — verify by checking actual application behavior (e.g. Jellyfin dashboard showing VAAPI transcoding)
+
+## Future work (not urgent)
+
+- **Stack file cleanup** — when a stack is removed from `docker.composes`, its containers are already cleaned up by `clean-up-containers.yaml`, but compose files (`/docker/compose/<name>/`) and config/volume dirs on disk are left behind. A cleanup task could remove those orphaned directories.
 
 ## Secrets
 

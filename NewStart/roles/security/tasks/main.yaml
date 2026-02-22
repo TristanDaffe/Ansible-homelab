@@ -1,8 +1,9 @@
 ---
 
-- include_tasks: packages.yaml
-- include_tasks: user.yaml
-- include_tasks: firewall.yaml
-- include_tasks: fail2ban.yaml
+- import_tasks: packages.yaml
+- import_tasks: user.yaml
+- import_tasks: firewall.yaml
+- import_tasks: fail2ban.yaml
+- import_tasks: nas.yaml
 
 - meta: flush_handlers

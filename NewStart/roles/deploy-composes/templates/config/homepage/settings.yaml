@@ -1,0 +1,105 @@
+---
+title: My Homelab
+theme: dark
+color: slate
+
+useEqualHeights: true
+statusStyle: "dot"
+headerStyle: boxed
+language: fr
+hideVersion: true
+disableCollapse: true
+
+background:
+  # image: https://images.unsplash.com/photo-1740568439805-b610a1115fc3?q=80&w=3264&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D?auto=format&fit=crop&w=2560&q=80
+  image: https://images.unsplash.com/photo-1769863467291-23cf7902f686?q=80&w=1064&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D
+  blur: sm
+  saturate: 50
+  brightness: 50
+  opacity: 50
+
+layout:
+
+  # === MAIN TAB ===
+
+  Home:
+    tab: Main
+    style: row
+    columns: 4
+
+  Media-consumption:
+    tab: Main
+    header: false
+    style: row
+    columns: 2
+    Media: 
+      style: row
+      columns: 2
+    Books:
+      style: row
+      columns: 2
+
+  Books:
+    tab: Main
+    header: true
+    style: row
+    columns: 2
+
+  Torrenting:
+    tab: Main
+    header: false
+    style: row
+    columns: 2
+    Media-management:
+      header: true
+      style: row
+      columns: 1
+      Download-management:
+        style: row
+        columns: 2
+        header: false
+      Torrent:
+        style: row
+        columns: 1
+        header: false
+    Calendar:
+      header: true 
+      style: row
+      columns: 1
+    
+  Tools and stuff:
+    tab: Main
+    header: true
+    style: row
+    columns: 3
+
+  # === ADMIN TAB ===
+
+  Header:
+    tab: Admin
+    header: false
+    style: row
+    columns: 2
+    Server:
+      header: true
+      style: row
+      columns: 2
+
+    Monitoring:
+      header: true
+      style: row
+      columns: 2
+
+  Networking:
+    tab: Admin
+    header: true
+    style: row
+    columns: 4
+
+  # === PAPER WORK TAB ===
+
+  Paper-work:
+    tab: Paper work
+    header: true
+    style: row
+    columns: 2

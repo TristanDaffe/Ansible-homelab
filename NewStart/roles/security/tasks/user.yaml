@@ -1,6 +1,6 @@
 ---
 - name: Create groups
-  group:
+  ansible.builtin.group:
     name: "{{ item }}"
     state: present
   loop:
@@ -14,7 +14,7 @@
     state: present
 
 - name: Create user account
-  user:
+  ansible.builtin.user:
     name: "{{ username }}"
     groups: "{{ username }},{{ ssh_group }},{{ sudo_group }},docker,sudo"
     shell: /bin/bash
@@ -22,13 +22,13 @@
     state: present
 
 - name: Add SSH public key for user
-  authorized_key:
+  ansible.builtin.authorized_key:
     user: "{{ username }}"
-    key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"    
+    key: "{{ lookup('file', ssh_public_key_file) }}"
     state: present
 
 - name: Allow '{{ sudo_group }}' group to have passwordless sudo
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: /etc/sudoers
     state: present
     regexp: '^%{{ sudo_group }}'
@@ -36,24 +36,24 @@
     validate: '/usr/sbin/visudo -cf %s'
 
 - name: Ensure password authentication is disabled
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: /etc/ssh/sshd_config
-    regexp: '^PasswordAuthentication'
+    regexp: '^#?PasswordAuthentication'
     line: 'PasswordAuthentication no'
     state: present
   notify: Restart SSH
 
 - name: Disable root SSH login
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: /etc/ssh/sshd_config
-    regexp: '^PermitRootLogin'
+    regexp: '^#?PermitRootLogin'
     line: 'PermitRootLogin no'
     state: present
   notify: Restart SSH
 
 - name: Restrict SSH access to '{{ ssh_group }}' group
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: /etc/ssh/sshd_config
-    regexp: '^AllowGroups'
+    regexp: '^#?AllowGroups'
     line: 'AllowGroups {{ ssh_group }}'
   notify: Restart SSH
