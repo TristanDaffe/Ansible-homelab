@@ -1,0 +1,3 @@
+---
+# Shared defaults for all LXC containers.
+# Per-node config lives in Tools.yaml and Media.yaml.

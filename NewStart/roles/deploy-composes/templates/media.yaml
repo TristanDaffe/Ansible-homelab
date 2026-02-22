@@ -1,0 +1,94 @@
+services:
+
+############
+# Calibre-Web Automated
+############
+
+  calibre-web:
+    image: crocodilestick/calibre-web-automated:latest
+    environment:
+      - "PUID={{ nas.puid }}"
+      - "PGID={{ nas.pgid }}"
+      - "TZ={{ timezone }}"
+      - NETWORK_SHARE_MODE=true
+    volumes:
+      - "{{ docker.docker_dir }}/volumes/calibre-web:/config"
+      - "{{ nas.mount }}/books/librairy:/calibre-library"
+      - "{{ nas.mount }}/books/downloads:/cwa-book-ingest"
+    restart: unless-stopped
+    networks:
+      - proxy_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.calibre-web.loadbalancer.server.port=8083"
+      - "traefik.http.routers.calibre-web.rule=Host(`calibre.{{ local_domain }}`)"
+      - "traefik.http.routers.calibre-web.entrypoints=web"
+
+  calibre-web-maman:
+    image: crocodilestick/calibre-web-automated:latest
+    environment:
+      - "PUID={{ nas.puid }}"
+      - "PGID={{ nas.pgid }}"
+      - "TZ={{ timezone }}"
+      - NETWORK_SHARE_MODE=true
+    volumes:
+      - "{{ docker.docker_dir }}/volumes/calibre-web-2:/config"
+      - "{{ nas.mount }}/books-maman/librairy:/calibre-library"
+      - "{{ nas.mount }}/books-maman/downloads:/cwa-book-ingest"
+    restart: unless-stopped
+    networks:
+      - proxy_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.calibre-web-maman.loadbalancer.server.port=8083"
+      - "traefik.http.routers.calibre-web-maman.rule=Host(`calibre-maman.{{ local_domain }}`)"
+      - "traefik.http.routers.calibre-web-maman.entrypoints=web"
+
+############
+# Tailscale Funnel Sidecar
+############
+
+ # tailscale funnel --bg 8083
+  tailscale:
+     image: tailscale/tailscale
+     hostname: calibre-tailscale
+     cap_add:
+       - NET_ADMIN
+       - NET_RAW
+     network_mode: "host"
+     volumes:
+       - /dev/net/tun:/dev/net/tun
+       - "{{ docker.docker_dir }}/tailscale:/var/lib/tailscale"
+     environment:
+       - TS_AUTHKEY={{ tailscale.authkey }}
+       - TS_ROUTES=  # leave empty if you just want Funnel
+       - TS_SERVE_CONFIG=/var/lib/tailscale/serve.json
+       - TS_STATE_DIR=/var/lib/tailscale
+     restart: unless-stopped
+
+############
+# Jellyfin
+############
+
+  jellyfin:
+    image: jellyfin/jellyfin
+    group_add:
+      - "{{ docker.igpu_group }}"
+    volumes:
+      - "{{ docker.docker_dir }}/volumes/jellyfin/config:/config"
+      - "{{ docker.docker_dir }}/volumes/jellyfin/cache:/cache"
+      - "{{ nas.mount }}/media:/media"
+    devices:
+      - /dev/dri:/dev/dri
+    restart: unless-stopped
+    networks:
+      - proxy_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.jellyfin.loadbalancer.server.port=8096"
+      - "traefik.http.routers.jellyfin.rule=Host(`jellyflix.{{ local_domain }}`)"
+      - "traefik.http.routers.jellyfin.entrypoints=web"
+
+networks:
+  proxy_network:
+    external: true

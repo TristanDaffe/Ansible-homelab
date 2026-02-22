@@ -1,0 +1,71 @@
+services:
+
+  # omni-tools:
+  #   image: iib0011/omni-tools:latest
+  #   restart: unless-stopped
+  #   networks:
+  #     - proxy_network
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.http.services.omni-tools.loadbalancer.server.port=80"
+  #     - "traefik.http.routers.omni-tools.rule=Host(`omni-tools.{{ docker.domain }}`)"
+  #     - "traefik.http.routers.omni-tools.entrypoints=websecure"
+
+  it-tools:
+    image: corentinth/it-tools:latest
+    restart: unless-stopped
+    networks:
+      - proxy_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.it-tools.loadbalancer.server.port=80"
+      - "traefik.http.routers.it-tools.rule=Host(`it.{{ hostname }}.{{ docker.domain }}`)"
+      - "traefik.http.routers.it-tools.entrypoints=websecure"
+
+  # convertx:
+  #   image: ghcr.io/c4illin/convertx:latest
+  #   restart: unless-stopped
+  #   environment:
+  #     ALLOW_UNAUTHENTICATED: "true"
+  #     HTTP_ALLOWED: "true"
+  #   volumes:
+  #     - "{{ docker.docker_dir }}/volumes/convertx:/app/data"
+  #   networks:
+  #     - proxy_network
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.http.services.convertx.loadbalancer.server.port=3000"
+  #     - "traefik.http.routers.convertx.rule=Host(`convertx.{{ docker.domain }}`)"
+  #     - "traefik.http.routers.convertx.entrypoints=websecure"
+
+  stirling-pdf:
+    image: stirlingtools/stirling-pdf:latest
+    restart: unless-stopped
+    volumes: 
+      - "{{ docker.docker_dir }}/volumes/stirling-data/tessdata:/usr/share/tessdata"     # OCR language files
+      - "{{ docker.docker_dir }}/volumes/stirling-data/configs:/configs"                 # Settings & database
+      - "{{ docker.docker_dir }}/volumes/stirling-data/logs:/logs"                       # Application logs
+      - "{{ docker.docker_dir }}/volumes/stirling-data/customFiles:/customFiles:rw"      # Custom branding files
+      - "{{ docker.docker_dir }}/volumes/stirling-data/pipeline:/pipeline"               # Automation configs
+    networks:
+      - proxy_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.stirling-pdf.loadbalancer.server.port=8080"
+      - "traefik.http.routers.stirling-pdf.rule=Host(`pdf.{{ hostname }}.{{ docker.domain }}`)"
+      - "traefik.http.routers.stirling-pdf.entrypoints=websecure"
+
+  # mazanoke:
+  #   image: ghcr.io/civilblur/mazanoke:latest
+  #   restart: unless-stopped
+  #   networks:
+  #     - proxy_network
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.http.services.mazanoke.loadbalancer.server.port=80"
+  #     - "traefik.http.routers.mazanoke.rule=Host(`mazanoke.{{ docker.domain }}`)"
+  #     - "traefik.http.routers.mazanoke.entrypoints=websecure"
+
+networks:
+  proxy_network:
+    external: true

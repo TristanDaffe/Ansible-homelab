@@ -1,0 +1,98 @@
+---
+
+hostname: master
+tailscale_ip: 100.108.226.73 # fill in after first Tailscale provisioning
+
+uid: 1000
+gid: 1002
+
+#######################
+# Docker
+#######################
+
+docker:
+  docker_dir: "/docker"
+  domain: autostack.ovh
+  subdomain: "master"
+  cert_resolver: "ovh"
+  puid: 1000
+  pgid: 1000
+  docker_networks:
+    - proxy_network
+  composes:
+    - name: traefik
+      compose: network.yaml
+      volumes:
+        - letsencrypt
+      config:
+        - file: traefik.yaml
+          dst: letsencrypt/traefik.yaml
+        - file: peers.yaml.j2
+          dst: letsencrypt/peers.yaml
+    - name: backup
+      compose: backup.yaml
+      volumes:
+        - urbackup
+        - zerobyte
+    - name: monitoring
+      compose: monitoring.yaml
+      volumes:
+        - monitoring/prometheus
+        - path: monitoring/prometheus_data
+          uid: 65534
+          gid: 65534
+        - monitoring/loki
+        - grafana
+        - path: monitoring/grafana/var
+          uid: 472
+          gid: 472
+        - monitoring/grafana/config
+      config:
+        - file: prometheus.yaml.j2
+          dst: monitoring/prometheus/prometheus.yml
+        - file: loki.yaml
+          dst: monitoring/loki/local-config.yaml
+    - name: gateway
+      compose: gateway.yaml
+      volumes:
+        - pocket-id
+        - speedtest-tracker
+        - homepage/config
+      config:
+        - file: homepage/settings.yaml
+          dst: homepage/config/settings.yaml
+        - file: homepage/services.yaml
+          dst: homepage/config/services.yaml
+        - file: homepage/bookmarks.yaml
+          dst: homepage/config/bookmarks.yaml
+        - file: homepage/widgets.yaml
+          dst: homepage/config/widgets.yaml
+    - name: system
+      compose: system.yaml
+      volumes:
+        - portainer
+        - mesh-mini
+
+master_ip: "{{ services_ip }}"
+
+traefik_peers:
+  - "{{ hostvars[groups['Media'][0]].tailscale_ip }}"
+  - "{{ hostvars[groups['Tools'][0]].tailscale_ip }}"
+
+#######################
+# Monitoring
+#######################
+
+# Bind node_exporter to all interfaces so Prometheus (Docker) can reach it
+node_exporter_listen_address: ""
+
+#######################
+# Backup (UrBackup)
+#######################
+
+urbackup:
+  server_host: urbackup
+  backup_dirs:
+    - "{{ docker.docker_dir }}/volumes"
+  authkey: "{{ urbackup_authkeys.master }}" 
+

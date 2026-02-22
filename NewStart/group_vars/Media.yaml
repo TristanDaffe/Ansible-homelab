@@ -1,0 +1,68 @@
+---
+
+hostname: media
+tailscale_ip: 100.65.173.90 # fill in after first Tailscale provisioning
+
+#######################
+# NAS
+#######################
+
+nas:
+  mount: /media
+  pgid: 1000
+  puid: 1000
+
+#######################
+# Docker
+#######################
+
+docker:
+  docker_dir: "/docker"
+  igpu_group: 104  
+  domain: autostack.ovh
+  subdomain: "media"
+  cert_resolver: "ovh"
+  puid: 1000
+  pgid: 1000
+  docker_networks:
+    - proxy_network
+  composes:
+    - name: traefik
+      compose: network.yaml
+      volumes:
+        - letsencrypt
+      config:
+        - file: traefik.yaml
+          dst: letsencrypt/traefik.yaml
+        - file: peers.yaml.j2
+          dst: letsencrypt/peers.yaml
+    - name: slaves
+      compose: slave-containers.yaml
+    - name: other
+      compose: other.yaml
+      volumes:
+        - actual-budget
+        - mealie
+        - paperless
+    - name: media
+      compose: media.yaml
+      volumes:
+        - calibre-web
+        - calibre-web-2
+        - jellyfin/config
+        - jellyfin/cache
+
+#######################
+# Backup (UrBackup)
+#######################
+
+traefik_peers:
+  - "{{ hostvars[groups['Tools'][0]].tailscale_ip }}"
+  - "{{ hostvars[groups['Master'][0]].tailscale_ip }}"
+
+urbackup:
+  server_host: "{{ hostvars[groups['Master'][0]].services_ip }}"
+  backup_dirs: # Directories backed up by the client on each node
+    - "{{ docker.docker_dir }}/volumes"
+  authkey: "{{ urbackup_authkeys.media }}" 
+

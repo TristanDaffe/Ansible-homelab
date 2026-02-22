@@ -65,6 +65,28 @@
         force: true
       when: not cloudimg_stat.stat.exists
 
+    - name: Install cifs-utils
+      ansible.builtin.package:
+        name: cifs-utils
+        state: present
+      when: cifs_mounts is defined and cifs_mounts | length > 0
+
+    - name: Create CIFS mount directories
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: directory
+        mode: '0755'
+      loop: "{{ cifs_mounts | default([]) }}"
+
+    - name: Mount CIFS shares
+      ansible.builtin.mount:
+        src: "{{ item.src }}"
+        path: "{{ item.path }}"
+        fstype: cifs
+        opts: "{{ item.opts }}"
+        state: mounted
+      loop: "{{ cifs_mounts | default([]) }}"
+
     - name: Identify unprivileged LXCs requiring iGPU passthrough
       ansible.builtin.set_fact:
         igpu_lxcs: >-

@@ -94,6 +94,21 @@
     # Punch holes in the GID mapping so that the host's video (44) and render (104)
     # groups map directly into the container instead of being offset to 100000+.
     # This makes /dev/dri device ownership work correctly inside the container.
+
+    # Remove default idmap entries Proxmox auto-generates for unprivileged containers
+    # to avoid duplicates when we add our custom block below.
+    - name: Remove default UID idmap entry
+      ansible.builtin.lineinfile:
+        path: "/etc/pve/lxc/{{ ct.ctid }}.conf"
+        regexp: "^lxc\\.idmap: u 0 100000 65536$"
+        state: absent
+
+    - name: Remove default GID idmap entry
+      ansible.builtin.lineinfile:
+        path: "/etc/pve/lxc/{{ ct.ctid }}.conf"
+        regexp: "^lxc\\.idmap: g 0 100000 65536$"
+        state: absent
+
     - name: Set UID/GID idmap to pass through video and render groups
       ansible.builtin.blockinfile:
         path: "/etc/pve/lxc/{{ ct.ctid }}.conf"
@@ -105,6 +120,17 @@
           lxc.idmap: g {{ igpu_video_gid + 1 }} {{ igpu_video_gid + 100001 }} {{ igpu_render_gid - igpu_video_gid - 1 }}
           lxc.idmap: g {{ igpu_render_gid }} {{ igpu_render_gid }} 1
           lxc.idmap: g {{ igpu_render_gid + 1 }} {{ igpu_render_gid + 100001 }} {{ 65535 - igpu_render_gid }}
+
+- name: Configure NAS bind mounts for LXC
+  when: ct.nas_mounts is defined
+  block:
+    - name: Add NAS mount point to LXC config
+      ansible.builtin.lineinfile:
+        path: "/etc/pve/lxc/{{ ct.ctid }}.conf"
+        regexp: "^mp{{ item.mp_index }}:"
+        line: "mp{{ item.mp_index }}: {{ item.src }},mp={{ item.dst }}"
+        insertafter: EOF
+      loop: "{{ ct.nas_mounts }}"
 
 - name: Start LXC container
   community.proxmox.proxmox:

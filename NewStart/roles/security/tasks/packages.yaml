@@ -6,8 +6,7 @@
 
 - name: Perform package upgrades
   apt:
-    upgrade: "{{ 'safe' if safe_upgrades_only | default(true) else 'dist' }}"
-    update_cache: yes
+    upgrade: "{{ 'safe' if security_updates_only | default(true) else 'dist' }}"
     autoremove: yes
     autoclean: yes
   register: upgrade_result

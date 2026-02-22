@@ -1,0 +1,25 @@
+tcp:
+  routers:
+    peers-fallback:
+      rule: "HostSNI(`*`)"
+      service: peers-svc
+      priority: 1
+      tls:
+        passthrough: true
+  services:
+    peers-svc:
+      loadBalancer:
+        servers:
+{% for peer in traefik_peers %}
+          - address: "{{ peer }}:443"
+{% endfor %}
+
+http:
+  middlewares:
+{% for item in tinyauth_groups %}
+    tinyauth-{{ item.name }}:
+      forwardAuth:
+        address: "https://auth-{{ item.name }}.{{ docker.domain }}/api/auth/traefik"
+        trustForwardHeader: true
+{% endfor %}
+

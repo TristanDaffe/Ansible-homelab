@@ -2,6 +2,13 @@
 tailscale_ip: null
 services_ip: "{{ tailscale_ip }}"
 
+mount_nas: false
+nas:
+  share: //192.168.129.45/Tristan/mac-mini
+  mount: /mnt/nas
+  puid: 1000
+  pgid: 1000
+
 #######################
 # User 
 #######################
@@ -11,6 +18,8 @@ email: "seurya2@gmail.com"
 sudo_group: "sudo"
 ssh_group: "admin"
 timezone: "Europe/Brussels"
+local_domain: home
+ssh_public_key_file: "~/.ssh/id_rsa.pub"
 
 #######################
 # Update Settings
@@ -52,13 +61,21 @@ docker:
           dst: letsencrypt/traefik.yaml
 
 #######################
+# Backup (UrBackup)
+#######################
+
+urbackup:
+  server_host: "{{ hostvars[groups['Master'][0]].services_ip }}"
+  backup_dirs: # Directories backed up by the client on each node
+    - "{{ docker.docker_dir }}/volumes"
+  authkey: 
+
+#######################
 # Monitoring
 # https://github.com/geerlingguy/ansible-role-node_exporter/blob/master
 #######################
 
 node_exporter_version: 'latest'
-loki_uninstall: true
-promtail_version: 'latest'
 
 node_exporter_arch: 'amd64'
 node_exporter_download_url: https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_version }}/node_exporter-{{ node_exporter_version }}.linux-{{ node_exporter_arch }}.tar.gz
@@ -70,7 +87,8 @@ node_exporter_enabled: true
 node_exporter_restart: on-failure
 
 node_exporter_host: "{{ services_ip }}"
+node_exporter_listen_address: "{{ node_exporter_host }}"
 node_exporter_port: 9100
 node_exporter_options: ''
 
-node_promtail_enabled: true
+node_alloy_enabled: true
