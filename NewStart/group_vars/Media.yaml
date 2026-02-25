@@ -1,7 +1,7 @@
 ---
 
 hostname: media
-tailscale_ip: 100.103.237.39  # fill in after first Tailscale provisioning
+tailscale_ip: 100.103.237.49  # fill in after first Tailscale provisioning
 
 #######################
 # Docker
@@ -25,3 +25,14 @@ docker:
       compose: slave-containers.yaml
       volumes:
         - urbackup-client
+
+#######################
+# Backup (UrBackup)
+#######################
+
+urbackup:
+  server_host: "{{ hostvars[groups['MonitoringMaster'][0]].services_ip }}"
+  backup_dirs: # Directories backed up by the client on each node
+    - "{{ docker.docker_dir }}/volumes"
+  authkey: "{{ urbackup_authkeys.media }}" 
+

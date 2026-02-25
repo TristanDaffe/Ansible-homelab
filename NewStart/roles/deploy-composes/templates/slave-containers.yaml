@@ -11,3 +11,19 @@ services:
     volumes:
       - "{{ docker.docker_dir }}/volumes/urbackup-client:/var/urbackup"
       - "{{ docker.docker_dir }}:/backup"
+    labels:
+      - autoheal=true
+    healthcheck:
+      test: ["CMD-SHELL", "urbackupclientctl status | grep -qi 'connected' || exit 1"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  autoheal:
+    image: willfarrell/autoheal:latest
+    restart: always
+    environment:
+      - AUTOHEAL_CONTAINER_LABEL=autoheal
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock

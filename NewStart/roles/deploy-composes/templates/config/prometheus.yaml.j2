@@ -12,11 +12,7 @@ scrape_configs:
     static_configs:
 {% for host in groups['Monitoring'] %}
       - targets:
-        {% if host == inventory_hostname %}
-          - '127.0.0.1:9100'
-        {% else %}
           - '{{ hostvars[host].node_exporter_host }}:9100'
-        {% endif %}       
         labels:
           node: '{{ hostvars[host].ansible_hostname }}'
 {% endfor %}

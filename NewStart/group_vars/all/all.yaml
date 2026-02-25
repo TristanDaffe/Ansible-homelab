@@ -52,6 +52,16 @@ docker:
           dst: letsencrypt/traefik.yaml
 
 #######################
+# Backup (UrBackup)
+#######################
+
+urbackup:
+  server_host: "{{ hostvars[groups['MonitoringMaster'][0]].services_ip }}"
+  backup_dirs: # Directories backed up by the client on each node
+    - "{{ docker.docker_dir }}/volumes"
+  authkey: 
+
+#######################
 # Monitoring
 # https://github.com/geerlingguy/ansible-role-node_exporter/blob/master
 #######################
@@ -70,6 +80,7 @@ node_exporter_enabled: true
 node_exporter_restart: on-failure
 
 node_exporter_host: "{{ services_ip }}"
+node_exporter_listen_address: "{{ node_exporter_host }}"
 node_exporter_port: 9100
 node_exporter_options: ''
 

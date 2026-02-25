@@ -8,6 +8,7 @@ services:
       - "{{ services_ip }}:55415:55415"
     networks:
       - proxy_network
+      - backup
     environment:
       - TZ={{ timezone }}
     volumes:
@@ -19,6 +20,23 @@ services:
       - "traefik.http.routers.urbackup.rule=Host(`backup.{{ docker.domain }}`)"
       - "traefik.http.routers.urbackup.entrypoints=websecure"
 
+  urbackup-client:
+    image: uroni/urbackup-client:latest
+    restart: always
+    depends_on:
+      - urbackup
+    environment:
+      - TZ={{ timezone }}
+      - URBACKUP_SERVER_NAME={{ urbackup.server_host }}
+      - URBACKUP_CLIENT_NAME={{ ansible_hostname }}
+      - URBACKUP_CLIENT_AUTHKEY={{ urbackup.authkey }}
+    volumes:
+      - "{{ docker.docker_dir }}/volumes/urbackup-client:/var/urbackup"
+      - "{{ docker.docker_dir }}/volumes:/backup"
+    networks:
+      - backup 
+
 networks:
   proxy_network:
     external: true
+  backup:

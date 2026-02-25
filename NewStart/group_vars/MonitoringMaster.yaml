@@ -42,3 +42,21 @@ docker:
         - urbackup/backups
 
 master_ip: "{{ services_ip }}"
+
+#######################
+# Monitoring
+#######################
+
+# Bind node_exporter to all interfaces so Prometheus (Docker) can reach it
+node_exporter_listen_address: ""
+
+#######################
+# Backup (UrBackup)
+#######################
+
+urbackup:
+  server_host: urbackup 
+  backup_dirs: # Directories backed up by the client on each node
+    - "{{ docker.docker_dir }}/volumes"
+  authkey: "{{ urbackup_authkeys.master }}" 
+
