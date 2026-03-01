@@ -1,20 +1,23 @@
 ---
-- name: Check if volume directories exist
-  ansible.builtin.stat:
-    path: "{{ docker.docker_dir }}/volumes/{{ item }}"
-  loop: "{{ compose.volumes }}"
-  register: volume_stats
+- name: Directory for Docker volumes
+  block : 
+    - name: Check if volume directories exist
+      ansible.builtin.stat:
+        path: "{{ docker.docker_dir }}/volumes/{{ item }}"
+      loop: "{{ compose.volumes }}"
+      register: volume_stats
 
-- name: Create folder if it doesn't exist
-  ansible.builtin.file:
-    path: "{{ docker.docker_dir }}/volumes/{{ item.item }}"
-    state: directory
-    owner: "{{ username }}"
-    group: "{{ username }}"
-    mode: '0755'
-  loop: "{{ volume_stats.results }}"
-  when: not item.stat.exists
-  become: false
+    - name: Create folder if it doesn't exist
+      ansible.builtin.file:
+        path: "{{ docker.docker_dir }}/volumes/{{ item.item }}"
+        state: directory
+        owner: "{{ username }}"
+        group: "{{ username }}"
+        mode: '0755'
+      loop: "{{ volume_stats.results }}"
+      when: not item.stat.exists 
+      become: false
+  when: compose.volumes is defined
 
 - name: Copy config files for the compose 
   template:

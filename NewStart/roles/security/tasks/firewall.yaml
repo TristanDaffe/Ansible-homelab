@@ -38,6 +38,14 @@
     from_ip: "{{ tailscale_network | default('100.64.0.0/10') }}"
   when: "'Monitoring' in group_names"
 
+- name: Allow Loki from Tailscale only
+  ufw:
+    rule: allow
+    port: '3100'
+    proto: tcp
+    from_ip: "{{ tailscale_network | default('100.64.0.0/10') }}"
+  when: "'MonitoringMaster' in group_names"
+
 - name: Allow Node Exporter from Docker bridge (for local Prometheus)
   ufw:
     rule: allow

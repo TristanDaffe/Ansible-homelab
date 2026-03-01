@@ -9,21 +9,12 @@ services:
       - URBACKUP_CLIENT_NAME={{ ansible_hostname }}
       - URBACKUP_CLIENT_AUTHKEY={{ urbackup.authkey }}
     volumes:
-      - "{{ docker.docker_dir }}/volumes/urbackup-client:/var/urbackup"
       - "{{ docker.docker_dir }}:/backup"
-    labels:
-      - autoheal=true
-    healthcheck:
-      test: ["CMD-SHELL", "urbackupclientctl status | grep -qi 'connected' || exit 1"]
-      interval: 60s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
-
-  autoheal:
-    image: willfarrell/autoheal:latest
-    restart: always
-    environment:
-      - AUTOHEAL_CONTAINER_LABEL=autoheal
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+    command:
+      - --internet-only
+      - -r
+      - server-confirms
+    ports:
+      - "55414:55414"
+      - "55415:55415"
+      - "35623:35623/udp"

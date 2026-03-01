@@ -1,0 +1,75 @@
+---
+# https://github.com/grafana/grafana-ansible-collection/tree/main/roles/alloy
+
+- name: Install and configure Grafana Alloy
+  ansible.builtin.include_role:
+    name: grafana.grafana.alloy
+  vars:
+    alloy_config: |
+      loki.write "local" {
+        endpoint {
+          url = "http://{{ hostvars[groups['MonitoringMaster'][0]].master_ip }}:3100/loki/api/v1/push"
+        }
+      }
+
+      local.file_match "system_logs" {
+        path_targets = [
+          {"__path__" = "/var/log/*.log", "host" = "{{ ansible_hostname }}", "job" = "varlogs"},
+          {"__path__" = "/var/log/syslog", "host" = "{{ ansible_hostname }}", "job" = "varlogs"},
+        ]
+      }
+
+      loki.source.file "system_logs" {
+        targets               = local.file_match.system_logs.targets
+        forward_to            = [loki.write.local.receiver]
+        legacy_positions_file = "/tmp/positions.yaml"
+      }
+
+      loki.source.journal "system" {
+        max_age    = "12h"
+        forward_to = [loki.write.local.receiver]
+        labels     = {"host" = "{{ ansible_hostname }}", "job" = "journal"}
+      }
+
+      discovery.docker "containers" {
+        host             = "unix:///var/run/docker.sock"
+        refresh_interval = "10s"
+      }
+
+      discovery.relabel "containers" {
+        targets = discovery.docker.containers.targets
+
+        rule {
+          source_labels = ["__meta_docker_container_name"]
+          regex         = "/(.*)"
+          target_label  = "container"
+        }
+        rule {
+          source_labels = ["__meta_docker_container_log_stream"]
+          target_label  = "logstream"
+        }
+        rule {
+          source_labels = ["__meta_docker_container_label_logging_jobname"]
+          target_label  = "job"
+        }
+      }
+
+      loki.source.docker "containers" {
+        host       = "unix:///var/run/docker.sock"
+        targets    = discovery.relabel.containers.output
+        forward_to = [loki.write.local.receiver]
+      }
+
+- name: Add alloy user to docker, adm and systemd-journal groups
+  ansible.builtin.user:
+    name: alloy
+    groups: docker,adm,systemd-journal
+    append: true
+  notify: restart alloy
+
+- name: Stop and disable promtail if present
+  ansible.builtin.systemd:
+    name: promtail
+    state: stopped
+    enabled: false
+  failed_when: false

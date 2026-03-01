@@ -57,10 +57,17 @@ Each node runs its own Traefik instance and owns a subdomain. Services on that n
 
 **UrBackup backup setup:**
 - Server runs on `MonitoringMaster` via `urbackup.yaml` compose; web UI at `backup.monitoring.dev.autostack.ovh`
-- Clients run on all other nodes via `slave-containers.yaml`; mount the full `docker.docker_dir` at `/backup`
-- `urbackup.server_host` resolves automatically via `hostvars[groups['MonitoringMaster'][0]].services_ip`
-- `urbackup.backup_storage` (default `/backups`) must exist on the host with `mode: 0777` — the container runs as internal `urbackup` user (uid 107), not root. The deploy-composes role creates this automatically when the urbackup compose is present.
+- `urbackup.yaml` contains both the server and the master's own client. They share a dedicated internal `backup` Docker network so the client can reach the server by service name (`urbackup`). Do not put the client only in the default compose network — it won't be able to reach the server which is on `proxy_network`.
+- Clients on remote nodes run via `slave-containers.yaml`; mount the full `docker.docker_dir` at `/backup`
+- `urbackup.server_host` on remote nodes resolves via `hostvars[groups['MonitoringMaster'][0]].services_ip`; on the master it is set to the server's Docker service name (`urbackup`)
+- The urbackup client daemon reconnects to the server automatically after a few minutes — no autoheal or container restart logic is needed for reconnection handling
+- `/backups` inside the server container must have `mode: 0777` — the container runs as internal `urbackup` user (uid 107), not root
 - `urbackup.authkey` belongs in `secret.all.yaml`; generate it in the UrBackup web UI under Settings → Internet
+
+**Monitoring — node_exporter on MonitoringMaster:**
+- `node_exporter_listen_address` (defaults to `node_exporter_host`, i.e. the Tailscale IP) is overridden to `""` on MonitoringMaster so node_exporter binds to all interfaces. This is required because Prometheus runs in Docker (source IP `172.x.x.x`) and cannot reach a process that only listens on the Tailscale IP.
+- UFW on MonitoringMaster allows port 9100 from `172.16.0.0/12` (Docker bridge range) in addition to `100.64.0.0/10` (Tailscale). This does not expose port 9100 externally — `172.16.0.0/12` is not internet-routable.
+- The scrape target in `prometheus.yaml.j2` still uses `node_exporter_host` (Tailscale IP) — only the listen address differs.
 
 **Common template pitfall:** always use `{{ docker.docker_dir }}` (nested under `docker`), never a bare `{{ docker_dir }}` — that variable does not exist.
 

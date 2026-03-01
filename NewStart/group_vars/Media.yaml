@@ -23,8 +23,6 @@ docker:
           dst: letsencrypt/traefik.yaml
     - name: urbackup-client
       compose: slave-containers.yaml
-      volumes:
-        - urbackup-client
 
 #######################
 # Backup (UrBackup)

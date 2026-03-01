@@ -10,6 +10,8 @@ services:
       - proxy_network
       - backup
     environment:
+      - PUID={{ docker.puid }}
+      - PGID={{ docker.pgid }}
       - TZ={{ timezone }}
     volumes:
       - "{{ docker.docker_dir }}/volumes/urbackup/db:/var/urbackup"
@@ -31,10 +33,13 @@ services:
       - URBACKUP_CLIENT_NAME={{ ansible_hostname }}
       - URBACKUP_CLIENT_AUTHKEY={{ urbackup.authkey }}
     volumes:
-      - "{{ docker.docker_dir }}/volumes/urbackup-client:/var/urbackup"
       - "{{ docker.docker_dir }}/volumes:/backup"
+    command:
+      - --internet-only
+      - -r
+      - server-confirms
     networks:
-      - backup 
+      - backup
 
 networks:
   proxy_network:

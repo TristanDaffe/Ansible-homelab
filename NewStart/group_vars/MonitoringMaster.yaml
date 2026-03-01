@@ -14,6 +14,8 @@ docker:
   docker_dir: "/docker"
   domain: monitoring.dev.autostack.ovh
   cert_resolver: "ovh"
+  puid: 1000
+  pgid: 1000
   docker_networks:
     - proxy_network
   composes:
@@ -39,7 +41,6 @@ docker:
       compose: urbackup.yaml
       volumes:
         - urbackup/db
-        - urbackup/backups
 
 master_ip: "{{ services_ip }}"
 
@@ -55,8 +56,8 @@ node_exporter_listen_address: ""
 #######################
 
 urbackup:
-  server_host: urbackup 
-  backup_dirs: # Directories backed up by the client on each node
+  server_host: urbackup
+  backup_dirs:
     - "{{ docker.docker_dir }}/volumes"
   authkey: "{{ urbackup_authkeys.master }}" 
 
