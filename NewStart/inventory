@@ -1,4 +1,4 @@
-[MonitoringMaster]
+[Master]
 192.168.129.125
 
 [Tools]
@@ -8,7 +8,7 @@
 192.168.129.123
 
 [Vm:children]
-MonitoringMaster
+Master
 
 [Lxc:children]
 Tools
@@ -17,7 +17,7 @@ Media
 [docker_hosts:children]
 Tools
 Media
-MonitoringMaster
+Master
 
 [Monitoring:children]
 Vm

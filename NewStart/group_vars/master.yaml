@@ -37,10 +37,11 @@ docker:
           dst: monitoring/prometheus/prometheus.yml
         - file: loki.yaml
           dst: loki/local-config.yaml
-    - name: urbackup
-      compose: urbackup.yaml
+    - name: backup
+      compose: backup.yaml
       volumes:
         - urbackup/db
+        - zerobyte
 
 master_ip: "{{ services_ip }}"
 

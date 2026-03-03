@@ -22,24 +22,24 @@ services:
       - "traefik.http.routers.urbackup.rule=Host(`backup.{{ docker.domain }}`)"
       - "traefik.http.routers.urbackup.entrypoints=websecure"
 
-  urbackup-client:
-    image: uroni/urbackup-client:latest
-    restart: always
-    depends_on:
-      - urbackup
+  zerobyte:
+    image: ghcr.io/nicotsx/zerobyte:latest
+    restart: unless-stopped
     environment:
-      - TZ={{ timezone }}
-      - URBACKUP_SERVER_NAME={{ urbackup.server_host }}
-      - URBACKUP_CLIENT_NAME={{ ansible_hostname }}
-      - URBACKUP_CLIENT_AUTHKEY={{ urbackup.authkey }}
+      - "TZ={{ timezone }}"
+      - "BASE_URL=https://zerobyte.{{ docker.domain }}"
+      - "APP_SECRET={{ zerobyte.app_secret }}" 
     volumes:
-      - "{{ docker.docker_dir }}/volumes:/backup"
-    command:
-      - --internet-only
-      - -r
-      - server-confirms
+      - /etc/localtime:/etc/localtime:ro
+      - "{{ docker.docker_dir }}/volumes/zerobyte:/var/lib/zerobyte"
+      - "{{ docker.docker_dir }}:/data:ro"
     networks:
-      - backup
+      - proxy_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.zerobyte.loadbalancer.server.port=4096"
+      - "traefik.http.routers.zerobyte.rule=Host(`zerobyte.{{ docker.domain }}`)"
+      - "traefik.http.routers.zerobyte.entrypoints=websecure"
 
 networks:
   proxy_network:

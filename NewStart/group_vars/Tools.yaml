@@ -29,7 +29,7 @@ docker:
 #######################
 
 urbackup:
-  server_host: "{{ hostvars[groups['MonitoringMaster'][0]].services_ip }}"
+  server_host: "{{ hostvars[groups['Master'][0]].services_ip }}"
   backup_dirs: # Directories backed up by the client on each node
     - "{{ docker.docker_dir }}/volumes"
   authkey: "{{ urbackup_authkeys.tools }}" 

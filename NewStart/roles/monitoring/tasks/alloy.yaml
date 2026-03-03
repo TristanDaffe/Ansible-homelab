@@ -8,7 +8,7 @@
     alloy_config: |
       loki.write "local" {
         endpoint {
-          url = "http://{{ hostvars[groups['MonitoringMaster'][0]].master_ip }}:3100/loki/api/v1/push"
+          url = "http://{{ hostvars[groups['Master'][0]].master_ip }}:3100/loki/api/v1/push"
         }
       }
 
