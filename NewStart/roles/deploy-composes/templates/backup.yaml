@@ -33,6 +33,7 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - "{{ docker.docker_dir }}/volumes/zerobyte:/var/lib/zerobyte"
       - "{{ docker.docker_dir }}:/data:ro"
+      - "{{ docker.docker_dir }}/test/backups:/backups"
     networks:
       - proxy_network
     labels:
