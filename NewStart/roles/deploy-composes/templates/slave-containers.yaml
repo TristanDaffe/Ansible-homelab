@@ -14,7 +14,4 @@ services:
       - --internet-only
       - -r
       - server-confirms
-    # ports:
-    #   - "55414:55414"
-    #   - "55415:55415"
-    #   - "35623:35623/udp"
+
