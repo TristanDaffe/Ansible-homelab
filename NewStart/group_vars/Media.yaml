@@ -9,7 +9,7 @@ tailscale_ip: 100.103.237.49  # fill in after first Tailscale provisioning
 
 docker:
   docker_dir: "/docker"
-  domain: media.dev.autostack.ovh
+  domain: dev.autostack.ovh
   cert_resolver: "ovh"
   docker_networks:
     - proxy_network
@@ -21,12 +21,17 @@ docker:
       config:
         - file: traefik.yaml
           dst: letsencrypt/traefik.yaml
+        - file: peers.yaml.j2
+          dst: letsencrypt/peers.yaml
     - name: urbackup-client
       compose: slave-containers.yaml
 
 #######################
 # Backup (UrBackup)
 #######################
+
+traefik_peers:
+  - "{{ hostvars[groups['Master'][0]].tailscale_ip }}"
 
 urbackup:
   server_host: "{{ hostvars[groups['Master'][0]].services_ip }}"

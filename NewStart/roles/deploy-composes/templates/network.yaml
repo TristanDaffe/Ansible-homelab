@@ -35,6 +35,7 @@ services:
   whoami:
     image: "traefik/whoami"
     restart: always
+    hostname: "{{ ansible_hostname }}"
     networks:
       - proxy_network
     labels:

@@ -1,0 +1,15 @@
+tcp:
+  routers:
+    peers-fallback:
+      rule: "HostSNI(`*`)"
+      service: peers-svc
+      priority: 1
+      tls:
+        passthrough: true
+  services:
+    peers-svc:
+      loadBalancer:
+        servers:
+{% for peer in traefik_peers %}
+          - address: "{{ peer }}:443"
+{% endfor %}

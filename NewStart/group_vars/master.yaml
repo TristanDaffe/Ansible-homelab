@@ -12,7 +12,7 @@ gid: 1002
 
 docker:
   docker_dir: "/docker"
-  domain: monitoring.dev.autostack.ovh
+  domain: dev.autostack.ovh
   cert_resolver: "ovh"
   puid: 1000
   pgid: 1000
@@ -26,6 +26,8 @@ docker:
       config:
         - file: traefik.yaml
           dst: letsencrypt/traefik.yaml
+        - file: peers.yaml.j2
+          dst: letsencrypt/peers.yaml
     - name: monitoring
       compose: monitoring.yaml
       volumes:
@@ -44,6 +46,9 @@ docker:
         - zerobyte
 
 master_ip: "{{ services_ip }}"
+
+traefik_peers:
+  - "{{ hostvars[groups['Media'][0]].tailscale_ip }}"
 
 #######################
 # Monitoring
