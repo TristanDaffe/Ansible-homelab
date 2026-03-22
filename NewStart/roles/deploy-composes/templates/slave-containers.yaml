@@ -1,7 +1,7 @@
 services:
 
   urbackup-client:
-    image: uroni/urbackup-client:latest
+    image: uroni/urbackup-client:2.5.x
     restart: always
     environment:
       - TZ={{ timezone }}
@@ -16,7 +16,7 @@ services:
       - server-confirms
 
   portainer-agent:
-    image: portainer/agent:latest
+    image: portainer/agent:2.39.1
     restart: unless-stopped
     environment:
       - TZ={{ timezone }}
@@ -26,17 +26,21 @@ services:
     ports:
       - "{{ services_ip }}:9001:9001"
 
-  whoami:
-    image: "traefik/whoami"
-    restart: always
-    hostname: "{{ ansible_hostname }}"
-    networks:
-      - proxy_network
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.services.whoami.loadbalancer.server.port=80"
-      - "traefik.http.routers.whoami.rule=Host(`whoami.{{ ansible_hostname }}.{{ docker.domain }}`)"
-      - "traefik.http.routers.whoami.entrypoints=web,websecure"
+  socket-proxy:
+    image: linuxserver/socket-proxy
+    restart: unless-stopped
+    environment:
+      - CONTAINERS=1
+      - IMAGES=1
+      - VERSION=1
+      - EVENTS=1
+      - INFO=1
+      - NETWORKS=1
+      - POST=0
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    ports:
+      - "{{ services_ip }}:2375:2375"
 
 networks:
   proxy_network:

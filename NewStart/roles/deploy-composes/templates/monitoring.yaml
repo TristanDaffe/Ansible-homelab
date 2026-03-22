@@ -2,7 +2,7 @@
 services: 
 
   prometheus:
-    image: prom/prometheus
+    image: prom/prometheus:v3
     restart: always
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro

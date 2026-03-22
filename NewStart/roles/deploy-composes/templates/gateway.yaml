@@ -1,7 +1,8 @@
 services:
 
   pocket-id:
-    image: ghcr.io/pocket-id/pocket-id:v1
+    image: ghcr.io/pocket-id/pocket-id:v2.4
+    entrypoint: ["/app/pocket-id"]
     restart: unless-stopped
     networks:
       - proxy_network
@@ -11,6 +12,7 @@ services:
       - MAXMIND_LICENSE_KEY=
       - PUID={{ docker.puid }}
       - PGID={{ docker.pgid }}
+      - ENCRYPTION_KEY={{ pocket_id.encryption_key }}
     volumes:
       - "{{ docker.docker_dir }}/volumes/pocket-id:/app/data"
     labels:
@@ -19,9 +21,10 @@ services:
       - "traefik.http.routers.pocket-id.rule=Host(`pocket-id.{{ docker.domain }}`)"
       - "traefik.http.routers.pocket-id.entrypoints=websecure"
 
+
 {% for item in tinyauth_groups %}
   tinyauth-{{ item.name }}:
-    image: ghcr.io/steveiliop56/tinyauth
+    image: ghcr.io/steveiliop56/tinyauth:v5
     restart: unless-stopped
     networks:
       - proxy_network
@@ -47,7 +50,7 @@ services:
 {% endfor %}
 
   homepage:
-    image: ghcr.io/gethomepage/homepage:latest
+    image: ghcr.io/gethomepage/homepage:v1.11.0
     restart: unless-stopped
     networks:
       - proxy_network
@@ -66,7 +69,7 @@ services:
       - "traefik.http.routers.homepage.entrypoints=websecure"
 
   speedtest-tracker:
-    image: lscr.io/linuxserver/speedtest-tracker:latest
+    image: lscr.io/linuxserver/speedtest-tracker:1.13.11
     restart: unless-stopped
     networks:
       - proxy_network

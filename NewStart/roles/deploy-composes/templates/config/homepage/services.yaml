@@ -195,6 +195,14 @@
         widget:
           type: prometheus
           url: http://prometheus:9090
+    - Wud:
+        icon: whats-up-docker.png
+        href: https://wud.{{ docker.domain }}
+        description: Monitoring des mises containers
+        ping: https://wud.{{ docker.domain }}
+        widget:
+          type: whatsupdocker
+          url: https://wud.{{ docker.domain }}
   - Backup:
       - Zerobyte:
           icon: zerobyte.png
@@ -206,7 +214,12 @@
           href: https://backup.{{ docker.domain }}
           description: Gestion des sauvegardes
           ping: https://backup.{{ docker.domain }}
-
+          widget:
+            type: urbackup
+            username: {{ urbackup.user }}
+            password: {{ urbackup.pass }} 
+            url: https://backup.{{ docker.domain }}
+            maxDays: 5 # optional
 - Networking:
   - PiHole:
       icon: pi-hole.svg 

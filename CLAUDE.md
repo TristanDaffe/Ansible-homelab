@@ -73,6 +73,14 @@ Each node runs its own Traefik instance. When a request lands on a node that doe
 
 **Proxmox host is on version 9.1.5+.** Do not suggest workarounds for bugs fixed in that release (e.g. the `ip_unprivileged_port_start` sysctl issue with Docker in LXC was a known Proxmox bug fixed in 9.1.5).
 
+**Proxmox cluster — 3 nodes (1 prod + 2 dev):**
+- Prod: `pve` at 192.168.129.110; Dev: `pve-dev` at .100, `pve-dev-2` at .102
+- Dev nodes have `quorum_votes: 0`; quorum section has `expected_votes: 1` so prod always boots VMs without dev nodes present
+- `/etc/pve/corosync.conf` is a FUSE filesystem (pmxcfs) — goes read-only when quorum is lost; edit `/etc/corosync/corosync.conf` (real file) directly instead
+- `pvecm updatenode` does NOT exist in this Proxmox version — edit corosync.conf directly
+- knet transport: each directive must be on its own line — vim word-wrap can merge `name:` and `nodeid:` onto one line causing "Knet requires an explicit nodeid" error
+- After hostname change: update `/etc/hosts` (new hostname → real LAN IP, not 127.0.0.1), then `systemctl restart pveproxy pvedaemon pvestatd`
+
 `setup.yaml` targets the `proxmox` host group and:
 1. Configures the Proxmox host (powertop auto-tune, directory structure)
 2. Downloads Ubuntu LTS cloud image and LXC template if missing
@@ -93,6 +101,12 @@ Each passthrough feature is a `block:` with the `when:` condition at block level
 - LXC config: `lxc.cgroup2.devices.allow: c 226:* rwm`, bind-mount `/dev/dri`, and a full `lxc.idmap` block that punches holes for GID 44 and 104 so device ownership works inside the container
 - Inside the container: install `intel-media-va-driver-non-free`, add app user to `render` group (GID 104), set `LIBVA_DRIVER_NAME=iHD`
 - `intel_gpu_top` and `vainfo` are **not reliable test tools inside LXC** — verify by checking actual application behavior (e.g. Jellyfin dashboard showing VAAPI transcoding)
+
+**NAS CIFS mounts (NodeSetup):**
+- Defined in `group_vars/all/all.yml` under `cifs_mounts`
+- Options include `nobrl` (fixes Windows byte-range locks — does NOT fix SQLite POSIX fcntl locks on CIFS)
+- `nolocks` is an NFS-only option — not valid for CIFS on Linux (causes `mount error(22): Invalid argument`)
+- Calibre library stored on NAS CIFS share causes `munmap_chunk(): invalid pointer` (SIGABRT) in calibredb — SQLite WAL mode + mmap incompatible with CIFS. `NETWORK_SHARE_MODE=true` in CWA is insufficient. Known unresolved issue.
 
 ## Future work (not urgent)
 

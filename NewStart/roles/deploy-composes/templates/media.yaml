@@ -5,7 +5,7 @@ services:
 ############
 
   calibre-web:
-    image: crocodilestick/calibre-web-automated:latest
+    image: crocodilestick/calibre-web-automated:v4.0.6
     environment:
       - "PUID={{ nas.puid }}"
       - "PGID={{ nas.pgid }}"
@@ -18,6 +18,8 @@ services:
     restart: unless-stopped
     networks:
       - proxy_network
+    ports:
+      - "127.0.0.1:8083:8083"
     labels:
       - "traefik.enable=true"
       - "traefik.http.services.calibre-web.loadbalancer.server.port=8083"
@@ -25,7 +27,7 @@ services:
       - "traefik.http.routers.calibre-web.entrypoints=web"
 
   calibre-web-maman:
-    image: crocodilestick/calibre-web-automated:latest
+    image: crocodilestick/calibre-web-automated:v4.0.6
     environment:
       - "PUID={{ nas.puid }}"
       - "PGID={{ nas.pgid }}"
@@ -58,7 +60,7 @@ services:
      network_mode: "host"
      volumes:
        - /dev/net/tun:/dev/net/tun
-       - "{{ docker.docker_dir }}/tailscale:/var/lib/tailscale"
+       - "{{ docker.docker_dir }}/volumes/tailscale:/var/lib/tailscale"
      environment:
        - TS_AUTHKEY={{ tailscale.authkey }}
        - TS_ROUTES=  # leave empty if you just want Funnel
@@ -71,7 +73,7 @@ services:
 ############
 
   jellyfin:
-    image: jellyfin/jellyfin
+    image: jellyfin/jellyfin:10.11.6
     group_add:
       - "{{ docker.igpu_group }}"
     volumes:

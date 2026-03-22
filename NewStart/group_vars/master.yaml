@@ -55,7 +55,9 @@ docker:
     - name: gateway
       compose: gateway.yaml
       volumes:
-        - pocket-id
+        - path: pocket-id
+          uid: 65532
+          gid: 65532
         - speedtest-tracker
         - homepage/config
       config:
@@ -72,12 +74,14 @@ docker:
       volumes:
         - portainer
         - mesh-mini
+        - wud
 
 master_ip: "{{ services_ip }}"
 
 traefik_peers:
   - "{{ hostvars[groups['Media'][0]].tailscale_ip }}"
   - "{{ hostvars[groups['Tools'][0]].tailscale_ip }}"
+
 
 #######################
 # Monitoring
@@ -95,4 +99,6 @@ urbackup:
   backup_dirs:
     - "{{ docker.docker_dir }}/volumes"
   authkey: "{{ urbackup_authkeys.master }}" 
+  user: "{{ urbackup_secret.user }}"
+  pass: "{{ urbackup_secret.pass }}"
 
