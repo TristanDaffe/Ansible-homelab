@@ -5,7 +5,7 @@ services:
 ############
 
   mealie:
-    image: ghcr.io/mealie-recipes/mealie:latest
+    image: ghcr.io/mealie-recipes/mealie:v3.13.1
     restart: unless-stopped
     volumes:
       - "{{ docker.docker_dir }}/volumes/mealie/data:/app/data/"
@@ -107,7 +107,7 @@ services:
       POSTGRES_PASSWORD: "{{ paperless.db_pass }}"
 
   paperless:
-    image: ghcr.io/paperless-ngx/paperless-ngx:latest
+    image: ghcr.io/paperless-ngx/paperless-ngx:2.20.13
     restart: unless-stopped
     networks:
       - paperless

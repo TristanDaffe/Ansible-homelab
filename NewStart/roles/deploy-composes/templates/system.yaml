@@ -1,7 +1,7 @@
 services:
 
   portainer:
-    image: portainer/portainer-ce:latest
+    image: portainer/portainer-ce:2.39.1
     restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
@@ -28,7 +28,32 @@ services:
       - "traefik.http.services.mesh-mini.loadbalancer.server.port=3000"
       - "traefik.http.routers.mesh-mini.rule=Host(`mesh-mini.{{ docker.domain }}`)"
       - "traefik.http.routers.mesh-mini.entrypoints=websecure"
-      
+
+  whatsupdocker:
+    image: getwud/wud:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /etc/localtime:/etc/localtime:ro
+      - "{{ docker.docker_dir }}/volumes/wud:/store"
+    restart: unless-stopped
+    environment:
+      - WUD_LOG_LEVEL=info
+      - WUD_WATCHER_LOCAL_SOCKET=/var/run/docker.sock
+      - WUD_TRIGGER_DOCKER_MYUPDATE_PRUNE=true
+{% for host in groups['docker_hosts'] | reject('equalto', inventory_hostname) | list %}
+      - WUD_WATCHER_{{ hostvars[host].ansible_hostname | upper }}_HOST={{ hostvars[host].services_ip }}
+      - WUD_WATCHER_{{ hostvars[host].ansible_hostname | upper }}_PORT=2375
+      - WUD_WATCHER_{{ hostvars[host].ansible_hostname | upper }}_CRON=0 1 * * *
+      - WUD_WATCHER_{{ hostvars[host].ansible_hostname | upper }}_WATCHALL=true
+{% endfor %}
+    networks:
+      - proxy_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.wud.loadbalancer.server.port=3000"
+      - "traefik.http.routers.wud.rule=Host(`wud.{{ docker.domain }}`)"
+      - "traefik.http.routers.wud.entrypoints=websecure"
+
 networks:
   proxy_network:
     external: true

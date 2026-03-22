@@ -54,6 +54,14 @@
     from_ip: "172.16.0.0/12"
   when: "'Master' in group_names"
 
+- name: Allow Portainer agent from Tailscale only
+  ufw:
+    rule: allow
+    port: '9001'
+    proto: tcp
+    from_ip: "{{ tailscale_network | default('100.64.0.0/10') }}"
+  when: not "'Master' in group_names"
+
 - name: Enable UFW with logging
   ufw:
     state: enabled
