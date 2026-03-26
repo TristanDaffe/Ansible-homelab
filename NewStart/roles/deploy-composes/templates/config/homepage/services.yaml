@@ -202,7 +202,7 @@
         ping: https://wud.{{ docker.domain }}
         widget:
           type: whatsupdocker
-          url: https://wud.{{ docker.domain }}
+          url: http://whatsupdocker:3000 
   - Backup:
       - Zerobyte:
           icon: zerobyte.png
@@ -218,7 +218,7 @@
             type: urbackup
             username: {{ urbackup.user }}
             password: {{ urbackup.pass }} 
-            url: https://backup.{{ docker.domain }}
+            url: http://urbackup:55414 
             maxDays: 5 # optional
 - Networking:
   - PiHole:
@@ -256,7 +256,7 @@
       ping: http://speedtest-tracker:80
       widget:
         type: speedtest
-        url: https://speedtest.{{ docker.domain }}
+        url: http://speedtest-tracker:80 
         version: 2
         key: {{ speedtest_tracker.api_key }}
         bitratePrecision: 0
