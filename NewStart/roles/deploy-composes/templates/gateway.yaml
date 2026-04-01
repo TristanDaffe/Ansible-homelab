@@ -31,6 +31,7 @@ services:
     environment:
       - TINYAUTH_APPURL=https://auth-{{ item.name }}.{{ docker.domain }}
       - TINYAUTH_UI_TITLE=TinyAuth - {{ item.name }}
+      - TINYAUTH_AUTH_TRUSTEDPROXIES=172.16.0.0/12
       - TINYAUTH_OAUTH_PROVIDERS_POCKETID_CLIENTID={{ item.sso_client_id }}
       - TINYAUTH_OAUTH_PROVIDERS_POCKETID_CLIENTSECRET={{ item.sso_client_id_secret }}
       - TINYAUTH_OAUTH_PROVIDERS_POCKETID_AUTHURL=https://pocket-id.{{ docker.domain }}/authorize
