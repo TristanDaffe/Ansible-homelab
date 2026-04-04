@@ -25,6 +25,9 @@ entryPoints:
     address: ":8080"
   websecure:
     address: ":443"
+    transport:
+      respondingTimeouts:
+        readTimeout: 0
     http:
       tls: 
         certResolver: "{{ docker.cert_resolver }}"
