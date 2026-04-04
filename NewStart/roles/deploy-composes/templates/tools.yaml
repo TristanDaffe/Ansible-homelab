@@ -39,7 +39,7 @@ services:
   #     - "traefik.http.routers.convertx.entrypoints=websecure"
 
   stirling-pdf:
-    image: stirlingtools/stirling-pdf:2.9.0
+    image: stirlingtools/stirling-pdf:2.9.1
     restart: unless-stopped
     volumes: 
       - "{{ docker.docker_dir }}/volumes/stirling-data/tessdata:/usr/share/tessdata"     # OCR language files

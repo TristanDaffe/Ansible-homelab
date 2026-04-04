@@ -11,7 +11,7 @@
       href: http://ha.{{ local_domain }}
       description: Home Assistant
       ping: http://ha.{{ local_domain }}
-  - mealie: 
+  - Mealie: 
       icon: mealie.png
       href: https://meal.{{ docker.domain }}
       description: Gestion de recettes
@@ -20,6 +20,16 @@
         type: mealie
         url: https://meal.{{ docker.domain }}
         key: {{ mealie.api_key }}
+        version: 2
+  - Immich:
+      icon: immich.png
+      href: https://photo.{{ docker.domain }}
+      description: Gestion de photos
+      ping: https://photo.{{ docker.domain }}
+      widget:
+        type: immich
+        url: https://photo.{{ docker.domain }} 
+        key: {{ immich.api_key }} 
         version: 2
 
 - Media-consumption: 

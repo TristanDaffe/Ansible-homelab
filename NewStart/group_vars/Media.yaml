@@ -51,6 +51,9 @@ docker:
         - calibre-web-2
         - jellyfin/config
         - jellyfin/cache
+        - immich/data
+        - immich/model-cache
+        - immich/postgres
 
 #######################
 # Backup (UrBackup)
