@@ -69,6 +69,19 @@ Each node runs its own Traefik instance. When a request lands on a node that doe
 
 **Common template pitfall:** always use `{{ docker.docker_dir }}` (nested under `docker`), never a bare `{{ docker_dir }}` — that variable does not exist.
 
+**Immich network architecture (`media.yaml`):**
+- `immich-server` must be on both `proxy_network` (for Traefik) and the internal `immich` network (to reach redis/database/ML by hostname).
+- `redis`, `database`, and `immich-machine-learning` go on the `immich` network only — they don't need Traefik.
+- Upload volume mounts to `/data` inside the container (not `/usr/src/app/upload` — that's the old path).
+- `immich-machine-learning` needs internet access to download models — do NOT use `internal: true` on the immich network.
+
+**Pocket ID v2 — distroless image:**
+- The `v2` image is distroless and does not contain `/app/docker/entrypoint.sh`. Must override entrypoint in compose: `entrypoint: ["/app/pocket-id"]`.
+- Volume ownership: container runs as uid/gid `65532`; the volume directory must be owned by that user. Use the `uid`/`gid` fields on the volume declaration in group_vars.
+
+**Traefik — large file uploads:**
+- Add `respondingTimeouts: readTimeout: 0` under the `websecure` entrypoint transport to prevent Traefik from cutting large uploads mid-transfer. Already applied in `config/traefik.yaml`.
+
 ### NodeSetup
 
 **Proxmox host is on version 9.1.5+.** Do not suggest workarounds for bugs fixed in that release (e.g. the `ip_unprivileged_port_start` sysctl issue with Docker in LXC was a known Proxmox bug fixed in 9.1.5).
@@ -107,6 +120,13 @@ Each passthrough feature is a `block:` with the `when:` condition at block level
 - Options include `nobrl` (fixes Windows byte-range locks — does NOT fix SQLite POSIX fcntl locks on CIFS)
 - `nolocks` is an NFS-only option — not valid for CIFS on Linux (causes `mount error(22): Invalid argument`)
 - Calibre library stored on NAS CIFS share causes `munmap_chunk(): invalid pointer` (SIGABRT) in calibredb — SQLite WAL mode + mmap incompatible with CIFS. `NETWORK_SHARE_MODE=true` in CWA is insufficient. Known unresolved issue.
+- When `cifs_mounts` can be null/empty, use `(cifs_mounts | default([])) | length > 0` to avoid `NoneType has no len()` errors.
+
+**NodeSetup group_vars naming:**
+- `group_vars/` filenames must match the inventory group name exactly. If the inventory defines `[proxmox]`, the vars file must be `group_vars/proxmox.yaml` (or `group_vars/proxmox/`), not an arbitrary name like `skalup.yml`.
+
+**Proxmox API — VM network config:**
+- `ipconfig0` must use key=value format: `ipconfig0: ip=dhcp`, NOT `ipconfig0: dhcp`. The bare value causes "invalid format - value without key" from the Proxmox API.
 
 ## Future work (not urgent)
 

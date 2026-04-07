@@ -25,6 +25,12 @@ entryPoints:
     address: ":8080"
   websecure:
     address: ":443"
+    forwardedHeaders:
+      trustedIPs:
+        - "127.0.0.1/8"
+        - "172.16.0.0/12"     # Docker bridge
+        - "192.168.128.0/23"  # LAN subnet
+        - "100.64.0.0/10"     # Tailscale
     transport:
       respondingTimeouts:
         readTimeout: 0
