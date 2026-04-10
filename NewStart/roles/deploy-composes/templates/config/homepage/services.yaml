@@ -238,7 +238,7 @@
         description: Sauvegardes fichiers
         ping: https://zerobyte.{{ docker.domain }}
     - RustFS:
-        icon: minio.png
+        icon: rustfs.png
         href: https://bucket.{{ docker.domain }}
         description: Stockage objet S3
         ping: https://bucket.{{ docker.domain }}
