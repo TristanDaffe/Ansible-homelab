@@ -49,7 +49,6 @@ services:
     security_opt:
       - "no-new-privileges:true"
     environment:
-      - RUSTFS_SERVER_DOMAINS=bucket.{{ docker.domain }},s3.{{ docker.domain }}
       - RUSTFS_VOLUMES=/data/rustfs0
       - RUSTFS_ADDRESS=0.0.0.0:9000
       - RUSTFS_CONSOLE_ADDRESS=0.0.0.0:9001
