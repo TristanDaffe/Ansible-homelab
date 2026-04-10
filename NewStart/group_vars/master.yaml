@@ -3,6 +3,17 @@
 hostname: master
 tailscale_ip: 100.108.226.73 # fill in after first Tailscale provisioning
 
+mount_nas: true
+
+#######################
+# NAS
+#######################
+
+nas:
+  share: //192.168.129.45/Tristan
+  mount: /mnt/nas
+  puid: 1000
+  pgid: 1000
 uid: 1000
 gid: 1002
 
@@ -34,6 +45,9 @@ docker:
       volumes:
         - urbackup
         - zerobyte
+        - path: rustfs/logs
+          uid: 1000
+          gid: 1000
     - name: monitoring
       compose: monitoring.yaml
       volumes:

@@ -173,113 +173,113 @@
 # Admin tab
 ################
 
-- Header:
-  - Server:
-    - Proxmox:
-        icon: proxmox.png
-        href: https://192.168.129.110:8006
-        description: Proxmox
-        ping: https://192.168.129.110:8006
-    - Portainer:
-        icon: portainer.png
-        href: https://portainer.{{ docker.domain }}
-        description: Portainer
-        ping: https://portainer.{{ docker.domain }}
-    - Mesh-mini:
-        icon: meshcentral.png
-        href: https://mesh-mini.{{ docker.domain }}
-        description: Mesh-mini
-        ping: https://mesh-mini.{{ docker.domain }}
-
-  - Monitoring:
-    - Grafana:
-        icon: grafana.png
-        href: https://grafana.{{ docker.domain }}
-        description: Monitoring
-        ping: http://grafana:3000
-    - Prometheus:
-        icon: prometheus.png
-        href: https://prometheus.{{ docker.domain }}
-        description: Monitoring
-        ping: http://prometheus:9090
-        widget:
-          type: prometheus
-          url: http://prometheus:9090
-    - Wud:
-        icon: whats-up-docker.png
-        href: https://wud.{{ docker.domain }}
-        description: Monitoring des mises containers
-        ping: https://wud.{{ docker.domain }}
-        widget:
-          type: whatsupdocker
-          url: http://whatsupdocker:3000 
-  - Backup:
-      - Zerobyte:
-          icon: zerobyte.png
-          href: https://zerobyte.{{ docker.domain }}
-          description: Gestion des sauvegardes
-          ping: https://zerobyte.{{ docker.domain }}
-      - UrBackup:
-          icon: urbackup.png
-          href: https://backup.{{ docker.domain }}
-          description: Gestion des sauvegardes
-          ping: https://backup.{{ docker.domain }}
-          widget:
-            type: urbackup
-            username: {{ urbackup.user }}
-            password: {{ urbackup.pass }} 
-            url: http://urbackup:55414 
-            maxDays: 5 # optional
-- Networking:
-  - PiHole:
-      icon: pi-hole.svg 
-      href: http://pi.{{ local_domain }}/admin
-      description: Server DNS
-      ping: http://pi.{{ local_domain }}/admin
-      # widget:
-      #   type: pihole
-      #   url: http://pi.{{ local_domain }}/admin
-      #   version: 6
-      #   key: {{pihole_api}}
-  - NPM:
-      icon: nginx-proxy-manager.png
-      href: http://npm.{{ local_domain }}
-      description: Nginx Proxy Manager
-      ping: http://npm.{{ local_domain }}
-      widget:
-        type: npm
-        url: http://npm.{{ local_domain }}
-        username: {{ npm_user }} 
-        password: {{ npm_pass }}
-  - Traefik:
-      icon: traefik.png
-      href: https://traefik.{{ ansible_hostname }}.{{ docker.domain }}
-      description: Traefik
-      ping: http://traefik:80
-      widget:
-        type: traefik
-        url: http://traefik:8080
-  - speedtest-tracker:
-      icon: speedtest-tracker.png
-      href: https://speedtest.{{ docker.domain }}
-      description: Suivi des tests de vitesse
-      ping: http://speedtest-tracker:80
-      widget:
-        type: speedtest
-        url: http://speedtest-tracker:80 
-        version: 2
-        key: {{ speedtest_tracker.api_key }}
-        bitratePrecision: 0
+- Infrastructure:
+  - Proxmox:
+      icon: proxmox.png
+      href: https://192.168.129.110:8006
+      description: Proxmox
+      ping: https://192.168.129.110:8006
+  - Portainer:
+      icon: portainer.png
+      href: https://portainer.{{ docker.domain }}
+      description: Portainer
+      ping: https://portainer.{{ docker.domain }}
+  - Mesh-mini:
+      icon: meshcentral.png
+      href: https://mesh-mini.{{ docker.domain }}
+      description: Mesh-mini
+      ping: https://mesh-mini.{{ docker.domain }}
   - Pocket-ID:
       icon: pocket-id.png
       href: https://pocket-id.{{ docker.domain }}
       description: Gestion des identités
-      ping: https://pocket-id.{{ docker.domain }} 
+      ping: https://pocket-id.{{ docker.domain }}
 
-  - Whoami:
-      href: https://whoami.{{ docker.domain }}
-      description: Whoami
-      ping: https://whoami.{{ docker.domain }} 
+- Monitoring:
+  - Grafana:
+      icon: grafana.png
+      href: https://grafana.{{ docker.domain }}
+      description: Dashboards
+      ping: http://grafana:3000
+  - Prometheus:
+      icon: prometheus.png
+      href: https://prometheus.{{ docker.domain }}
+      description: Métriques
+      ping: http://prometheus:9090
+      widget:
+        type: prometheus
+        url: http://prometheus:9090
+  - WUD:
+      icon: whats-up-docker.png
+      href: https://wud.{{ docker.domain }}
+      description: Mises à jour des containers
+      ping: https://wud.{{ docker.domain }}
+      widget:
+        type: whatsupdocker
+        url: http://whatsupdocker:3000
+
+- Traefik:
+{% for host in groups['docker_hosts'] | sort %}
+  - Traefik {{ hostvars[host].ansible_hostname | capitalize }}:
+      icon: traefik.png
+      href: https://traefik.{{ hostvars[host].ansible_hostname }}.{{ docker.domain }}
+      description: Traefik - {{ hostvars[host].ansible_hostname }}
+      ping: https://traefik.{{ hostvars[host].ansible_hostname }}.{{ docker.domain }}
+      widget:
+        type: traefik
+        url: https://traefik.{{ hostvars[host].ansible_hostname }}.{{ docker.domain }}
+{% endfor %}
+
+- Admin-bottom:
+  - Backup:
+    - Zerobyte:
+        icon: zerobyte.png
+        href: https://zerobyte.{{ docker.domain }}
+        description: Sauvegardes fichiers
+        ping: https://zerobyte.{{ docker.domain }}
+    - RustFS:
+        icon: minio.png
+        href: https://bucket.{{ docker.domain }}
+        description: Stockage objet S3
+        ping: https://bucket.{{ docker.domain }}
+    - UrBackup:
+        icon: urbackup.png
+        href: https://backup.{{ docker.domain }}
+        description: Sauvegardes machines
+        ping: https://backup.{{ docker.domain }}
+        widget:
+          type: urbackup
+          username: {{ urbackup.user }}
+          password: {{ urbackup.pass }}
+          url: http://urbackup:55414
+          maxDays: 5
+  - Network:
+    - PiHole:
+        icon: pi-hole.svg
+        href: http://pi.{{ local_domain }}/admin
+        description: Serveur DNS
+        ping: http://pi.{{ local_domain }}/admin
+    - NPM:
+        icon: nginx-proxy-manager.png
+        href: http://npm.{{ local_domain }}
+        description: Nginx Proxy Manager
+        ping: http://npm.{{ local_domain }}
+        widget:
+          type: npm
+          url: http://npm.{{ local_domain }}
+          username: {{ npm_user }}
+          password: {{ npm_pass }}
+    - Speedtest:
+        icon: speedtest-tracker.png
+        href: https://speedtest.{{ docker.domain }}
+        description: Suivi des tests de vitesse
+        ping: http://speedtest-tracker:80
+        widget:
+          type: speedtest
+          url: http://speedtest-tracker:80
+          version: 2
+          key: {{ speedtest_tracker.api_key }}
+          bitratePrecision: 0
 
 ################
 # Paper work tab

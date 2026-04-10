@@ -75,26 +75,37 @@ layout:
 
   # === ADMIN TAB ===
 
-  Header:
+  Infrastructure:
+    tab: Admin
+    header: true
+    style: row
+    columns: 3
+
+  Monitoring:
+    tab: Admin
+    header: true
+    style: row
+    columns: 3
+
+  Traefik:
+    tab: Admin
+    header: true
+    style: row
+    columns: 3
+
+  Admin-bottom:
     tab: Admin
     header: false
     style: row
     columns: 2
-    Server:
+    Backup:
       header: true
       style: row
       columns: 2
-
-    Monitoring:
+    Network:
       header: true
       style: row
       columns: 2
-
-  Networking:
-    tab: Admin
-    header: true
-    style: row
-    columns: 4
 
   # === PAPER WORK TAB ===
 
