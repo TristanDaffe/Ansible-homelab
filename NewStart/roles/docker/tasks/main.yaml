@@ -1,11 +1,11 @@
 ---
 - name: Install Docker SDK for Python
-  apt:
+  ansible.builtin.apt:
     name: python3-docker
     state: present
 
 - name: Install prerequisites for Docker
-  apt:
+  ansible.builtin.apt:
     name:
       - apt-transport-https
       - ca-certificates
@@ -18,42 +18,42 @@
     update_cache: yes
 
 - name: Create directory for Docker GPG key
-  file:
+  ansible.builtin.file:
     path: /etc/apt/keyrings
     state: directory
     mode: "0755"
 
 - name: Remove old Docker GPG key (if exists)
-  file:
+  ansible.builtin.file:
     path: /etc/apt/keyrings/docker.gpg
     state: absent
 
 - name: Remove old Docker repository (if exists)
-  apt_repository:
+  ansible.builtin.apt_repository:
     repo: "deb https://download.docker.com/linux/ubuntu bionic stable"
     state: absent
   failed_when: false
 
 - name: Remove old Docker repository with GPG key (if exists)
-  apt_repository:
+  ansible.builtin.apt_repository:
     repo: "deb [signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
     state: absent
   failed_when: false
 
 - name: Download Docker GPG key
-  get_url:
+  ansible.builtin.get_url:
     url: https://download.docker.com/linux/ubuntu/gpg
     dest: /etc/apt/keyrings/docker.asc
-    mode: '0644'
+    mode: "0644"
 
 - name: Add Docker repository
-  apt_repository:
+  ansible.builtin.apt_repository:
     repo: "deb [signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
     state: present
     filename: docker
 
 - name: Install Docker packages
-  apt:
+  ansible.builtin.apt:
     name:
       - docker-ce
       - docker-ce-cli
@@ -64,43 +64,44 @@
     update_cache: yes
 
 - name: Ensure Docker group exists
-  group:
+  ansible.builtin.group:
     name: docker
     state: present
 
 - name: Add user to docker group
-  user:
+  ansible.builtin.user:
     name: "{{ username }}"
     groups: docker
     append: yes
+  when: username != 'root'
 
 - name: Create Docker configuration directory
-  file:
+  ansible.builtin.file:
     path: /etc/docker
     state: directory
     mode: "0755"
 
 - name: Start and enable Docker service
-  service:
+  ansible.builtin.service:
     name: docker
     state: started
     enabled: yes
 
 - name: Start and enable containerd service
-  service:
+  ansible.builtin.service:
     name: containerd
     state: started
     enabled: yes
 
 - name: Install Docker Compose (standalone - backup method)
-  get_url:
-    url: "https://github.com/docker/compose/releases/download/{{ docker_compose_version | default('v2.24.0') }}/docker-compose-linux-{{ system_arch.stdout }}"
+  ansible.builtin.get_url:
+    url: "https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-linux-{{ ansible_architecture }}"
     dest: /usr/local/bin/docker-compose
     mode: "0755"
-  when: install_compose_standalone | default(false)
+  when: install_compose_standalone
 
 - name: Configure Docker log rotation
-  copy:
+  ansible.builtin.copy:
     content: |
       /var/lib/docker/containers/*/*.log {
         rotate 7
@@ -115,13 +116,7 @@
     mode: "0644"
 
 - name: Verify Docker installation
-  command: docker run --rm hello-world
+  ansible.builtin.command: docker info
   register: docker_test
   changed_when: false
   failed_when: docker_test.rc != 0
-
-- name: Display Docker version
-  command: docker --version
-  register: docker_version
-  changed_when: false
-
