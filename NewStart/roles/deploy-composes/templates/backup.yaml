@@ -60,6 +60,13 @@ services:
       - RUSTFS_REGION=auto
       - RUSTFS_OBS_LOGGER_LEVEL=info
       - RUSTFS_OBS_LOG_DIRECTORY=/logs
+      - RUSTFS_IDENTITY_OPENID_ENABLE=on
+      - RUSTFS_IDENTITY_OPENID_CONFIG_URL=https://pocket-id.{{ docker.domain }}/.well-known/openid-configuration
+      - RUSTFS_IDENTITY_OPENID_CLIENT_ID={{ rustfs.client_id }}
+      - RUSTFS_IDENTITY_OPENID_CLIENT_SECRET={{ rustfs.client_secret }}
+      - RUSTFS_IDENTITY_OPENID_SCOPES=openid,profile,email
+      - RUSTFS_IDENTITY_OPENID_GROUPS_CLAIM=groups
+      - RUSTFS_IDENTITY_OPENID_ROLES_CLAIM=roles
     volumes:
       - "{{ nas.mount }}/volumes/rustfs/data:/data"
       - "{{ docker.docker_dir }}/volumes/rustfs/logs:/logs"
