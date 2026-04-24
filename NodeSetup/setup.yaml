@@ -35,6 +35,12 @@
         state: directory
         mode: '0755'
 
+    - name: Deploy cloud-init user-data snippet
+      ansible.builtin.template:
+        src: templates/user-data.yaml.j2
+        dest: /var/lib/vz/snippets/user-data.yaml
+        mode: "0644"
+
     - name: Ensure LXC template cache directory exists
       file:
         path: /var/lib/vz/template/cache

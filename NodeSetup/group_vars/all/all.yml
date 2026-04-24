@@ -14,8 +14,12 @@ proxmox_bridge: vmbr0
 # Storage for cloud-init snippets (usually 'local')
 proxmox_snippets_storage: local
 
-# Keyboard layout to configure via cloud-init
+# Keyboard layout for Proxmox VNC console
 keyboard_layout: fr-be
+
+# Keyboard layout for the OS (cloud-init keyboard module — XKB/loadkeys code)
+# 'be' = Belgian AZERTY. Different from Proxmox's 'fr-be' VNC code.
+cloud_init_keyboard_layout: be
 
 # Ubuntu LTS cloud image URL (24.04 default; change as desired)
 ubuntu_lts_image_url: "https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img"

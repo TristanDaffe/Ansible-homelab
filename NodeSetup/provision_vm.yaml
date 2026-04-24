@@ -23,7 +23,8 @@
     ciuser: "{{ vm.ciuser | default(omit) }}"
     cipassword: "{{ vm.cipassword | default(clear_pass | default(omit)) }}"
     sshkeys: "{{ ssh_public_key | default(omit) }}"
-    onboot: "{{ vm.autostart | default(omit) }}" 
+    onboot: "{{ vm.autostart | default(omit) }}"
+    cicustom: "user={{ proxmox_snippets_storage }}:snippets/user-data.yaml"
     agent: enabled=1
     ide:
       ide2: "{{ proxmox_storage | default(proxmox_snippets_storage) }}:cloudinit,format=raw"
