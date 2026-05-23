@@ -5,7 +5,7 @@ services:
 ############
 
   mealie:
-    image: ghcr.io/mealie-recipes/mealie:v3.17.0
+    image: ghcr.io/mealie-recipes/mealie:v3.18.0
     restart: unless-stopped
     volumes:
       - "{{ docker.docker_dir }}/volumes/mealie/data:/app/data/"
@@ -63,7 +63,7 @@ services:
   ############
 
   actual-budget:
-    image: actualbudget/actual-server:26.5.0
+    image: actualbudget/actual-server:26.5.2
     environment:
       - ACTUAL_PORT=5006
       - ACTUAL_UPLOAD_FILE_SYNC_SIZE_LIMIT_MB=20
