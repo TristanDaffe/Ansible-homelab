@@ -73,7 +73,8 @@ services:
 ############
 
   jellyfin:
-    image: jellyfin/jellyfin:10.11.10
+    image: jellyfin/jellyfin:10.11.11
+    hostname: jellyflix
     group_add:
       - "{{ docker.igpu_group }}"
     volumes:
@@ -158,4 +159,4 @@ services:
 networks:
   proxy_network:
     external: true
-  immich: {}
+  immich: {} 
