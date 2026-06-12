@@ -1,0 +1,22 @@
+---
+# Gated at import level in main.yaml (cifs_mounts non-empty).
+- name: Install cifs-utils
+  ansible.builtin.package:
+    name: cifs-utils
+    state: present
+
+- name: Create CIFS mount directories
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: directory
+    mode: '0755'
+  loop: "{{ cifs_mounts }}"
+
+- name: Mount CIFS shares
+  ansible.posix.mount:
+    src: "{{ item.src }}"
+    path: "{{ item.path }}"
+    fstype: cifs
+    opts: "{{ item.opts }}"
+    state: mounted
+  loop: "{{ cifs_mounts }}"

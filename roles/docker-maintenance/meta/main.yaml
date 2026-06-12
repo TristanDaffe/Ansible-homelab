@@ -1,0 +1,13 @@
+---
+dependencies: []
+
+galaxy_info:
+  role_name: docker_maintenance
+  author: tristand
+  description: Optional Docker prune tasks. Gated behind tags [never, docker-maintenance] so it never runs implicitly.
+  license: MIT
+  min_ansible_version: "2.15"
+  platforms:
+    - name: Ubuntu
+      versions: [jammy, noble]
+  galaxy_tags: [containers, docker, maintenance]

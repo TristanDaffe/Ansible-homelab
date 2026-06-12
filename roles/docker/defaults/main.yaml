@@ -1,0 +1,10 @@
+---
+# Docker Compose standalone binary install (the plugin is always installed via apt).
+docker_install_compose_standalone: false
+# NOTE: applies on first install only — get_url does not re-download when the
+# binary already exists. Delete /usr/local/bin/docker-compose to force an upgrade.
+docker_compose_version: "v2.32.1"
+
+# Container log rotation (/etc/logrotate.d/docker-containers)
+docker_logrotate_rotate: 7
+docker_logrotate_size: "10M"

@@ -1,9 +1,0 @@
----
-
-- import_tasks: packages.yaml
-- import_tasks: user.yaml
-- import_tasks: firewall.yaml
-- import_tasks: fail2ban.yaml
-- import_tasks: nas.yaml
-
-- meta: flush_handlers

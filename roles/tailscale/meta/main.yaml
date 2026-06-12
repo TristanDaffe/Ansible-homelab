@@ -1,0 +1,18 @@
+---
+# The artis3n.tailscale collection is a Galaxy requirement (requirements.yml),
+# NOT a role dependency: a meta dependency would run the role a second time,
+# before tasks/main.yaml and without an authkey — aborting the play.
+dependencies: []
+
+galaxy_info:
+  role_name: tailscale
+  author: tristand
+  description: Thin wrapper around artis3n.tailscale.machine that registers the Tailscale IP as an Ansible fact.
+  license: MIT
+  min_ansible_version: "2.15"
+  platforms:
+    - name: Debian
+      versions: [bookworm, trixie]
+    - name: Ubuntu
+      versions: [jammy, noble]
+  galaxy_tags: [networking, vpn, tailscale]

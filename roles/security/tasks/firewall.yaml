@@ -1,0 +1,67 @@
+---
+- name: Install ufw
+  ansible.builtin.apt:
+    name: ufw
+    state: present
+
+- name: Allow SSH connections
+  community.general.ufw:
+    rule: allow
+    name: OpenSSH
+
+- name: Set default policies
+  community.general.ufw:
+    policy: "{{ item.policy }}"
+    direction: "{{ item.direction }}"
+  loop:
+    - { direction: incoming, policy: deny }
+    - { direction: outgoing, policy: allow }
+
+- name: Allow HTTP connections
+  community.general.ufw:
+    rule: limit
+    port: '80'
+    proto: tcp
+
+- name: Allow HTTPS connections
+  community.general.ufw:
+    rule: limit
+    port: '443'
+    proto: tcp
+
+- name: Allow Node Exporter from Tailscale only
+  community.general.ufw:
+    rule: allow
+    port: '9100'
+    proto: tcp
+    from_ip: "{{ tailscale_network }}"
+  when: "'Monitoring' in group_names"
+
+- name: Allow Loki from Tailscale only
+  community.general.ufw:
+    rule: allow
+    port: '3100'
+    proto: tcp
+    from_ip: "{{ tailscale_network }}"
+  when: "'Master' in group_names"
+
+- name: Allow Node Exporter from Docker bridge (for local Prometheus)
+  community.general.ufw:
+    rule: allow
+    port: '9100'
+    proto: tcp
+    from_ip: "{{ docker_bridge_network }}"
+  when: "'Master' in group_names"
+
+- name: Allow Portainer agent from Tailscale only
+  community.general.ufw:
+    rule: allow
+    port: '9001'
+    proto: tcp
+    from_ip: "{{ tailscale_network }}"
+  when: "'Master' not in group_names"
+
+- name: Enable UFW with logging
+  community.general.ufw:
+    state: enabled
+    logging: 'on'

@@ -1,0 +1,80 @@
+
+tailscale_ip: null
+services_ip: "{{ tailscale_ip }}"
+
+mount_nas: false
+nas:
+  share: //192.168.129.45/Tristan/mac-mini
+  mount: /mnt/nas
+  puid: 1000
+  pgid: 1000
+
+#######################
+# User 
+#######################
+
+username: "susu"
+email: "seurya2@gmail.com"
+sudo_group: "sudo"
+ssh_group: "admin"
+timezone: "Europe/Brussels"
+local_domain: home
+ssh_public_key_file: "~/.ssh/id_rsa.pub"
+
+#######################
+# Update Settings
+#######################
+
+extra_packages:
+  - curl
+  - vim
+  - htop
+  - python3-jsondiff
+  - neofetch
+
+allow_reboot: false
+reboot_delay: 60 
+security_updates_only: true  # For production systems
+
+#######################
+# Docker
+#######################
+
+prune_containers: false
+prune_images: true
+prune_volumes: false  # Be careful with volumes!
+
+docker:
+  cleanup: true
+  docker_dir: "/docker"
+  domain: dev.autostack.ovh
+  cert_resolver: "ovh"
+  docker_networks:
+    - proxy_network
+  composes: 
+    - name: traefik
+      compose: network.yaml
+      volumes:
+        - letsencrypt
+      config:
+        - file: traefik.yaml
+          dst: letsencrypt/traefik.yaml
+
+#######################
+# Backup (UrBackup)
+#######################
+
+urbackup:
+  server_host: "{{ hostvars[groups['Master'][0]].services_ip }}"
+  backup_dirs: # Directories backed up by the client on each node
+    - "{{ docker.docker_dir }}/volumes"
+  authkey: 
+
+#######################
+# Monitoring
+# Defaults live in roles/monitoring/defaults/main.yaml — only overrides belong here.
+#######################
+
+# Kept in group_vars (not only role defaults) because prometheus.yaml.j2 reads it
+# cross-host via hostvars[host].node_exporter_host — role defaults aren't in hostvars.
+node_exporter_host: "{{ services_ip }}"

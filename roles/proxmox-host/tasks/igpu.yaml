@@ -1,0 +1,32 @@
+---
+- name: Identify unprivileged LXCs requiring iGPU passthrough
+  ansible.builtin.set_fact:
+    igpu_lxcs: >-
+      {{ lxc_containers | default([])
+         | selectattr('enable_igpu', 'equalto', true)
+         | rejectattr('privileged', 'equalto', true)
+         | list }}
+
+- name: Configure Proxmox host for iGPU LXC passthrough
+  when: igpu_lxcs | length > 0
+  block:
+    - name: Read group database
+      ansible.builtin.getent:
+        database: group
+
+    - name: Set iGPU GID facts
+      ansible.builtin.set_fact:
+        igpu_video_gid: "{{ getent_group['video'][1] | int }}"
+        igpu_render_gid: "{{ getent_group['render'][1] | int }}"
+
+    - name: Allow root to map video group GID into unprivileged LXC
+      ansible.builtin.lineinfile:
+        path: /etc/subgid
+        line: "root:{{ igpu_video_gid }}:1"
+        regexp: "^root:{{ igpu_video_gid }}:"
+
+    - name: Allow root to map render group GID into unprivileged LXC
+      ansible.builtin.lineinfile:
+        path: /etc/subgid
+        line: "root:{{ igpu_render_gid }}:1"
+        regexp: "^root:{{ igpu_render_gid }}:"

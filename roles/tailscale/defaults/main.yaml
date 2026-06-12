@@ -1,0 +1,7 @@
+---
+# Arguments passed to `tailscale up` by the artis3n role.
+tailscale_up_args: "--ssh"
+
+# Tailscale auth key — must be supplied by the consumer (typically via secret.all.yaml).
+# tailscale:
+#   authkey: tskey-...

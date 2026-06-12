@@ -1,0 +1,56 @@
+---
+- name: Create the base folders
+  ansible.builtin.file:
+    path: "{{ item }}"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: '0755'
+    state: directory
+  loop:
+    - "{{ docker.docker_dir }}"
+    - "{{ docker.docker_dir }}/compose"
+
+- name: Create compose directories
+  ansible.builtin.file:
+    path: "{{ docker.docker_dir }}/compose/{{ item.name }}"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: '0755'
+    state: directory
+  loop: "{{ docker.composes }}"
+
+- name: Copy the compose files
+  ansible.builtin.template:
+    src: "{{ item.compose | default(item.name + '.yaml') }}"
+    dest: "{{ docker.docker_dir }}/compose/{{ item.name }}/compose.yaml"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: '0644'
+  loop: "{{ docker.composes }}"
+
+- name: Create networks
+  community.docker.docker_network:
+    name: "{{ item }}"
+    attachable: true
+  loop: "{{ docker.docker_networks | default([]) }}"
+
+- name: Configuration for compose
+  ansible.builtin.include_tasks: compose-config.yaml
+  loop: "{{ docker.composes }}"
+  loop_control:
+    loop_var: compose
+
+- name: Deploy compose stacks
+  community.docker.docker_compose_v2:
+    pull: "{{ deploy_composes_pull_policy }}"
+    remove_orphans: true
+    project_name: "{{ item.name }}"
+    project_src: "{{ docker.docker_dir }}/compose/{{ item.name }}"
+    state: present
+  loop: "{{ docker.composes }}"
+
+# Destructive: removes every container not belonging to a deployed stack.
+# Only runs when the consumer opts in via docker.cleanup.
+- name: Clean up containers
+  ansible.builtin.import_tasks: clean-up-containers.yaml
+  when: docker.cleanup | default(false) | bool

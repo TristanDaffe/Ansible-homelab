@@ -1,0 +1,57 @@
+---
+- name: Update package cache
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Perform package upgrades
+  ansible.builtin.apt:
+    upgrade: "{{ 'safe' if security_updates_only else 'dist' }}"
+    autoremove: true
+    autoclean: true
+  register: upgrade_result
+
+- name: Install extra packages
+  ansible.builtin.package:
+    name: "{{ extra_packages }}"
+    state: present
+  when: extra_packages | length > 0
+  register: install_result
+
+- name: Check if reboot is required
+  ansible.builtin.stat:
+    path: /var/run/reboot-required
+  register: reboot_required_file
+
+- name: Display reboot requirement status
+  ansible.builtin.debug:
+    msg: "Reboot required: {{ reboot_required_file.stat.exists }}"
+
+- name: Check what requires reboot
+  ansible.builtin.command: cat /var/run/reboot-required.pkgs
+  register: reboot_packages
+  when: reboot_required_file.stat.exists
+  changed_when: false
+  failed_when: false
+
+- name: Log packages requiring reboot
+  ansible.builtin.debug:
+    msg: "Packages requiring reboot: {{ reboot_packages.stdout_lines }}"
+  when: reboot_required_file.stat.exists and reboot_packages.stdout_lines is defined
+
+- name: Schedule reboot (controlled)
+  ansible.builtin.reboot:
+    msg: "Rebooting due to kernel/system updates: {{ reboot_packages.stdout | default('unspecified') }}"
+    pre_reboot_delay: "{{ reboot_delay }}"
+    post_reboot_delay: "{{ post_reboot_delay }}"
+    reboot_timeout: "{{ reboot_timeout }}"
+  when:
+    - reboot_required_file.stat.exists
+    - allow_reboot
+
+- name: Warn about pending reboot
+  ansible.builtin.debug:
+    msg: "WARNING: System requires reboot but auto-reboot is disabled. Manual reboot needed."
+  when:
+    - reboot_required_file.stat.exists
+    - not allow_reboot

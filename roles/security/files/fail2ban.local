@@ -1,0 +1,10 @@
+[sshd]
+enabled = true
+port = ssh
+filter = sshd
+# Read the systemd journal: /var/log/auth.log is absent/stale on journald-only
+# nodes (media, tools have no rsyslog), which would leave the jail watching nothing.
+backend = systemd
+maxretry = 5
+bantime = 3600
+findtime = 600

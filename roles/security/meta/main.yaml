@@ -1,0 +1,15 @@
+---
+dependencies: []
+
+galaxy_info:
+  role_name: security
+  author: tristand
+  description: Bootstrap a hardened user, SSH, UFW firewall, and fail2ban on Debian/Ubuntu.
+  license: MIT
+  min_ansible_version: "2.15"
+  platforms:
+    - name: Debian
+      versions: [bookworm, trixie]
+    - name: Ubuntu
+      versions: [jammy, noble]
+  galaxy_tags: [security, ssh, firewall, fail2ban, hardening]

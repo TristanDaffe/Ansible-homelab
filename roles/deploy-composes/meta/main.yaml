@@ -1,0 +1,15 @@
+---
+dependencies: []
+
+galaxy_info:
+  role_name: deploy_composes
+  author: tristand
+  description: Render Jinja2 Docker Compose templates and deploy them via docker compose v2.
+  license: MIT
+  min_ansible_version: "2.15"
+  platforms:
+    - name: Debian
+      versions: [bookworm, trixie]
+    - name: Ubuntu
+      versions: [jammy, noble]
+  galaxy_tags: [containers, docker, compose, deployment]

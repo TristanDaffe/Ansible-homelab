@@ -1,0 +1,21 @@
+---
+- name: Packages and upgrades
+  ansible.builtin.import_tasks: packages.yaml
+
+- name: User and sudo setup
+  ansible.builtin.import_tasks: user.yaml
+
+- name: SSH hardening
+  ansible.builtin.import_tasks: ssh.yaml
+
+- name: UFW firewall
+  ansible.builtin.import_tasks: firewall.yaml
+
+- name: Fail2ban
+  ansible.builtin.import_tasks: fail2ban.yaml
+
+- name: NAS mount
+  ansible.builtin.import_tasks: nas.yaml
+
+- name: Flush handlers
+  ansible.builtin.meta: flush_handlers

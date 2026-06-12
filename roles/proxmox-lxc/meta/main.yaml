@@ -1,0 +1,13 @@
+---
+dependencies: []
+
+galaxy_info:
+  role_name: proxmox_lxc
+  author: tristand
+  description: Provision a single LXC container on Proxmox VE with optional TUN/iGPU passthrough. Designed for use inside an include_role loop.
+  license: MIT
+  min_ansible_version: "2.15"
+  platforms:
+    - name: Debian
+      versions: [bookworm, trixie]
+  galaxy_tags: [system, proxmox, virtualization, lxc]

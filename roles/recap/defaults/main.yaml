@@ -1,0 +1,3 @@
+---
+# Recap consumes facts registered by earlier roles (security, docker, tailscale).
+# It has no overridable vars of its own; this file exists so consumers know that.

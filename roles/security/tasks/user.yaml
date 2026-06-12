@@ -1,0 +1,38 @@
+---
+# The docker group is pre-created here so the user's membership survives even
+# though Docker itself is installed later in the play (docker role).
+- name: Create groups
+  ansible.builtin.group:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - "{{ ssh_group }}"
+    - "{{ sudo_group }}"
+    - docker
+
+- name: Ensure primary group exists
+  ansible.builtin.group:
+    name: "{{ username }}"
+    state: present
+
+- name: Create user account
+  ansible.builtin.user:
+    name: "{{ username }}"
+    groups: "{{ username }},{{ ssh_group }},{{ sudo_group }},docker"
+    shell: /bin/bash
+    create_home: true
+    state: present
+
+- name: Add SSH public key for user
+  ansible.posix.authorized_key:
+    user: "{{ username }}"
+    key: "{{ lookup('file', ssh_public_key_file) }}"
+    state: present
+
+- name: Allow '{{ sudo_group }}' group to have passwordless sudo
+  ansible.builtin.lineinfile:
+    path: /etc/sudoers
+    state: present
+    regexp: '^%{{ sudo_group }}'
+    line: '%{{ sudo_group }} ALL=(ALL) NOPASSWD: ALL'
+    validate: '/usr/sbin/visudo -cf %s'

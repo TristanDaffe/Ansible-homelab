@@ -1,0 +1,30 @@
+---
+# Docker maintenance tasks. The whole role is gated behind `tags: [never, docker-maintenance]`
+# so it never runs implicitly. Trigger explicitly with `--tags docker-maintenance`.
+
+- name: Remove stopped containers
+  community.docker.docker_prune:
+    containers: true
+    containers_filters:
+      until: "{{ prune_containers_older_than }}"
+  when: prune_containers | bool
+  tags: [never, docker-maintenance]
+
+# `dangling: true` only prunes truly untagged images. Removing the filter (or setting it false)
+# would also delete every unused tagged image, forcing a full re-pull on the next deploy.
+- name: Remove dangling images
+  community.docker.docker_prune:
+    images: true
+    images_filters:
+      dangling: true
+      until: "{{ prune_images_older_than }}"
+  when: prune_images | bool
+  tags: [never, docker-maintenance]
+
+# Volume prune is unfiltered — it wipes any volume not currently attached to a running container.
+# Only enable on hosts where every persistent volume is owned by a long-running container.
+- name: Remove unused volumes
+  community.docker.docker_prune:
+    volumes: true
+  when: prune_volumes | bool
+  tags: [never, docker-maintenance]

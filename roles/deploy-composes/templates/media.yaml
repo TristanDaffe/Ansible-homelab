@@ -1,0 +1,161 @@
+services:
+
+############
+# Calibre-Web Automated
+############
+
+  calibre-web:
+    image: crocodilestick/calibre-web-automated:v4.0.6
+    environment:
+      - "PUID={{ nas.puid }}"
+      - "PGID={{ nas.pgid }}"
+      - "TZ={{ timezone }}"
+      - NETWORK_SHARE_MODE=true
+    volumes:
+      - "{{ docker.docker_dir }}/volumes/calibre-web:/config"
+      - "{{ nas.mount }}/books/librairy:/calibre-library"
+      - "{{ nas.mount }}/books/downloads:/cwa-book-ingest"
+    restart: unless-stopped
+    networks:
+      - proxy_network
+    ports:
+      - "127.0.0.1:8083:8083"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.calibre-web.loadbalancer.server.port=8083"
+      - "traefik.http.routers.calibre-web.rule=Host(`calibre.{{ local_domain }}`)"
+      - "traefik.http.routers.calibre-web.entrypoints=web"
+
+  calibre-web-maman:
+    image: crocodilestick/calibre-web-automated:v4.0.6
+    environment:
+      - "PUID={{ nas.puid }}"
+      - "PGID={{ nas.pgid }}"
+      - "TZ={{ timezone }}"
+      - NETWORK_SHARE_MODE=true
+    volumes:
+      - "{{ docker.docker_dir }}/volumes/calibre-web-2:/config"
+      - "{{ nas.mount }}/books-maman/librairy:/calibre-library"
+      - "{{ nas.mount }}/books-maman/downloads:/cwa-book-ingest"
+    restart: unless-stopped
+    networks:
+      - proxy_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.calibre-web-maman.loadbalancer.server.port=8083"
+      - "traefik.http.routers.calibre-web-maman.rule=Host(`calibre-maman.{{ local_domain }}`)"
+      - "traefik.http.routers.calibre-web-maman.entrypoints=web"
+
+############
+# Tailscale Funnel Sidecar
+############
+
+ # tailscale funnel --bg 8083
+  tailscale:
+     image: tailscale/tailscale
+     hostname: calibre-tailscale
+     cap_add:
+       - NET_ADMIN
+       - NET_RAW
+     network_mode: "host"
+     volumes:
+       - /dev/net/tun:/dev/net/tun
+       - "{{ docker.docker_dir }}/volumes/tailscale:/var/lib/tailscale"
+     environment:
+       - TS_AUTHKEY={{ tailscale.authkey }}
+       - TS_ROUTES=  # leave empty if you just want Funnel
+       - TS_SERVE_CONFIG=/var/lib/tailscale/serve.json
+       - TS_STATE_DIR=/var/lib/tailscale
+     restart: unless-stopped
+
+############
+# Jellyfin
+############
+
+  jellyfin:
+    image: jellyfin/jellyfin:10.11.10
+    group_add:
+      - "{{ docker.igpu_group }}"
+    volumes:
+      - "{{ docker.docker_dir }}/volumes/jellyfin/config:/config"
+      - "{{ docker.docker_dir }}/volumes/jellyfin/cache:/cache"
+      - "{{ nas.mount }}/media:/media"
+    devices:
+      - /dev/dri:/dev/dri
+    restart: unless-stopped
+    networks:
+      - proxy_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.jellyfin.loadbalancer.server.port=8096"
+      - "traefik.http.routers.jellyfin.rule=Host(`jellyflix.{{ local_domain }}`)"
+      - "traefik.http.routers.jellyfin.entrypoints=web"
+
+
+########### 
+# Immich
+###########
+
+  immich-server:
+    image: ghcr.io/immich-app/immich-server:v2.7.5
+    devices:
+      - /dev/dri:/dev/dri
+    group_add:
+      - "{{ docker.igpu_group }}"
+    environment:
+      - DB_HOSTNAME=database
+      - DB_USERNAME={{ immich.db_user }}
+      - DB_PASSWORD={{ immich.db_password }}
+      - DB_DATABASE_NAME={{ immich.db_name }}
+      - REDIS_HOSTNAME=redis
+      - TZ={{ timezone }}
+    volumes:
+      - "{{ docker.docker_dir }}/volumes/immich/data:/data"
+      - /etc/localtime:/etc/localtime:ro
+    depends_on:
+      - redis
+      - database
+    restart: always
+    networks:
+      - proxy_network
+      - immich
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.immich.loadbalancer.server.port=2283"
+      - "traefik.http.routers.immich.rule=Host(`photo.{{ docker.domain }}`)"
+      - "traefik.http.routers.immich.entrypoints=websecure"
+
+  immich-machine-learning:
+    image: ghcr.io/immich-app/immich-machine-learning:v2.7.5
+    volumes:
+      - "{{ docker.docker_dir }}/volumes/immich/model-cache:/cache"
+    restart: always
+    networks:
+      - immich
+
+  redis:
+    image: docker.io/valkey/valkey:9@sha256:3eeb09785cd61ec8e3be35f8804c8892080f3ca21934d628abc24ee4ed1698f6
+    healthcheck:
+      test: redis-cli ping || exit 1
+    restart: always
+    networks:
+      - immich
+
+  database:
+    image: ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0@sha256:bcf63357191b76a916ae5eb93464d65c07511da41e3bf7a8416db519b40b1c23
+    environment:
+      POSTGRES_PASSWORD: "{{ immich.db_password }}"
+      POSTGRES_USER: "{{ immich.db_user }}"
+      POSTGRES_DB: "{{ immich.db_name }}"
+      POSTGRES_INITDB_ARGS: '--data-checksums'
+    volumes:
+      - "{{ docker.docker_dir }}/volumes/immich/postgres:/var/lib/postgresql/data"
+    shm_size: 128mb
+    restart: always
+    networks:
+      - immich
+
+networks:
+  proxy_network:
+    external: true
+  immich: {}

@@ -1,0 +1,76 @@
+---
+# https://github.com/geerlingguy/ansible-role-node_exporter/blob/master
+
+- name: Check current node_exporter version.
+  ansible.builtin.command: "{{ node_exporter_bin_path }} --version"
+  failed_when: false
+  changed_when: false
+  register: node_exporter_version_check
+
+- name: Configure latest version
+  ansible.builtin.import_tasks: config-version.yaml
+  when: node_exporter_version is match("latest")
+
+- name: Download and unarchive node_exporter into temporary location.
+  ansible.builtin.unarchive:
+    src: "{{ node_exporter_download_url }}"
+    dest: /tmp
+    remote_src: true
+    mode: '0755'
+  when: node_exporter_version not in node_exporter_version_check.stdout
+  register: node_exporter_download_check
+
+- name: Move node_exporter binary into place.
+  ansible.builtin.copy:
+    src: "/tmp/node_exporter-{{ node_exporter_version }}.linux-{{ node_exporter_arch }}/node_exporter"
+    dest: "{{ node_exporter_bin_path }}"
+    mode: '0755'
+    remote_src: true
+  notify: restart node_exporter
+  when: >
+    node_exporter_download_check is changed
+    or node_exporter_version_check.stdout | length == 0
+
+- name: Create node_exporter group (optional fixed GID)
+  ansible.builtin.group:
+    name: node_exporter
+    gid: "{{ node_exporter_gid | default(omit) }}"
+    state: present
+  when: node_exporter_gid is defined
+
+- name: Create node_exporter user (optional fixed UID)
+  ansible.builtin.user:
+    name: node_exporter
+    shell: /sbin/nologin
+    create_home: false
+    uid: "{{ node_exporter_uid | default(omit) }}"
+    group: "{{ (node_exporter_gid is defined) | ternary('node_exporter', omit) }}"
+    state: present
+
+- name: Copy the node_exporter systemd unit file.
+  ansible.builtin.template:
+    src: node_exporter.service.j2
+    dest: /etc/systemd/system/node_exporter.service
+    mode: '0644'
+  register: node_exporter_service
+  notify: restart node_exporter
+
+- name: Reload systemd daemon if unit file is changed.
+  ansible.builtin.systemd_service:
+    daemon_reload: true
+  when: node_exporter_service is changed
+
+- name: Ensure node_exporter is running and enabled at boot.
+  ansible.builtin.systemd_service:
+    name: node_exporter
+    state: "{{ node_exporter_state }}"
+    enabled: "{{ node_exporter_enabled }}"
+
+# Probe the address node_exporter actually binds to (listen_address, not host):
+# on the master listen_address is "" (all interfaces), so probe localhost.
+- name: Verify node_exporter is responding to requests.
+  ansible.builtin.uri:
+    url: "http://{% if node_exporter_listen_address != '' %}{{ node_exporter_listen_address }}{% else %}localhost{% endif %}:{{ node_exporter_port }}/"
+    return_content: true
+  register: metrics_output
+  failed_when: "'Metrics' not in metrics_output.content"

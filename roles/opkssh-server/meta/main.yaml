@@ -1,0 +1,13 @@
+---
+dependencies: []
+
+galaxy_info:
+  role_name: opkssh_server
+  author: tristand
+  description: Install and configure OpenPubkey opkssh as an SSH AuthorizedKeysCommand backend.
+  license: MIT
+  min_ansible_version: "2.15"
+  platforms:
+    - name: Ubuntu
+      versions: [jammy, noble]
+  galaxy_tags: [security, ssh, oidc, opkssh]
