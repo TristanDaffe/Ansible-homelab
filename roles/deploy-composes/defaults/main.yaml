@@ -1,0 +1,5 @@
+---
+# Pull policy passed to community.docker.docker_compose_v2.
+# 'missing' pulls only when an image is absent — survives registry outages.
+# Use 'always' if you want every play to refresh images.
+deploy_composes_pull_policy: missing

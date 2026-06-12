@@ -1,0 +1,67 @@
+---
+services: 
+
+  prometheus:
+    image: prom/prometheus:v3
+    restart: always
+    volumes:
+      - "{{ docker.docker_dir}}/volumes/monitoring/prometheus:/etc/prometheus"
+      - "{{ docker.docker_dir}}/volumes/monitoring/prometheus_data:/prometheus"
+    networks:
+      - proxy_network
+      - monitoring
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.prometheus.loadbalancer.server.port=9090"
+      - "traefik.http.routers.prometheus.rule=Host(`prometheus.{{ docker.domain }}`)"
+      - "traefik.http.routers.prometheus.entrypoints=websecure"
+
+  loki:
+    image: grafana/loki:latest
+    restart: always
+    command: -config.file=/etc/loki/local-config.yaml
+    ports:
+      - "{{ services_ip }}:3100:3100"
+    volumes:
+      - "{{ docker.docker_dir}}/volumes/monitoring/loki:/etc/loki"
+    networks:
+      - proxy_network 
+      - monitoring
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.loki.loadbalancer.server.port=3100"
+      - "traefik.http.routers.loki.rule=Host(`loki.{{ docker.domain }}`)"
+      - "traefik.http.routers.loki.entrypoints=websecure"
+
+  grafana:
+    image: grafana/grafana:latest
+    restart: always
+    volumes:
+      - "{{ docker.docker_dir}}/volumes/monitoring/grafana/var:/var/lib/grafana"
+      - "{{ docker.docker_dir}}/volumes/monitoring/grafana/config:/etc/grafana/provisioning/datasources"
+    networks:
+      - monitoring
+      - proxy_network
+    environment:
+      - GF_SERVER_ROOT_URL=https://grafana.{{ docker.domain }}
+      - GF_AUTH_GENERIC_OAUTH_ENABLED=true
+      - GF_AUTH_OAUTH_ALLOW_INSECURE_EMAIL_LOOKUP=true
+      - GF_AUTH_GENERIC_OAUTH_SKIP_ORG_ROLE_SYNC=true
+      - GF_AUTH_GENERIC_OAUTH_NAME=Pocket-ID
+      - GF_AUTH_GENERIC_OAUTH_ALLOW_SIGN_UP=false
+      - GF_AUTH_GENERIC_OAUTH_CLIENT_ID={{ grafana.sso_client_id }}
+      - GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET={{ grafana.sso_client_id_secret }}
+      - GF_AUTH_GENERIC_OAUTH_SCOPES=openid profile email
+      - GF_AUTH_GENERIC_OAUTH_AUTH_URL=https://pocket-id.{{ docker.domain }}/authorize
+      - GF_AUTH_GENERIC_OAUTH_TOKEN_URL=https://pocket-id.{{ docker.domain }}/api/oidc/token
+      - GF_AUTH_GENERIC_OAUTH_API_URL=https://pocket-id.{{ docker.domain }}/api/oidc/userinfo
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.grafana.loadbalancer.server.port=3000"
+      - "traefik.http.routers.grafana.rule=Host(`grafana.{{ docker.domain }}`)"
+      - "traefik.http.routers.grafana.entrypoints=websecure"
+
+networks:
+  proxy_network:
+    external: true
+  monitoring:

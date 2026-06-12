@@ -1,0 +1,19 @@
+---
+# Cloud image for VM provisioning
+ubuntu_lts_image_url: "https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img"
+# Derived lazily — also consumed by the proxmox-vm role (import-from path).
+ubuntu_cloudimg_filename: "{{ ubuntu_lts_image_url | basename }}"
+
+# LXC base template (must exist in `pveam available`)
+ubuntu_lxc_template: "ubuntu-24.04-standard_24.04-2_amd64.tar.zst"
+
+# OS keyboard layout for the cloud-init snippet (XKB code; 'be' = Belgian AZERTY,
+# different from Proxmox's 'fr-be' VNC code).
+cloud_init_keyboard_layout: be
+
+# CIFS shares to mount on the host. Each entry: { src, path, opts }.
+cifs_mounts: []
+
+# The igpu tasks read `lxc_containers` (defined in nodesetup group_vars) to know
+# which unprivileged containers need iGPU passthrough, and export the
+# `igpu_video_gid` / `igpu_render_gid` facts consumed by the proxmox-lxc role.

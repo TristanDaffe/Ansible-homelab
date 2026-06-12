@@ -1,0 +1,30 @@
+---
+- name: Configure provisioned nodes
+  hosts: all
+  become: true
+
+  roles:
+    - role: security
+      tags: [security]
+
+    # - role: opkssh-server
+    #   tags: [opkssh-server]
+
+    - role: tailscale
+      tags: [tailscale]
+
+    - role: monitoring
+      tags: [monitoring]
+      when: "'Monitoring' in groups"
+
+    - role: docker
+      tags: [docker]
+
+    - role: deploy-composes
+      tags: [deploy-composes]
+
+    - role: recap
+      tags: [recap]
+
+    - role: docker-maintenance
+      tags: [docker-maintenance]

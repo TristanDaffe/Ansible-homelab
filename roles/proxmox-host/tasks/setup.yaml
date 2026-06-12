@@ -1,0 +1,48 @@
+---
+- name: Install powertop
+  ansible.builtin.package:
+    name: powertop
+    state: present
+
+# Re-applies kernel/device power tunables on every run (not read-only),
+# so report it honestly as a change.
+- name: Autotune powertop
+  ansible.builtin.command: powertop --auto-tune
+  changed_when: true
+
+- name: Ensure ISO template directory exists
+  ansible.builtin.file:
+    path: /var/lib/vz/template/iso
+    state: directory
+    mode: '0755'
+
+- name: Ensure cloud-init snippets directory exists
+  ansible.builtin.file:
+    path: /var/lib/vz/snippets
+    state: directory
+    mode: '0755'
+
+- name: Deploy cloud-init user-data snippet
+  ansible.builtin.template:
+    src: user-data.yaml.j2
+    dest: /var/lib/vz/snippets/user-data.yaml
+    mode: '0644'
+
+- name: Ensure LXC template cache directory exists
+  ansible.builtin.file:
+    path: /var/lib/vz/template/cache
+    state: directory
+    mode: '0755'
+
+# Idempotent via creates: — no stat pre-check needed.
+- name: Download Ubuntu LXC template
+  ansible.builtin.command: "pveam download local {{ ubuntu_lxc_template }}"
+  args:
+    creates: "/var/lib/vz/template/cache/{{ ubuntu_lxc_template }}"
+
+# Idempotent via get_url's default force: false — skipped when dest exists.
+- name: Download Ubuntu LTS cloud image
+  ansible.builtin.get_url:
+    url: "{{ ubuntu_lts_image_url }}"
+    dest: "/var/lib/vz/template/iso/{{ ubuntu_cloudimg_filename }}"
+    mode: '0644'

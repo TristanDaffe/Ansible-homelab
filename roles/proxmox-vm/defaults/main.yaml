@@ -1,0 +1,23 @@
+---
+# Connection defaults (consumer overrides in nodesetup group_vars)
+proxmox_api_user: root@pam
+proxmox_bridge: vmbr0
+proxmox_validate_certs: false
+
+# This role is invoked from a loop in nodesetup.yaml with `loop_var: vm`.
+# Each `vm` dict supports:
+#   name (required)        - VM display name
+#   vmid (required)        - Proxmox VMID
+#   memory                 - MB,    default 2048
+#   cores                  - vCPUs, default 2
+#   disk_gb                - grow scsi0 to this size after import (Proxmox can only grow)
+#   ciuser / cipassword    - cloud-init user/pass (cipassword falls back to clear_pass)
+#   ipconfig0              - "ip=<cidr>,gw=<gw>" or "ip=dhcp"
+#   storage                - per-VM storage override
+#   autostart              - boolean (onboot)
+#
+# Required play vars (typically in nodesetup/group_vars):
+#   proxmox_node, proxmox_storage, proxmox_snippets_storage
+#   proxmox_api_host, proxmox_api_token_id, proxmox_api_token_secret (or proxmox_api_password)
+# Optional play vars: keyboard_layout (VNC), clear_pass, ssh_public_key (resolved
+# in nodesetup pre_tasks), ubuntu_cloudimg_filename (from proxmox-host defaults).

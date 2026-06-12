@@ -1,0 +1,181 @@
+services:
+
+############
+# Mealie 
+############
+
+  mealie:
+    image: ghcr.io/mealie-recipes/mealie:v3.19.2
+    restart: unless-stopped
+    volumes:
+      - "{{ docker.docker_dir }}/volumes/mealie/data:/app/data/"
+    environment:
+      ALLOW_SIGNUP: "false"
+      PUID: "{{ docker.puid }}"
+      PGID: "{{ docker.pgid }}"
+      TZ: "{{ timezone }}"
+      BASE_URL: https://meal.{{ docker.domain }}
+      DB_ENGINE: postgres
+      POSTGRES_USER: "{{ mealie.db_user }}"
+      POSTGRES_PASSWORD: "{{ mealie.db_pass }}"
+      POSTGRES_SERVER: meal-postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: "{{ mealie.db_name }}"
+      OIDC_AUTH_ENABLED: "true"
+      OIDC_SIGNUP_ENABLED: "true"
+      OIDC_CLIENT_ID: "{{ mealie.sso_client_id }}"
+      OIDC_CLIENT_SECRET: "{{ mealie.sso_client_id_secret }}"
+      OIDC_PROVIDER_NAME: Pocket ID
+      OIDC_CONFIGURATION_URL: https://pocket-id.{{ docker.domain }}/.well-known/openid-configuration
+      ALLOW_PASSWORD_LOGIN: "false"
+      OIDC_AUTO_REDIRECT: "true"
+    networks:
+      - proxy_network
+      - meal
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.mealie.loadbalancer.server.port=9000"
+      - "traefik.http.routers.mealie.rule=Host(`meal.{{ docker.domain }}`)"
+      - "traefik.http.routers.mealie.entrypoints=websecure"
+
+  meal-postgres:
+    image: postgres:17
+    restart: unless-stopped
+    volumes:
+      - "{{ docker.docker_dir }}/volumes/mealie/db:/var/lib/postgresql/data"
+    environment:
+      POSTGRES_PASSWORD: "{{ mealie.db_pass }}"
+      POSTGRES_USER: "{{ mealie.db_user }}"
+      PGUSER: "{{ mealie.db_user }}"
+      POSTGRES_DB: "{{ mealie.db_name }}"
+    healthcheck:
+      test: ["CMD", "pg_isready"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    networks:
+      - meal
+    labels:
+      - wud.watch=false
+
+  ############
+  # Budget
+  ############
+
+  actual-budget:
+    image: actualbudget/actual-server:26.6.0
+    environment:
+      - ACTUAL_PORT=5006
+      - ACTUAL_UPLOAD_FILE_SYNC_SIZE_LIMIT_MB=20
+      - ACTUAL_UPLOAD_SYNC_ENCRYPTED_FILE_SYNC_SIZE_LIMIT_MB=50
+      - ACTUAL_UPLOAD_FILE_SIZE_LIMIT_MB=20
+      - ACTUAL_OPENID_DISCOVERY_URL=https://pocket-id.{{ docker.domain }}/.well-known/openid-configuration
+      - ACTUAL_OPENID_CLIENT_ID={{ actual_budget.client_id }}
+      - ACTUAL_OPENID_CLIENT_SECRET={{ actual_budget.client_secret }}
+      - ACTUAL_OPENID_SERVER_HOSTNAME=https://budget.{{ docker.domain }}
+    volumes:
+      - "{{ docker.docker_dir}}/volumes/actual-budget:/data"
+    restart: unless-stopped
+    networks:
+      - proxy_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.actual-budget.loadbalancer.server.port=5006"
+      - "traefik.http.routers.actual-budget.rule=Host(`budget.{{ docker.domain }}`)"
+      - "traefik.http.routers.actual-budget.entrypoints=websecure"
+
+############
+# Paperless-ngx
+############
+
+  broker:
+    image: docker.io/library/redis:8
+    restart: unless-stopped
+    networks:
+      - paperless
+    volumes:
+      - "{{ docker.docker_dir }}/volumes/paperless/redisdata:/data"
+    labels:
+      - wud.watch=false
+
+  paperless-db:
+    image: docker.io/library/postgres:17
+    restart: unless-stopped
+    networks:
+      - paperless
+    volumes:
+      - "{{ docker.docker_dir }}/volumes/paperless/pgdata:/var/lib/postgresql/data"
+    environment:
+      POSTGRES_DB: "{{ paperless.db }}"
+      POSTGRES_USER: "{{ paperless.db_user }}"
+      POSTGRES_PASSWORD: "{{ paperless.db_pass }}"
+    labels:
+      - wud.watch=false
+
+  paperless:
+    image: ghcr.io/paperless-ngx/paperless-ngx:2.20.15
+    restart: unless-stopped
+    networks:
+      - paperless
+      - proxy_network
+    depends_on:
+      - paperless-db
+      - broker
+      - gotenberg
+      - tika
+    volumes:
+      - "{{ docker.docker_dir }}/volumes/paperless/data:/usr/src/paperless/data"
+      - "{{ docker.docker_dir }}/volumes/paperless/media:/usr/src/paperless/media"
+      - "{{ docker.docker_dir }}/volumes/paperless/export:/usr/src/paperless/export"
+      - "{{ docker.docker_dir }}/volumes/paperless/consume:/usr/src/paperless/consume"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.paperless.loadbalancer.server.port=8000"
+      - "traefik.http.routers.paperless.rule=Host(`paper.{{ docker.domain }}`)"
+      - "traefik.http.routers.paperless.entrypoints=websecure"
+    environment:
+      COMPOSE_PROJECT_NAME: "{{ paperless.project_name }}"
+      PAPERLESS_REDIS: redis://broker:6379
+      PAPERLESS_DBHOST: paperless-db
+      PAPERLESS_TIKA_ENABLED: 1
+      PAPERLESS_TIKA_GOTENBERG_ENDPOINT: http://gotenberg:3000
+      PAPERLESS_TIKA_ENDPOINT: http://tika:9998
+      PAPERLESS_ADMIN_USER: "{{ paperless.user }}"
+      PAPERLESS_ADMIN_PASSWORD: "{{ paperless.pass }}"
+      PAPERLESS_APPS: allauth.socialaccount.providers.openid_connect
+      PAPERLESS_SOCIALACCOUNT_PROVIDERS: '{"openid_connect":{"SCOPE":["openid","profile","email"],"OAUTH_PKCE_ENABLED":true,"APPS":[{"provider_id":"pocket-id","name":"Pocket-ID","client_id":"{{ paperless.sso_client_id }}","secret":"{{ paperless.sso_client_id_secret }}","settings":{"server_url":"https://pocket-id.{{ docker.domain }}"}}]}}'
+      PAPERLESS_URL: https://paper.{{ docker.domain }}
+      PAPERLESS_ACCOUNT_DEFAULT_HTTP_PROTOCOL: https
+      PAPERLESS_SECURE_PROXY_SSL_HEADER: HTTP_X_FORWARDED_PROTO,https
+      PAPERLESS_USE_X_FORWARDED_HOST: true
+      PAPERLESS_CSRF_TRUSTED_ORIGINS: https://paper.{{ docker.domain }}
+      PAPERLESS_CSRF_COOKIE_SECURE: true
+      PAPERLESS_SESSION_COOKIE_SECURE: true
+
+  gotenberg:
+    image: docker.io/gotenberg/gotenberg:8.20
+    restart: unless-stopped
+    networks:
+      - paperless
+    # The gotenberg chromium route is used to convert .eml files. We do not
+    # want to allow external content like tracking pixels or even javascript.
+    command:
+      - "gotenberg"
+      - "--chromium-disable-javascript=true"
+      - "--chromium-allow-list=file:///tmp/.*"
+    labels:
+      - wud.watch=false
+
+  tika:
+    image: docker.io/apache/tika:latest
+    restart: unless-stopped
+    networks:
+      - paperless
+    labels:
+      - wud.watch=false
+
+networks:
+  proxy_network:
+    external: true
+  paperless:
+  meal:

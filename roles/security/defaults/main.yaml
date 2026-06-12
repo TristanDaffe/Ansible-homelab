@@ -1,0 +1,23 @@
+---
+# Toggles
+security_updates_only: true       # apt upgrade=safe (all upgrades, no removals/new deps) vs dist
+allow_reboot: false               # let the role reboot the host when /var/run/reboot-required is set
+reboot_delay: 30                  # seconds before reboot
+post_reboot_delay: 60             # seconds to wait after reboot
+reboot_timeout: 600
+
+# Extra packages to install on every host (consumer overrides via group_vars)
+extra_packages: []
+
+# Optional NAS CIFS mount on the controlled host
+mount_nas: false
+# nas:
+#   share: //192.168.0.1/shared
+#   mount: /mnt/nas
+#   puid: 1000
+#   pgid: 1000
+
+# Network ranges allowed to reach monitoring ports
+tailscale_network: "100.64.0.0/10"
+# Docker bridge range — lets containerized Prometheus reach node_exporter on the master
+docker_bridge_network: "172.16.0.0/12"

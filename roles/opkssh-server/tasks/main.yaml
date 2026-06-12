@@ -1,0 +1,63 @@
+---
+# check_mode: false — the probe is read-only and its .rc gates the tasks below;
+# without it, --check runs fail on the undefined register attribute.
+- name: Check current opkssh version
+  ansible.builtin.command: opkssh -v
+  register: opkssh_version_check
+  changed_when: false
+  failed_when: false
+  check_mode: false
+
+- name: Download opkssh install script
+  ansible.builtin.get_url:
+    url: "https://raw.githubusercontent.com/openpubkey/opkssh/{{ opkssh_install_ref }}/scripts/install-linux.sh"
+    dest: /tmp/opkssh-install.sh
+    mode: '0755'
+    checksum: "{{ opkssh_install_checksum | default(omit) }}"
+  when: opkssh_version_check.rc != 0
+
+- name: Run opkssh install script
+  ansible.builtin.command: /tmp/opkssh-install.sh
+  args:
+    creates: /usr/local/bin/opkssh
+  when: opkssh_version_check.rc != 0
+
+- name: Remove install script
+  ansible.builtin.file:
+    path: /tmp/opkssh-install.sh
+    state: absent
+  when: opkssh_version_check.rc != 0
+
+- name: Update sshd_config lines
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: "^{{ item.key }} "
+    line: "{{ item.line }}"
+    state: present
+    create: true
+    validate: '/usr/sbin/sshd -t -f %s'
+  loop:
+    - { key: 'AuthorizedKeysCommand', line: 'AuthorizedKeysCommand /usr/local/bin/opkssh verify %u %k %t' }
+    - { key: 'AuthorizedKeysCommandUser', line: 'AuthorizedKeysCommandUser opksshuser' }
+    - { key: 'PubkeyAuthentication', line: 'PubkeyAuthentication yes' }
+    - { key: 'PasswordAuthentication', line: 'PasswordAuthentication no' }
+  notify: Reload SSH
+
+- name: Configure opkssh authentication IDs
+  ansible.builtin.copy:
+    dest: /etc/opk/auth_id
+    content: |
+      {% for entry in opkssh_users %}
+      {{ entry.username }} {{ entry.email }} {{ entry.provider_url }}
+      {% endfor %}
+    owner: root
+    group: opksshuser
+    mode: '0640'
+
+- name: Configure opkssh provider_url
+  ansible.builtin.template:
+    src: providers.j2
+    dest: /etc/opk/providers
+    owner: root
+    group: opksshuser
+    mode: '0640'

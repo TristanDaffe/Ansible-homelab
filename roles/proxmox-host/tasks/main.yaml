@@ -1,0 +1,13 @@
+---
+- name: Host setup (powertop, snippets, image downloads)
+  ansible.builtin.import_tasks: setup.yaml
+  tags: [proxmox-host, setup]
+
+- name: CIFS mounts
+  ansible.builtin.import_tasks: cifs.yaml
+  when: cifs_mounts | default([]) | length > 0
+  tags: [proxmox-host, cifs]
+
+- name: iGPU subgid for unprivileged LXC
+  ansible.builtin.import_tasks: igpu.yaml
+  tags: [proxmox-host, igpu]

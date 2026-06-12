@@ -1,0 +1,6 @@
+---
+# Reload (not restart) so live SSH sessions are never dropped.
+- name: Reload SSH
+  ansible.builtin.systemd_service:
+    name: ssh
+    state: reloaded

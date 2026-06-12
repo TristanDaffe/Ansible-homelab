@@ -1,0 +1,8 @@
+---
+skip_list:
+  - yaml[line-length]
+  - role-name      # legacy roles use kebab-case, not snake_case
+  - var-naming     # cross-role vars (username, docker.*) live in group_vars and don't carry role prefixes
+exclude_paths:
+  - archive/
+  - .git/

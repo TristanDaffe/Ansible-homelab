@@ -1,0 +1,34 @@
+---
+# Connection defaults (consumer overrides in nodesetup group_vars)
+proxmox_api_user: root@pam
+proxmox_bridge: vmbr0
+proxmox_validate_certs: false
+
+# Default LXC features applied to containers that don't set their own
+lxc_features:
+  - keyctl=1
+  - nesting=1
+
+# Optional default LXC mount points (per-container ct.mounts overrides)
+# lxc_mounts:
+#   mp0: "local-lvm:8,mp=/mnt/data"
+
+# This role is invoked from a loop in nodesetup.yaml with `loop_var: ct`.
+# Each `ct` dict supports:
+#   hostname (required)    - container hostname
+#   ctid (required)        - Proxmox CTID
+#   memory, cores, rootfs_gb
+#   ipconfig               - "<cidr>,gw=<gw>" (no ip= prefix) or "dhcp"
+#   privileged             - default false (unprivileged)
+#   features               - list, e.g. ['nesting=1']
+#   mounts                 - dict of mp0/mp1 Proxmox mount strings
+#   enable_tun             - mount /dev/net/tun (privileged or unprivileged)
+#   enable_igpu            - Intel iGPU passthrough (unprivileged only; needs
+#                            igpu_video_gid/igpu_render_gid facts from proxmox-host)
+#   nas_mounts             - list of { src, dst, mp_index } to bind-mount
+#   autostart, startup     - Proxmox onboot/startup hooks
+#
+# Required play vars (same as proxmox-vm role): proxmox_node, proxmox_storage,
+# proxmox_api_host + token or password, ubuntu_lxc_template.
+# Optional: clear_pass (container root password — omitted entirely when unset,
+# SSH key auth via ssh_public_key is the default access path).

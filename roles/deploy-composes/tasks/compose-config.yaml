@@ -1,0 +1,34 @@
+---
+# Create-only on purpose: many containers chown/chmod their data dirs at
+# runtime (e.g. UrBackup, Pocket ID), so ownership is set on first creation
+# and never corrected afterwards.
+- name: Directory for Docker volumes
+  become: true
+  when: compose.volumes is defined
+  block:
+    - name: Check if volume directories exist
+      ansible.builtin.stat:
+        path: "{{ docker.docker_dir }}/volumes/{{ item.path | default(item) }}"
+      loop: "{{ compose.volumes }}"
+      register: volume_stats
+
+    - name: Create folder if it doesn't exist
+      ansible.builtin.file:
+        path: "{{ docker.docker_dir }}/volumes/{{ item.item.path | default(item.item) }}"
+        state: directory
+        owner: "{{ item.item.uid | default(username) }}"
+        group: "{{ item.item.gid | default(username) }}"
+        mode: '0755'
+      loop: "{{ volume_stats.results }}"
+      when: not item.stat.exists
+
+- name: Copy config files for the compose
+  ansible.builtin.template:
+    src: "config/{{ item.file }}"
+    dest: "{{ docker.docker_dir }}/volumes/{{ item.dst }}"
+    force: "{{ item.force | default(true) }}"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: '0644'
+  loop: "{{ compose.config }}"
+  when: compose.config is defined

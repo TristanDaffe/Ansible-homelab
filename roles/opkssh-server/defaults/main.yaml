@@ -1,0 +1,17 @@
+---
+# Pin the install script to a specific tag/sha and ideally provide a checksum.
+# `main` is the upstream default but means an untrusted refresh on every run.
+opkssh_install_ref: "main"
+# opkssh_install_checksum: "sha256:..."   # set this to pin the install script
+
+# List of authorized OIDC users.
+# opkssh_users:
+#   - { username: alice, email: alice@example.com, provider_url: https://accounts.google.com }
+opkssh_users: []
+
+# Required: OIDC providers written to /etc/opk/providers (no default — supply
+# via secret.all.yaml since client IDs are environment-specific).
+# opkssh_providers:
+#   - url: https://accounts.google.com
+#     client_id: <oidc-client-id>
+#     token_duration: 12h

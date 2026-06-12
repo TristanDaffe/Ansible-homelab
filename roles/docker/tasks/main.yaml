@@ -1,0 +1,103 @@
+---
+- name: Install Docker SDK for Python
+  ansible.builtin.apt:
+    name: python3-docker
+    state: present
+
+- name: Install prerequisites for Docker
+  ansible.builtin.apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg
+      - gnupg-agent
+      - lsb-release
+      - software-properties-common
+    state: present
+    update_cache: true
+
+- name: Create directory for Docker GPG key
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: "0755"
+
+- name: Download Docker GPG key
+  ansible.builtin.get_url:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    dest: /etc/apt/keyrings/docker.asc
+    mode: "0644"
+
+- name: Add Docker repository
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+    state: present
+    filename: docker
+
+- name: Install Docker packages
+  ansible.builtin.apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+    state: present
+    update_cache: true
+
+- name: Ensure Docker group exists
+  ansible.builtin.group:
+    name: docker
+    state: present
+
+- name: Add user to docker group
+  ansible.builtin.user:
+    name: "{{ username }}"
+    groups: docker
+    append: true
+  when: username != 'root'
+
+- name: Start and enable Docker service
+  ansible.builtin.systemd_service:
+    name: docker
+    state: started
+    enabled: true
+
+- name: Start and enable containerd service
+  ansible.builtin.systemd_service:
+    name: containerd
+    state: started
+    enabled: true
+
+- name: Install Docker Compose (standalone - backup method)
+  ansible.builtin.get_url:
+    url: "https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-linux-{{ ansible_architecture }}"
+    dest: /usr/local/bin/docker-compose
+    mode: "0755"
+  when: docker_install_compose_standalone
+
+- name: Configure Docker log rotation
+  ansible.builtin.copy:
+    content: |
+      /var/lib/docker/containers/*/*.log {
+        rotate {{ docker_logrotate_rotate }}
+        daily
+        compress
+        size={{ docker_logrotate_size }}
+        missingok
+        delaycompress
+        copytruncate
+      }
+    dest: /etc/logrotate.d/docker-containers
+    mode: "0644"
+
+- name: Verify Docker installation
+  ansible.builtin.command: docker info
+  register: docker_test
+  changed_when: false
+
+- name: Get Docker version (consumed by recap)
+  ansible.builtin.command: docker --version
+  register: docker_version
+  changed_when: false

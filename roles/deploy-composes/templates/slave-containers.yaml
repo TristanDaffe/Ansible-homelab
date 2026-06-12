@@ -1,0 +1,43 @@
+services:
+
+  urbackup-client:
+    image: uroni/urbackup-client:2.5.x
+    restart: always
+    environment:
+      - TZ={{ timezone }}
+      - URBACKUP_SERVER_NAME={{ urbackup.server_host }}
+      - URBACKUP_CLIENT_NAME={{ ansible_hostname }}
+      - URBACKUP_CLIENT_AUTHKEY={{ urbackup.authkey }}
+    volumes:
+      - "{{ docker.docker_dir }}:/backup"
+    command:
+      - --internet-only
+      - -r
+      - server-confirms
+
+  portainer-agent:
+    image: portainer/agent:2.42.0
+    restart: unless-stopped
+    environment:
+      - TZ={{ timezone }}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/lib/docker/volumes:/var/lib/docker/volumes
+    ports:
+      - "{{ services_ip }}:9001:9001"
+
+  socket-proxy:
+    image: linuxserver/socket-proxy
+    restart: unless-stopped
+    environment:
+      - CONTAINERS=1
+      - IMAGES=1
+      - VERSION=1
+      - EVENTS=1
+      - INFO=1
+      - NETWORKS=1
+      - POST=0
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    ports:
+      - "{{ services_ip }}:2375:2375"

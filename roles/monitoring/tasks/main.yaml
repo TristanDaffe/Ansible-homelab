@@ -1,0 +1,8 @@
+---
+- name: Node exporter
+  ansible.builtin.import_tasks: node-exporter.yaml
+  when: node_exporter_enabled
+
+- name: Alloy
+  ansible.builtin.import_tasks: alloy.yaml
+  when: node_alloy_enabled

@@ -1,0 +1,15 @@
+---
+dependencies: []
+
+galaxy_info:
+  role_name: monitoring
+  author: tristand
+  description: Install Prometheus node_exporter and Grafana Alloy on a node.
+  license: MIT
+  min_ansible_version: "2.15"
+  platforms:
+    - name: Debian
+      versions: [bookworm, trixie]
+    - name: Ubuntu
+      versions: [jammy, noble]
+  galaxy_tags: [monitoring, prometheus, node_exporter, alloy, loki]

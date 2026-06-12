@@ -1,0 +1,24 @@
+---
+# node_exporter (https://github.com/geerlingguy/ansible-role-node_exporter)
+node_exporter_enabled: true
+node_exporter_state: started
+node_exporter_restart: on-failure
+node_exporter_version: 'latest'
+node_exporter_arch: 'amd64'
+node_exporter_bin_path: /usr/local/bin/node_exporter
+node_exporter_download_url: "https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_version }}/node_exporter-{{ node_exporter_version }}.linux-{{ node_exporter_arch }}.tar.gz"
+node_exporter_host: "{{ services_ip }}"
+node_exporter_listen_address: "{{ node_exporter_host }}"
+node_exporter_port: 9100
+node_exporter_options: ''
+# Optional fixed UID/GID for the node_exporter user/group (omitted when unset):
+# node_exporter_uid: 996
+# node_exporter_gid: 994
+
+# Grafana Alloy (https://github.com/grafana/grafana-ansible-collection)
+node_alloy_enabled: true
+# Passed explicitly to the grafana.grafana.alloy include — a same-named default
+# would NOT propagate into the included role (it sees its own 'latest' default).
+monitoring_alloy_version: "1.15.1"   # pin to the latest stable .deb available; check before bumping
+# Loki push endpoint Alloy ships logs to
+alloy_loki_url: "http://{{ hostvars[groups['Master'][0]].services_ip }}:3100/loki/api/v1/push"

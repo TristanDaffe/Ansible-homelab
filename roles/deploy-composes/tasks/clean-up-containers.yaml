@@ -1,0 +1,26 @@
+---
+- name: Get all Docker containers
+  community.docker.docker_host_info:
+    containers: true
+  register: docker_info
+
+- name: Build regex pattern for allowed compose projects
+  ansible.builtin.set_fact:
+    deploy_composes_allowed_pattern: "^/?({{ docker.composes | map(attribute='name') | map('regex_escape') | join('|') }})([-_]|$)"
+
+- name: List containers not belonging to a deployed compose project
+  ansible.builtin.set_fact:
+    deploy_composes_forbidden: >-
+      {{
+        docker_info.containers
+        | selectattr('Names', 'defined')
+        | rejectattr('Names.0', 'match', deploy_composes_allowed_pattern)
+        | map(attribute='Id')
+        | list
+      }}
+
+- name: Remove forbidden containers
+  community.docker.docker_container:
+    name: "{{ item }}"
+    state: absent
+  loop: "{{ deploy_composes_forbidden }}"

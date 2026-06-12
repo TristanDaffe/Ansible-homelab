@@ -1,3 +1,0 @@
----
-install_compose_standalone: false
-docker_compose_version: "v2.24.0"

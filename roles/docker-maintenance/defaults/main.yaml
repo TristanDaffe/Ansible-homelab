@@ -1,0 +1,10 @@
+---
+# DESTRUCTIVE — every prune defaults to false.
+# This role is also gated behind tags [never, docker-maintenance] so it cannot run implicitly.
+prune_containers: false
+prune_images: false
+prune_volumes: false
+
+# Retention windows used when the corresponding prune is enabled.
+prune_containers_older_than: "24h"
+prune_images_older_than: "168h"   # 7 days

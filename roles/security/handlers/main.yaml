@@ -1,0 +1,11 @@
+---
+# Reload (not restart) so the controller's own SSH session is never dropped.
+- name: Reload SSH
+  ansible.builtin.systemd_service:
+    name: ssh
+    state: reloaded
+
+- name: Restart fail2ban
+  ansible.builtin.systemd_service:
+    name: fail2ban
+    state: restarted

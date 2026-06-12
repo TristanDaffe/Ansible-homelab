@@ -1,0 +1,67 @@
+---
+- name: Create VM from Ubuntu cloud image
+  community.proxmox.proxmox_kvm:
+    api_host: "{{ proxmox_api_host }}"
+    api_user: "{{ proxmox_api_user }}"
+    api_password: "{{ proxmox_api_password | default(omit) }}"
+    api_token_id: "{{ proxmox_api_token_id | default(omit) }}"
+    api_token_secret: "{{ proxmox_api_token_secret | default(omit) }}"
+    validate_certs: "{{ proxmox_validate_certs }}"
+    node: "{{ proxmox_node }}"
+    vmid: "{{ vm.vmid }}"
+
+    name: "{{ vm.name }}"
+    memory: "{{ vm.memory | default(2048) }}"
+    cores: "{{ vm.cores | default(2) }}"
+    keyboard: "{{ keyboard_layout | default(omit) }}"
+    scsihw: virtio-scsi-pci
+    net:
+      net0: "virtio,bridge={{ proxmox_bridge }}"
+    ipconfig:
+      ipconfig0: "{{ vm.ipconfig0 | default(omit) }}"
+    ciuser: "{{ vm.ciuser | default(omit) }}"
+    cipassword: "{{ vm.cipassword | default(clear_pass | default(omit)) }}"
+    sshkeys: "{{ ssh_public_key | default(omit) }}"
+    onboot: "{{ vm.autostart | default(omit) }}"
+    cicustom: "user={{ proxmox_snippets_storage }}:snippets/user-data.yaml"
+    agent: enabled=1
+    ide:
+      ide2: "{{ proxmox_storage | default(proxmox_snippets_storage) }}:cloudinit,format=raw"
+    scsi:
+      scsi0: "{{ vm.storage | default(proxmox_storage | default('local-lvm')) }}:0,import-from=/var/lib/vz/template/iso/{{ ubuntu_cloudimg_filename }}"
+    boot: "order=scsi0;ide2"
+    state: present
+  delegate_to: localhost
+  become: false
+
+# Runs on the Proxmox host (no delegate_to) — qm is only available there.
+- name: Read current scsi0 size
+  ansible.builtin.command: "qm config {{ vm.vmid }}"
+  register: vm_config
+  changed_when: false
+  become: true
+  when: vm.disk_gb is defined
+
+# Proxmox can only grow disks: resizing to the current size errors out,
+# so only resize when the configured size is actually larger.
+- name: Resize VM disk before start
+  ansible.builtin.command: "qm resize {{ vm.vmid }} scsi0 {{ vm.disk_gb }}G"
+  changed_when: true
+  become: true
+  when:
+    - vm.disk_gb is defined
+    - ((vm_config.stdout | regex_search('scsi0:[^\\n]*size=(\\d+)G', '\\1') | default([0], true)) | first | int) < (vm.disk_gb | int)
+
+- name: Start VM
+  community.proxmox.proxmox_kvm:
+    api_host: "{{ proxmox_api_host }}"
+    api_user: "{{ proxmox_api_user }}"
+    api_password: "{{ proxmox_api_password | default(omit) }}"
+    api_token_id: "{{ proxmox_api_token_id | default(omit) }}"
+    api_token_secret: "{{ proxmox_api_token_secret | default(omit) }}"
+    validate_certs: "{{ proxmox_validate_certs }}"
+    node: "{{ proxmox_node }}"
+    vmid: "{{ vm.vmid }}"
+    state: started
+  delegate_to: localhost
+  become: false
