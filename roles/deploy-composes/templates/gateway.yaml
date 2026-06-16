@@ -70,7 +70,7 @@ services:
       - "traefik.http.routers.homepage.entrypoints=websecure"
 
   speedtest-tracker:
-    image: lscr.io/linuxserver/speedtest-tracker:1.13.11
+    image: ghcr.io/linuxserver/speedtest-tracker:1.13.11
     restart: unless-stopped
     networks:
       - proxy_network
