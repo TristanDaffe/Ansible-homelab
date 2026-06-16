@@ -18,7 +18,7 @@ services:
       EXT_BYPASSER_URL: http://flaresolverr:8191
       PRIORITIZE_WELIB: "True"
     volumes:
-      - "{{ docker.docker_dir }}/volumes/shelfmark:/app/config"
+      - "{{ docker.docker_dir }}/volumes/shelfmark:/config"
       - "{{ nas.mount }}/books/downloads:/books"
     networks:
       - proxy_network
@@ -45,7 +45,7 @@ services:
       USE_DOH: "true"
     volumes:
       - "{{ nas.mount }}/books-maman/downloads:/books"
-      - "{{ docker.docker_dir }}/volumes/shelfmark-2:/app/config"
+      - "{{ docker.docker_dir }}/volumes/shelfmark-2:/config"
     networks:
       - proxy_network
       - indexer
