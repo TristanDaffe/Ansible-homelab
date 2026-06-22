@@ -23,7 +23,7 @@ services:
       - "traefik.http.routers.urbackup.entrypoints=websecure"
 
   zerobyte:
-    image: ghcr.io/nicotsx/zerobyte:v0.36.0
+    image: ghcr.io/nicotsx/zerobyte:v0.40.0
     restart: unless-stopped
     environment:
       - "TZ={{ timezone }}"
