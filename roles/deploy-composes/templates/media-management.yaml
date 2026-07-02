@@ -102,7 +102,7 @@ services:
       - "traefik.http.routers.seer.entrypoints=websecure"
 
   sonarr:
-    image: ghcr.io/linuxserver/sonarr:4.0.17
+    image: ghcr.io/linuxserver/sonarr:4.0.19
     restart: unless-stopped
     environment:
       - PUID={{ nas.puid }}
