@@ -54,6 +54,10 @@ docker:
         - immich/data
         - immich/model-cache
         - immich/postgres
+        - tailscale
+      config:
+        - file: ts-serve.json
+          dst: tailscale/serve.json
 
 #######################
 # Backup (UrBackup)
