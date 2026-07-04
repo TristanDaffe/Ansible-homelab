@@ -98,7 +98,7 @@ services:
 ###########
 
   immich-server:
-    image: ghcr.io/immich-app/immich-server:v2.7.5
+    image: ghcr.io/immich-app/immich-server:v3.0.1
     devices:
       - /dev/dri:/dev/dri
     group_add:
@@ -127,7 +127,7 @@ services:
       - "traefik.http.routers.immich.entrypoints=websecure"
 
   immich-machine-learning:
-    image: ghcr.io/immich-app/immich-machine-learning:v2.7.5
+    image: ghcr.io/immich-app/immich-machine-learning:v3.0.1
     volumes:
       - "{{ docker.docker_dir }}/volumes/immich/model-cache:/cache"
     restart: always
