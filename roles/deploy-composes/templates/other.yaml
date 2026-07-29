@@ -5,7 +5,7 @@ services:
 ############
 
   mealie:
-    image: ghcr.io/mealie-recipes/mealie:v3.21.0
+    image: ghcr.io/mealie-recipes/mealie:v3.22.0
     restart: unless-stopped
     volumes:
       - "{{ docker.docker_dir }}/volumes/mealie/data:/app/data/"
@@ -113,7 +113,7 @@ services:
       - wud.watch=false
 
   paperless:
-    image: ghcr.io/paperless-ngx/paperless-ngx:2.20.15
+    image: ghcr.io/paperless-ngx/paperless-ngx:3.0.4
     restart: unless-stopped
     networks:
       - paperless
@@ -136,6 +136,7 @@ services:
     environment:
       COMPOSE_PROJECT_NAME: "{{ paperless.project_name }}"
       PAPERLESS_REDIS: redis://broker:6379
+      PAPERLESS_DBENGINE: postgresql
       PAPERLESS_DBHOST: paperless-db
       PAPERLESS_TIKA_ENABLED: 1
       PAPERLESS_TIKA_GOTENBERG_ENDPOINT: http://gotenberg:3000
@@ -151,6 +152,7 @@ services:
       PAPERLESS_CSRF_TRUSTED_ORIGINS: https://paper.{{ docker.domain }}
       PAPERLESS_CSRF_COOKIE_SECURE: true
       PAPERLESS_SESSION_COOKIE_SECURE: true
+      PAPERLESS_SECRET_KEY: "{{ paperless.secret_key }}"
 
   gotenberg:
     image: docker.io/gotenberg/gotenberg:8.20
