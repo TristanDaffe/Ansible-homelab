@@ -63,7 +63,7 @@ services:
   ############
 
   actual-budget:
-    image: actualbudget/actual-server:26.8.0
+    image: actualbudget/actual-server:26.7.0
     environment:
       - ACTUAL_PORT=5006
       - ACTUAL_UPLOAD_FILE_SYNC_SIZE_LIMIT_MB=20
@@ -113,7 +113,7 @@ services:
       - wud.watch=false
 
   paperless:
-    image: ghcr.io/paperless-ngx/paperless-ngx:3.0.4
+    image: ghcr.io/paperless-ngx/paperless-ngx:3.0.5
     restart: unless-stopped
     networks:
       - paperless
