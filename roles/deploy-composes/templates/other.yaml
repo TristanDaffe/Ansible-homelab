@@ -5,7 +5,7 @@ services:
 ############
 
   mealie:
-    image: ghcr.io/mealie-recipes/mealie:v3.22.0
+    image: ghcr.io/mealie-recipes/mealie:v3.23.1
     restart: unless-stopped
     volumes:
       - "{{ docker.docker_dir }}/volumes/mealie/data:/app/data/"
