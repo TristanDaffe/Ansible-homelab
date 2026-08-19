@@ -29,6 +29,7 @@ services:
       OIDC_CONFIGURATION_URL: https://pocket-id.{{ docker.domain }}/.well-known/openid-configuration
       ALLOW_PASSWORD_LOGIN: "false"
       OIDC_AUTO_REDIRECT: "true"
+      OIDC_REQUIRES_EMAIL_VERIFICATION: "false"
     networks:
       - proxy_network
       - meal
@@ -63,7 +64,7 @@ services:
   ############
 
   actual-budget:
-    image: actualbudget/actual-server:26.8.0
+    image: actualbudget/actual-server:26.8.1
     environment:
       - ACTUAL_PORT=5006
       - ACTUAL_UPLOAD_FILE_SYNC_SIZE_LIMIT_MB=20
