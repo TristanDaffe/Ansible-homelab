@@ -1,5 +1,12 @@
+# Proxmox nodes.
+#
+# Connection info + the VMs/LXC to create on each node live in
+# host_vars/<name>.yml (one file per node). Shared defaults are in
+# group_vars/all/all.yml.
+#
+# Run every node:   ansible-playbook -i inventory nodesetup.yaml
+# One node only:    ansible-playbook -i inventory nodesetup.yaml --limit pve-k8s
 [proxmox]
-pve ansible_host=192.168.129.100
-
-[all:vars]
-ansible_ssh_user=root
+# pve
+pve-k8s
+pve-dev

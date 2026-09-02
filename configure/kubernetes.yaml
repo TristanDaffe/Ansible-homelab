@@ -1,0 +1,20 @@
+---
+# Install a k3s cluster on the k8s test nodes.
+# Servers first (so the join token exists), then agents.
+#
+#   ansible-playbook -i configure/inventory configure/kubernetes.yaml
+#   ansible-playbook -i configure/inventory configure/kubernetes.yaml -e k3s_fetch_kubeconfig=true
+
+- name: Install k3s control-plane
+  hosts: k3s_server
+  become: true
+  roles:
+    - role: k3s
+      tags: [k3s]
+
+- name: Install k3s agents
+  hosts: k3s_agent
+  become: true
+  roles:
+    - role: k3s
+      tags: [k3s]

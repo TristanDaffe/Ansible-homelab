@@ -1,0 +1,15 @@
+---
+galaxy_info:
+  role_name: k3s
+  author: Tristan
+  description: Install a k3s cluster (server + agents) via the official install script.
+  license: MIT
+  min_ansible_version: "2.14"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - noble
+  galaxy_tags:
+    - kubernetes
+    - k3s
+dependencies: []

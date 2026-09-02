@@ -220,6 +220,7 @@
 
 - Traefik:
 {% for host in groups['docker_hosts'] | sort %}
+{% if hostvars[host].ansible_hostname is defined %}
   - Traefik {{ hostvars[host].ansible_hostname | capitalize }}:
       icon: traefik.png
       href: https://traefik.{{ hostvars[host].ansible_hostname }}.{{ docker.domain }}
@@ -228,6 +229,7 @@
       widget:
         type: traefik
         url: https://traefik.{{ hostvars[host].ansible_hostname }}.{{ docker.domain }}
+{% endif %}
 {% endfor %}
 
 - Admin-bottom:

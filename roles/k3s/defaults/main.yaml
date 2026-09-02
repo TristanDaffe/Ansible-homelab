@@ -1,0 +1,29 @@
+---
+# k3s version to install. "" = latest stable channel; pin e.g. "v1.30.5+k3s1".
+k3s_version: ""
+
+# API server port that agents / extra servers join through.
+k3s_api_port: 6443
+
+# First server node — agents (and any extra servers) join through it.
+# Uses the first k3s_server host's ansible_host (its IP), falling back to the
+# inventory name if ansible_host isn't set.
+k3s_control_node: "{{ hostvars[groups['k3s_server'][0]].ansible_host | default(groups['k3s_server'][0]) }}"
+
+# Extra flags appended to the SERVER install (INSTALL_K3S_EXEC="server ...").
+# e.g. "--disable traefik --disable servicelb" to bring your own ingress / LB.
+k3s_server_extra_args: ""
+
+# Extra flags appended to the AGENT install (INSTALL_K3S_EXEC="agent ...").
+k3s_agent_extra_args: ""
+
+# kubeconfig file mode on the NODE. Defaults to 600 (owner/root only), matching
+# k3s — the file holds cluster-admin credentials, so it must not be
+# world-readable. For non-root kubectl on the node, copy it to that user's
+# ~/.kube/config (0600, owned by them) rather than relaxing this.
+k3s_kubeconfig_mode: "600"
+
+# Pull the cluster kubeconfig back to the Ansible controller after install,
+# rewriting 127.0.0.1 -> the control node IP so it works remotely.
+k3s_fetch_kubeconfig: false
+k3s_kubeconfig_local_path: "{{ playbook_dir }}/k3s-kubeconfig.yaml"

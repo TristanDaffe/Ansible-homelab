@@ -1,0 +1,65 @@
+############
+# Existing node — master VM + media / tools LXC
+############
+
+# --- Connection ----------------------------------------------------------
+ansible_host: 192.168.129.110
+ansible_ssh_user: root
+
+# --- Placement -----------------------------------------------------------
+proxmox_node: pve
+proxmox_storage: vm
+
+# --- NAS mounts on this node ---------------------------------------------
+# uid/gid use the LXC offset (100000 + container uid/gid) for unprivileged CTs.
+cifs_mounts:
+  - src: //192.168.129.45/Tristan
+    path: /mnt/pve/wd2
+    opts: "rw,nobrl,username=guest,password=,uid=101000,gid=101001,file_mode=0775,dir_mode=0775,vers=3.1.1"
+
+# --- VMs on this node ----------------------------------------------------
+vms:
+  - name: master
+    vmid: 125
+    memory: 12288
+    cores: 3
+    disk_gb: 128
+    ciuser: susu
+    autostart: true
+    ipconfig0: ip=192.168.129.125/23,gw=192.168.128.1
+
+# --- LXC containers on this node -----------------------------------------
+lxc_containers:
+  - hostname: media
+    ctid: 223
+    memory: 10240
+    cores: 3
+    rootfs_gb: 320
+    ipconfig: "192.168.129.123/23,gw=192.168.128.1"
+    privileged: false
+    autostart: true
+    features:
+      - nesting=1
+    enable_tun: true
+    enable_igpu: true
+    nas_mounts:
+      - src: /mnt/pve/wd2/mac-mini
+        dst: /media
+        mp_index: 1
+
+  - hostname: tools
+    ctid: 224
+    memory: 8192
+    cores: 3
+    rootfs_gb: 24
+    ipconfig: "192.168.129.124/23,gw=192.168.128.1"
+    privileged: false
+    autostart: true
+    features:
+      - nesting=1
+    enable_tun: true
+    enable_igpu: false
+    nas_mounts:
+      - src: /mnt/pve/wd2/mac-mini
+        dst: /media
+        mp_index: 1

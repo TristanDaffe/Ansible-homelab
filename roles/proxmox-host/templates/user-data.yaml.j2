@@ -5,6 +5,17 @@
 keyboard:
   layout: {{ cloud_init_keyboard_layout }}
 
+# A custom cicustom user-data REPLACES Proxmox's generated cloud-config, so the
+# native `ciuser` / `sshkeys` VM options are ignored — the login user and SSH
+# key MUST be defined here or the VM is unreachable over SSH.
+users:
+  - name: {{ cloud_init_username }}
+    groups: [sudo]
+    sudo: "ALL=(ALL) NOPASSWD:ALL"
+    shell: /bin/bash
+    ssh_authorized_keys:
+      - "{{ ssh_public_key }}"
+
 runcmd:
   # Empty the cloud-init SSH drop-in so it doesn't interfere with opkssh
   # The security role manages sshd_config directly via sshd_config.d/

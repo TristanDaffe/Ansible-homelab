@@ -1,91 +1,58 @@
 ############
-# Proxmox and VM config
+# Shared defaults for ALL Proxmox nodes
 ############
+# Per-node connection info, storage, VMs and LXC containers live in
+# host_vars/<node>.yml (one file per node). This file holds only what is
+# common to every node, plus the documented per-node schema at the bottom.
 
-# Proxmox cluster node name where VMs will be created (e.g., 'pve')
-proxmox_node: pve-dev
+# --- Proxmox API ---------------------------------------------------------
+# Token id/secret are secrets → group_vars/all/secret.all.yml (git-ignored):
+#   proxmox_api_token_id:     "root@pam!ansible"
+#   proxmox_api_token_secret: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+# api_host defaults to the node being provisioned (each node talks to its own
+# API). Override in host_vars if the API lives elsewhere, or add per-node
+# proxmox_api_token_* in host_vars if a node belongs to a different cluster.
+proxmox_api_user: root@pam
+proxmox_api_host: "{{ ansible_host }}"
+proxmox_validate_certs: false
 
-# Storage name to use for disks and cloud-init (e.g., 'local-lvm')
-proxmox_storage: vm-dev
-
-# Bridge to attach VMs to (e.g., 'vmbr0')
+# --- Networking / storage defaults ---------------------------------------
 proxmox_bridge: vmbr0
+proxmox_snippets_storage: local          # snippets + cloudinit; usually 'local'
 
-# Storage for cloud-init snippets (usually 'local')
-proxmox_snippets_storage: local
+# --- Console / OS locale -------------------------------------------------
+keyboard_layout: fr-be                    # Proxmox VNC code
+cloud_init_keyboard_layout: be            # cloud-init XKB code (Belgian AZERTY)
 
-# Keyboard layout for Proxmox VNC console
-keyboard_layout: fr-be
-
-# Keyboard layout for the OS (cloud-init keyboard module — XKB/loadkeys code)
-# 'be' = Belgian AZERTY. Different from Proxmox's 'fr-be' VNC code.
-cloud_init_keyboard_layout: be
-
-# Ubuntu LTS cloud image URL (24.04 default; change as desired)
+# --- Images / templates --------------------------------------------------
 ubuntu_lts_image_url: "https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img"
-
-# Ubuntu LTS LXC template name (must exist in `pveam available`)
 ubuntu_lxc_template: "ubuntu-24.04-standard_24.04-2_amd64.tar.zst"
 
-# Optional LXC features to enable (e.g., ['nesting=1'])
+# --- LXC defaults --------------------------------------------------------
 lxc_features:
   - keyctl=1
   - nesting=1
 
-# Optional LXC mount points (mp0, mp1, ...)
-# lxc_mounts:
-#   mp0: "local-lvm:8,mp=/mnt/data"
-
-# CIFS shares to mount on the Proxmox host
-# uid/gid must use the LXC offset (100000 + container uid/gid) for unprivileged containers
-cifs_mounts:
-  - src: //192.168.129.45/Tristan
-    path: /mnt/pve/wd2
-    opts: "rw,nobrl,username=guest,password=,uid=101000,gid=101001,file_mode=0775,dir_mode=0775,vers=3.1.1"
-
-# VM definitions
-vms:
-  - name: master
-    vmid: 125
-    memory: 12288
-    cores: 3
-    disk_gb: 128
-    ciuser: susu 
-    autostart: true
-    ipconfig0: ip=192.168.129.125/23,gw=192.168.128.1
-
-# LXC containers (Ubuntu LTS)
-lxc_containers:
-  - hostname: media
-    ctid: 223
-    memory: 10240
-    cores: 3
-    rootfs_gb: 320
-    ipconfig: "192.168.129.123/23,gw=192.168.128.1"
-    privileged: false
-    autostart: true
-    features:
-      - nesting=1
-    enable_tun: true
-    enable_igpu: true
-    nas_mounts:
-      - src: /mnt/pve/wd2/mac-mini
-        dst: /media
-        mp_index: 1
-
-  - hostname: tools
-    ctid: 224
-    memory: 8192
-    cores: 3
-    rootfs_gb: 24
-    ipconfig: "192.168.129.124/23,gw=192.168.128.1"
-    privileged: false  
-    autostart: true
-    features:
-      - nesting=1
-    enable_tun: true
-    enable_igpu: false 
-    nas_mounts:
-      - src: /mnt/pve/wd2/mac-mini
-        dst: /media
-        mp_index: 1
+# =========================================================================
+# PER-NODE FILE SCHEMA  →  host_vars/<node>.yml
+# =========================================================================
+# Every node listed in `inventory` gets a host_vars file. Placeholders:
+#
+#   ansible_host:     192.168.129.XXX   # node LAN IP (SSH + API target)
+#   ansible_ssh_user: root
+#   proxmox_node:     pve-XXX           # node NAME as shown in the Proxmox UI
+#   proxmox_storage:  local-lvm         # disk storage that EXISTS on this node
+#   cifs_mounts:      []                # optional NAS mounts on this node
+#   vms:              [ ... ]           # VMs to create ON this node
+#   lxc_containers:   [ ... ]           # LXC to create ON this node
+#
+# Provisioning is node-local (the cloud image is imported and `qm resize`
+# runs on the node itself), so each node only provisions the vms/lxc in its
+# OWN file. Running the whole playbook handles every node in one pass.
+#
+# vm entry fields:  name, vmid, cores, memory (MB), disk_gb, ciuser,
+#                   autostart, ipconfig0 ("ip=<cidr>,gw=<gw>" or "ip=dhcp")
+# lxc entry fields: hostname, ctid, cores, memory, rootfs_gb, ipconfig,
+#                   privileged, autostart, features[], enable_tun,
+#                   enable_igpu, nas_mounts[]
+# =========================================================================

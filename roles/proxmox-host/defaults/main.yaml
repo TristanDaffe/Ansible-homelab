@@ -11,6 +11,10 @@ ubuntu_lxc_template: "ubuntu-24.04-standard_24.04-2_amd64.tar.zst"
 # different from Proxmox's 'fr-be' VNC code).
 cloud_init_keyboard_layout: be
 
+# Login user created by the cloud-init snippet, with ssh_public_key injected.
+# The snippet is shared by all VMs, so this must match the ciuser you SSH as.
+cloud_init_username: susu
+
 # CIFS shares to mount on the host. Each entry: { src, path, opts }.
 cifs_mounts: []
 

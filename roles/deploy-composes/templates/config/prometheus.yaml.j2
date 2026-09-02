@@ -11,8 +11,10 @@ scrape_configs:
   - job_name: 'node_exporter'
     static_configs:
 {% for host in groups['Monitoring'] %}
+{% if hostvars[host].node_exporter_host is defined and hostvars[host].ansible_hostname is defined %}
       - targets:
           - '{{ hostvars[host].node_exporter_host }}:9100'
         labels:
           node: '{{ hostvars[host].ansible_hostname }}'
+{% endif %}
 {% endfor %}

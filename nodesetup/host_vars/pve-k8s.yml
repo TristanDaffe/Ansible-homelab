@@ -1,0 +1,44 @@
+############
+# Kubernetes test node — control-plane + worker(s)   (TEMPLATE — edit the XXX)
+############
+
+# --- Connection ----------------------------------------------------------
+ansible_host: 192.168.129.102
+ansible_ssh_user: root
+
+# --- Placement -----------------------------------------------------------
+proxmox_node: pve-dev-2
+proxmox_storage: vm-dev
+
+# If this node is in a DIFFERENT cluster from `pve`, give it its own API token
+# here (otherwise it inherits proxmox_api_token_* from secret.all.yml):
+#   proxmox_api_token_id:     "root@pam!ansible"
+#   proxmox_api_token_secret: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+
+# --- No NAS / no LXC on the k8s node -------------------------------------
+cifs_mounts: []
+lxc_containers: []
+
+# --- VMs on this node ----------------------------------------------------
+# cloud-init injects your ~/.ssh/id_rsa.pub automatically. VMIDs are
+# cluster-wide unique — keep them clear of prod (125 / 223 / 224).
+vms:
+  - name: k8s-cp-1                      # control-plane
+    vmid: 130
+    cores: 2
+    memory: 4096                        # MB
+    disk_gb: 40
+    ciuser: susu
+    autostart: true
+    ipconfig0: "ip=192.168.129.130/23,gw=192.168.128.1"
+
+  - name: k8s-worker-1
+    vmid: 131
+    cores: 2
+    memory: 4096
+    disk_gb: 40
+    ciuser: susu
+    autostart: true
+    ipconfig0: "ip=192.168.129.131/23,gw=192.168.128.1"
+
+  # Workers meant for the OTHER node go in that node's host_vars file, not here.

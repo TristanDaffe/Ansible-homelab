@@ -64,7 +64,7 @@ services:
   ############
 
   actual-budget:
-    image: actualbudget/actual-server:26.8.1
+    image: actualbudget/actual-server:26.9.0
     environment:
       - ACTUAL_PORT=5006
       - ACTUAL_UPLOAD_FILE_SYNC_SIZE_LIMIT_MB=20

@@ -1,4 +1,7 @@
 ---
+- name: System hostname
+  ansible.builtin.import_tasks: hostname.yaml
+
 - name: Packages and upgrades
   ansible.builtin.import_tasks: packages.yaml
 

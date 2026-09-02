@@ -1,0 +1,81 @@
+---
+# k3s uses the OS hostname as the node name, so every node needs a unique one
+# (the Ubuntu cloud image defaults them all to "ubuntu"). Set it from the
+# inventory name BEFORE installing.
+- name: Set a unique hostname (k3s node name)
+  ansible.builtin.hostname:
+    name: "{{ inventory_hostname }}"
+
+- name: Ensure the hostname resolves locally (avoids sudo/k3s resolve warnings)
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    regexp: '^127\.0\.1\.1\s'
+    line: "127.0.1.1 {{ inventory_hostname }}"
+    state: present
+
+# The official get.k3s.io script, downloaded to disk then run with a `creates:`
+# guard (same pattern as opkssh-server — no piping curl straight into a shell).
+- name: Download k3s install script
+  ansible.builtin.get_url:
+    url: https://get.k3s.io
+    dest: /usr/local/bin/k3s-install.sh
+    mode: '0755'
+
+# ---------------------------------------------------------------------------
+# Control-plane (first host in k3s_server)
+# ---------------------------------------------------------------------------
+- name: Install and expose token — k3s server
+  when: inventory_hostname in (groups['k3s_server'] | default([]))
+  block:
+    - name: Install k3s (server)
+      ansible.builtin.command: /usr/local/bin/k3s-install.sh
+      args:
+        creates: /usr/local/bin/k3s
+      environment:
+        INSTALL_K3S_VERSION: "{{ k3s_version }}"
+        INSTALL_K3S_EXEC: "server --write-kubeconfig-mode {{ k3s_kubeconfig_mode }} {{ k3s_server_extra_args }}"
+
+    - name: Wait for the node token to be written
+      ansible.builtin.wait_for:
+        path: /var/lib/rancher/k3s/server/node-token
+        timeout: 120
+
+    - name: Read the node token
+      ansible.builtin.slurp:
+        src: /var/lib/rancher/k3s/server/node-token
+      register: k3s_node_token_raw
+
+    # Set on the server host so the agent play can read it via hostvars.
+    - name: Expose join token as a fact
+      ansible.builtin.set_fact:
+        k3s_token: "{{ k3s_node_token_raw.content | b64decode | trim }}"
+
+    - name: Fetch kubeconfig to the controller
+      when: k3s_fetch_kubeconfig | bool
+      block:
+        - name: Read cluster kubeconfig
+          ansible.builtin.slurp:
+            src: /etc/rancher/k3s/k3s.yaml
+          register: k3s_kubeconfig_raw
+
+        - name: Write kubeconfig locally (server URL rewritten to the node IP)
+          ansible.builtin.copy:
+            dest: "{{ k3s_kubeconfig_local_path }}"
+            content: "{{ k3s_kubeconfig_raw.content | b64decode | replace('127.0.0.1', k3s_control_node) }}"
+            mode: '0600'
+          delegate_to: localhost
+          become: false
+
+# ---------------------------------------------------------------------------
+# Workers (k3s_agent group) — join the control node
+# ---------------------------------------------------------------------------
+- name: Install k3s agent
+  when: inventory_hostname in (groups['k3s_agent'] | default([]))
+  ansible.builtin.command: /usr/local/bin/k3s-install.sh
+  args:
+    creates: /usr/local/bin/k3s
+  environment:
+    INSTALL_K3S_VERSION: "{{ k3s_version }}"
+    K3S_URL: "https://{{ k3s_control_node }}:{{ k3s_api_port }}"
+    K3S_TOKEN: "{{ hostvars[groups['k3s_server'][0]].k3s_token }}"
+    INSTALL_K3S_EXEC: "agent {{ k3s_agent_extra_args }}"

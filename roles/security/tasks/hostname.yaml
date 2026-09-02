@@ -1,0 +1,29 @@
+---
+# Cloud-init VMs boot with the image default hostname ("ubuntu"), and the
+# custom user-data snippet doesn't set one. Apply the per-node `hostname` var
+# so ansible_hostname is correct for every role that runs afterwards — it feeds
+# the Traefik dashboard router rule, Homepage, WUD watcher names, etc.
+- name: Set the system hostname
+  ansible.builtin.hostname:
+    name: "{{ hostname }}"
+  when:
+    - hostname is defined
+    - ansible_hostname != hostname
+
+- name: Ensure the hostname resolves locally (avoids sudo/service resolve warnings)
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    regexp: '^127\.0\.1\.1\s'
+    line: "127.0.1.1 {{ hostname }}"
+    state: present
+  when: hostname is defined
+
+# hostname changes don't refresh gathered facts, so re-gather min facts to make
+# the new ansible_hostname visible to later roles in this play.
+- name: Re-gather facts so ansible_hostname reflects the new hostname
+  ansible.builtin.setup:
+    gather_subset:
+      - min
+  when:
+    - hostname is defined
+    - ansible_hostname != hostname

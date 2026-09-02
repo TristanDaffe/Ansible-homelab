@@ -1,0 +1,33 @@
+############
+# Dev tools node 
+############
+
+# --- Connection ----------------------------------------------------------
+ansible_host: 192.168.129.100
+ansible_ssh_user: root
+
+# --- Placement -----------------------------------------------------------
+proxmox_node: pve-dev
+proxmox_storage: vm-dev
+
+# If this node is in a DIFFERENT cluster from `pve`, give it its own API token
+# here (otherwise it inherits proxmox_api_token_* from secret.all.yml):
+#   proxmox_api_token_id:     "root@pam!ansible"
+#   proxmox_api_token_secret: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+
+# --- No NAS / no LXC on this node ----------------------------------------
+cifs_mounts: []
+lxc_containers: []
+
+# --- VMs on this node ----------------------------------------------------
+# cloud-init injects your ~/.ssh/id_rsa.pub automatically. VMIDs are
+# cluster-wide unique — keep them clear of prod (125 / 223 / 224).
+vms:
+  - name: DevTools
+    vmid: 129
+    cores: 4
+    memory: 8192
+    disk_gb: 128
+    ciuser: susu
+    autostart: true
+    ipconfig0: "ip=192.168.129.129/23,gw=192.168.128.1"

@@ -1,0 +1,85 @@
+---
+services:
+
+  forgejo:
+    image: codeberg.org/forgejo/forgejo:16
+    restart: always
+    environment:
+      - "USER_UID={{ docker.puid }}"
+      - "USER_GID={{ docker.pgid }}"
+      - "FORGEJO__server__ROOT_URL=https://git.{{ docker.domain }}/"
+      - "FORGEJO__server__SSH_DOMAIN=git.{{ docker.domain }}"
+      - "FORGEJO__server__SSH_PORT=222"
+    networks:
+      - dev
+      - proxy_network
+    volumes:
+      - "{{ docker.docker_dir }}/volumes/forgejo:/data"
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - '222:22'
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.forgejo.loadbalancer.server.port=3000"
+      - "traefik.http.routers.forgejo.rule=Host(`git.{{ docker.domain }}`)"
+      - "traefik.http.routers.forgejo.entrypoints=websecure"
+
+  infisical-backend:
+    image: infisical/infisical:latest   # TODO: pin to a specific version tag
+    restart: unless-stopped
+    pull_policy: always
+    depends_on:
+      infisical-db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    environment:
+      - NODE_ENV=production
+      - ENCRYPTION_KEY={{ infisical['encryption-key'] }}
+      - AUTH_SECRET={{ infisical['auth-secret'] }}
+      - DB_CONNECTION_URI=postgres://{{ infisical['db-user'] }}:{{ infisical['db-pass'] }}@infisical-db:5432/{{ infisical['db-name'] }}
+      - REDIS_URL=redis://redis:6379
+      - SITE_URL=https://pass.{{ docker.domain }}
+    networks:
+      - infisical
+      - proxy_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.infisical.loadbalancer.server.port=8080"
+      - "traefik.http.routers.infisical.rule=Host(`pass.{{ docker.domain }}`)"
+      - "traefik.http.routers.infisical.entrypoints=websecure"
+
+  redis:
+    image: redis:7-alpine
+    restart: always
+    networks:
+      - infisical
+    volumes:
+      - "{{ docker.docker_dir }}/volumes/redis_data:/data"
+    labels:
+      - wud.watch=false
+
+  infisical-db:
+    image: postgres:14-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER={{ infisical['db-user'] }}
+      - POSTGRES_PASSWORD={{ infisical['db-pass'] }}
+      - POSTGRES_DB={{ infisical['db-name'] }}
+    volumes:
+      - "{{ docker.docker_dir }}/volumes/pg_data:/var/lib/postgresql/data"
+    networks:
+      - infisical
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready --username={{ infisical['db-user'] }} --dbname={{ infisical['db-name'] }}"]
+      interval: 5s
+      timeout: 10s
+      retries: 10
+    labels:
+      - wud.watch=false
+
+networks:
+  proxy_network:
+    external: true
+  dev:
+  infisical:

@@ -10,13 +10,6 @@
     enabled: yes
     state: started
 
-- name: Create a trusted storage pool
-  gluster.gluster.gluster_peer:
-    state: present
-    nodes: "{{ groups['Gluster'] | difference([inventory_hostname]) }}"
-  when: 
-    - "'Leader' in group_names"
-
 - name: Create brick directory
   file:
     path: "{{ gluster.brick_dir}}"
