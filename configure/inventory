@@ -1,14 +1,14 @@
 [Master]
-192.168.129.125
+master ansible_host=192.168.129.125
 
 [Tools]
-192.168.129.124
+Tools ansible_host=192.168.129.124
 
 [Media]
-192.168.129.123
+Media ansible_host=192.168.129.123
 
 [DevTools]
-192.168.129.129
+DevTools ansible_host=192.168.129.129
 
 [Vm:children]
 Master
