@@ -10,6 +10,7 @@ services:
       - "FORGEJO__server__ROOT_URL=https://git.{{ docker.domain }}/"
       - "FORGEJO__server__SSH_DOMAIN=git.{{ docker.domain }}"
       - "FORGEJO__server__SSH_PORT=222"
+      - "ENABLE_OPENID_SIGNIN=false"
     networks:
       - dev
       - proxy_network
