@@ -1,7 +1,7 @@
 services:
 
   pocket-id:
-    image: ghcr.io/pocket-id/pocket-id:v2.4
+    image: ghcr.io/pocket-id/pocket-id:v2.14
     entrypoint: ["/app/pocket-id"]
     restart: unless-stopped
     networks:
@@ -24,7 +24,7 @@ services:
 
 {% for item in tinyauth_groups %}
   tinyauth-{{ item.name }}:
-    image: ghcr.io/steveiliop56/tinyauth:v5
+    image: ghcr.io/tinyauthapp/tinyauth:v5
     restart: unless-stopped
     networks:
       - proxy_network
