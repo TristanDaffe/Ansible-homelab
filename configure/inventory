@@ -1,14 +1,11 @@
 [Master]
-master ansible_host=192.168.129.125
+Master ansible_host=192.168.129.125
 
 [Tools]
 Tools ansible_host=192.168.129.124
 
 [Media]
 Media ansible_host=192.168.129.123
-
-[DevTools]
-DevTools ansible_host=192.168.129.129
 
 [Vm:children]
 Master
@@ -21,7 +18,6 @@ Media
 Tools
 Media
 Master
-DevTools
 
 [Monitoring:children]
 Vm
@@ -30,17 +26,6 @@ Lxc
 [Tailscale:children]
 Vm
 Lxc
-DevTools
-
-[k3s_server]
-k8s-cp-1 ansible_host=192.168.129.130
-
-[k3s_agent]
-k8s-worker-1 ansible_host=192.168.129.131
-
-[k3s:children]
-k3s_server
-k3s_agent
 
 [Vm:vars]
 ansible_ssh_user=susu
@@ -48,8 +33,3 @@ ansible_ssh_user=susu
 [Lxc:vars]
 ansible_ssh_user=susu
 
-[k3s:vars]
-ansible_ssh_user=susu
-
-[DevTools:vars]
-ansible_ssh_user=susu

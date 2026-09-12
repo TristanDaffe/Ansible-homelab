@@ -38,7 +38,11 @@ services:
     restart: unless-stopped
     environment:
       - WUD_LOG_LEVEL=info
-      - WUD_WATCHER_LOCAL_SOCKET=/var/run/docker.sock:ro
+      - WUD_WATCHER_LOCAL_SOCKET=/var/run/docker.sock
+      - WUD_AUTH_OIDC_POCKETID_DISCOVERY={{ wud.discovery_url }}
+      - WUD_AUTH_OIDC_POCKETID_CLIENTID={{ wud.client_id }}
+      - WUD_AUTH_OIDC_POCKETID_CLIENTSECRET={{ wud.client_secret }}
+      - WUD_AUTH_OIDC_POCKETID_ADMINGROUP={{ wud.admin_group }}
 {% for host in groups['docker_hosts'] | reject('equalto', inventory_hostname) | list %}
 {% if hostvars[host].ansible_hostname is defined and hostvars[host].services_ip is defined %}
       - WUD_WATCHER_{{ hostvars[host].ansible_hostname | upper }}_HOST={{ hostvars[host].services_ip }}
