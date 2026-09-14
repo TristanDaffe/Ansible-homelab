@@ -73,7 +73,7 @@ services:
 ############
 
   jellyfin:
-    image: jellyfin/jellyfin:10.12.0
+    image: jellyfin/jellyfin:12.0
     hostname: jellyflix
     group_add:
       - "{{ docker.igpu_group }}"
