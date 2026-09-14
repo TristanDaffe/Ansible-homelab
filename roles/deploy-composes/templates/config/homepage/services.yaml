@@ -217,6 +217,8 @@
       widget:
         type: whatsupdocker
         url: http://whatsupdocker:3000
+        username: {{ wud.user }}
+        password: {{ wud.pass }}
 
 - Traefik:
 {% for host in groups['docker_hosts'] | sort %}

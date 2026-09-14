@@ -51,7 +51,7 @@ services:
 {% endfor %}
 
   homepage:
-    image: ghcr.io/gethomepage/homepage:v1.11.0
+    image: ghcr.io/gethomepage/homepage:v2.3.0
     restart: unless-stopped
     networks:
       - proxy_network
