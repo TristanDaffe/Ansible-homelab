@@ -43,6 +43,7 @@
           type: jellyfin
           url: http://jellyflix.{{ local_domain }}
           key: {{ jellyfin_api }}
+          version: 2
           # enableMediaControl: false
     - Seer:
         icon: seerr.png
