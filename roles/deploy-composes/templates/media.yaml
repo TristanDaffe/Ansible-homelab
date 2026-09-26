@@ -89,6 +89,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.services.jellyfin.loadbalancer.server.port=8096"
+      - wud.tag.include=^\d+\.\d+(\.\d+)?$$
       - "traefik.http.routers.jellyfin.rule=Host(`jellyflix.{{ local_domain }}`)"
       - "traefik.http.routers.jellyfin.entrypoints=web"
 
@@ -98,7 +99,7 @@ services:
 ###########
 
   immich-server:
-    image: ghcr.io/immich-app/immich-server:v3.2.1
+    image: ghcr.io/immich-app/immich-server:v3.2.2
     devices:
       - /dev/dri:/dev/dri
     group_add:
@@ -127,7 +128,7 @@ services:
       - "traefik.http.routers.immich.entrypoints=websecure"
 
   immich-machine-learning:
-    image: ghcr.io/immich-app/immich-machine-learning:v3.2.1
+    image: ghcr.io/immich-app/immich-machine-learning:v3.2.2
     volumes:
       - "{{ docker.docker_dir }}/volumes/immich/model-cache:/cache"
     restart: always
