@@ -5,7 +5,7 @@ services:
 ############
 
   mealie:
-    image: ghcr.io/mealie-recipes/mealie:v3.26.0
+    image: ghcr.io/mealie-recipes/mealie:v3.28.0
     restart: unless-stopped
     volumes:
       - "{{ docker.docker_dir }}/volumes/mealie/data:/app/data/"
@@ -114,7 +114,7 @@ services:
       - wud.watch=false
 
   paperless:
-    image: ghcr.io/paperless-ngx/paperless-ngx:3.1.3
+    image: ghcr.io/paperless-ngx/paperless-ngx:3.2.1
     restart: unless-stopped
     networks:
       - paperless
