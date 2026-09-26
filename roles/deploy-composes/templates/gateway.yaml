@@ -1,7 +1,7 @@
 services:
 
   pocket-id:
-    image: ghcr.io/pocket-id/pocket-id:v2.14
+    image: ghcr.io/pocket-id/pocket-id:v2.16
     entrypoint: ["/app/pocket-id"]
     restart: unless-stopped
     networks:
@@ -44,6 +44,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.tinyauth-{{ item.name }}.rule=Host(`auth-{{ item.name }}.{{ docker.domain }}`)"
+      - wud.tag.include=^v\d+$$
       - "traefik.http.routers.tinyauth-{{ item.name }}.entrypoints=websecure"
       - "traefik.http.services.tinyauth-{{ item.name }}.loadbalancer.server.port=3000"
       - "traefik.http.middlewares.tinyauth-{{ item.name }}.forwardauth.address=http://tinyauth-{{ item.name }}:3000/api/auth/traefik"
@@ -51,7 +52,7 @@ services:
 {% endfor %}
 
   homepage:
-    image: ghcr.io/gethomepage/homepage:v2.3.0
+    image: ghcr.io/gethomepage/homepage:v2.4.0
     restart: unless-stopped
     networks:
       - proxy_network
