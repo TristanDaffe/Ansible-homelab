@@ -19,6 +19,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.services.urbackup.loadbalancer.server.port=55414"
+      - wud.tag.include=^\d+\.\d+\.x$$
       - "traefik.http.routers.urbackup.rule=Host(`backup.{{ docker.domain }}`)"
       - "traefik.http.routers.urbackup.entrypoints=websecure"
 
@@ -39,6 +40,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.services.zerobyte.loadbalancer.server.port=4096"
+      - wud.tag.include=^v\d+\.\d+\.\d+$$
       - "traefik.http.routers.zerobyte.rule=Host(`zerobyte.{{ docker.domain }}`)"
       - "traefik.http.routers.zerobyte.entrypoints=websecure"
 
