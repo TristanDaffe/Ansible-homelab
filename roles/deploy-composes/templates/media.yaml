@@ -5,7 +5,7 @@ services:
 ############
 
   calibre-web:
-    image: crocodilestick/calibre-web-automated:v4.0.6
+    image: crocodilestick/calibre-web-automated:v4.0.8
     environment:
       - "PUID={{ nas.puid }}"
       - "PGID={{ nas.pgid }}"
@@ -27,7 +27,7 @@ services:
       - "traefik.http.routers.calibre-web.entrypoints=web"
 
   calibre-web-maman:
-    image: crocodilestick/calibre-web-automated:v4.0.6
+    image: crocodilestick/calibre-web-automated:v4.0.8
     environment:
       - "PUID={{ nas.puid }}"
       - "PGID={{ nas.pgid }}"
