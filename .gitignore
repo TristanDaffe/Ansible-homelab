@@ -2,6 +2,7 @@ secret.*
 .vscode
 *.drawio.bkp
 .DS_Store
+.claude
 
 # Fetched kubeconfigs — contain cluster-admin credentials, never commit
 k3s-kubeconfig.yaml
