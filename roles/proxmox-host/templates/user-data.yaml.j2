@@ -19,5 +19,6 @@ users:
 runcmd:
   # Empty the cloud-init SSH drop-in so it doesn't interfere with opkssh
   # The security role manages sshd_config directly via sshd_config.d/
+  - systemctl enable --now qemu-guest-agent
   - truncate -s 0 /etc/ssh/sshd_config.d/50-cloud-init.conf
   - systemctl reload ssh

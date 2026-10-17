@@ -31,6 +31,7 @@ extra_packages:
   - htop
   - python3-jsondiff
   - neofetch
+  - qemu-guest-agent
 
 allow_reboot: false
 reboot_delay: 60 
