@@ -32,11 +32,10 @@
   loop_control:
     label: "{{ item.split(' ')[-1] }}"
 
-- name: Allow '{{ sudo_group }}' group to have passwordless sudo
+- name: Allow passwordless sudo for group {{ sudo_group }}
   ansible.builtin.lineinfile:
     path: /etc/sudoers
     state: present
     regexp: '^%{{ sudo_group }}'
     line: '%{{ sudo_group }} ALL=(ALL) NOPASSWD: ALL'
     validate: '/usr/sbin/visudo -cf %s'
-

@@ -17,7 +17,7 @@
     validate: '/usr/sbin/sshd -t -f %s'
   notify: Reload SSH
 
-- name: Restrict SSH access to '{{ ssh_group }}' group
+- name: Restrict SSH access to group {{ ssh_group }}
   ansible.builtin.lineinfile:
     path: /etc/ssh/sshd_config
     regexp: '^#?AllowGroups'

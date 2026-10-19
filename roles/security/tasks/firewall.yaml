@@ -14,8 +14,8 @@
     policy: "{{ item.policy }}"
     direction: "{{ item.direction }}"
   loop:
-    - { direction: incoming, policy: deny }
-    - { direction: outgoing, policy: allow }
+    - {direction: incoming, policy: deny}
+    - {direction: outgoing, policy: allow}
 
 - name: Allow HTTP connections
   community.general.ufw:
