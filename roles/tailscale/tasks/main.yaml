@@ -1,14 +1,20 @@
 ---
-# https://github.com/artis3n/ansible-collection-tailscale/tree/main
-- name: Tailscale
-  ansible.builtin.include_role:
-    name: artis3n.tailscale.machine
-  vars:
-    tailscale_authkey: "{{ tailscale.authkey }}"
-    tailscale_args: "{{ tailscale_up_args }}"
+# The artis3n role is not check-mode safe: its `tailscale status --json` command
+# is skipped under --check and the empty output is then parsed as JSON. In check
+# mode the whole role is skipped and tailscale_ip keeps its group_vars value.
+- name: Join the tailnet
+  when: not ansible_check_mode
+  block:
+    # https://github.com/artis3n/ansible-collection-tailscale/tree/main
+    - name: Tailscale
+      ansible.builtin.include_role:
+        name: artis3n.tailscale.machine
+      vars:
+        tailscale_authkey: "{{ tailscale.authkey }}"
+        tailscale_args: "{{ tailscale_up_args }}"
 
-# No default() fallback: if the artis3n fact is missing something is wrong and
-# the play must fail here, not propagate a bogus IP into services_ip bindings.
-- name: Set Tailscale IP fact
-  ansible.builtin.set_fact:
-    tailscale_ip: "{{ tailscale_node_ipv4 }}"
+    # No default() fallback: if the artis3n fact is missing something is wrong and
+    # the play must fail here, not propagate a bogus IP into services_ip bindings.
+    - name: Set Tailscale IP fact
+      ansible.builtin.set_fact:
+        tailscale_ip: "{{ tailscale_node_ipv4 }}"

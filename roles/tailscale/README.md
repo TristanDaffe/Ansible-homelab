@@ -20,6 +20,8 @@ Thin wrapper around `artis3n.tailscale.machine` that registers the joined node's
 | -------------- | -------------------------------------------------- |
 | `tailscale_ip` | The node's Tailscale IPv4 (from the artis3n role). |
 
+Under `--check` the artis3n role is skipped (it is not check-mode safe) and `tailscale_ip` keeps whatever group_vars define, so hosts used in dry runs need a static `tailscale_ip`.
+
 ## Example
 
 ```yaml
