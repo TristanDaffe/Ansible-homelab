@@ -34,7 +34,7 @@ nas:
   pgid: 1000                    # gid for the mount
 ```
 
-The username, sudo group, and SSH key path are read from play-level vars (`username`, `sudo_group`, `ssh_group`, `ssh_public_key_file`) since they are shared with other roles.
+The username, sudo group, and authorized SSH public keys are read from play-level vars (`username`, `sudo_group`, `ssh_group`, `ssh_authorized_keys`) since they are shared with other roles. `ssh_authorized_keys` is a list of inline public key strings (not file paths), so the role runs the same from a laptop or a CI runner. Keys are added, never removed (`exclusive` is not set).
 
 The role also pre-creates the `docker` group (so the user's membership exists before the docker role installs Docker later in the play) and the firewall rules key off the `Monitoring`/`Master` inventory group names.
 

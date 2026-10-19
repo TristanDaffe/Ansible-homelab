@@ -1,4 +1,7 @@
 secret.*
+# SOPS-encrypted secrets are safe to commit
+!secret.*.sops.yaml
+!secret.*.sops.yml
 .vscode
 *.drawio.bkp
 .DS_Store

@@ -25,6 +25,23 @@ services:
       - "traefik.http.routers.forgejo.rule=Host(`git.{{ docker.domain }}`)"
       - "traefik.http.routers.forgejo.entrypoints=websecure"
 
+  forgejo-runner:
+    image: data.forgejo.org/forgejo/runner:13.2.0
+    restart: unless-stopped
+    depends_on:
+      - forgejo
+    # root to use the host Docker socket (socket access is root-equivalent anyway)
+    user: "0:0"
+    working_dir: /data
+    command: forgejo-runner --config config.yml daemon
+    networks:
+      - dev
+    volumes:
+      - "{{ docker.docker_dir }}/volumes/forgejo-runner:/data"
+      - /var/run/docker.sock:/var/run/docker.sock
+    labels:
+      - wud.watch=false
+
   infisical-backend:
     image: infisical/infisical:latest   # TODO: pin to a specific version tag
     restart: unless-stopped

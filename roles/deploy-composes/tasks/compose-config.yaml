@@ -29,6 +29,6 @@
     force: "{{ item.force | default(true) }}"
     owner: "{{ username }}"
     group: "{{ username }}"
-    mode: '0644'
+    mode: '0600'
   loop: "{{ compose.config }}"
   when: compose.config is defined

@@ -25,7 +25,7 @@
     dest: "{{ docker.docker_dir }}/compose/{{ item.name }}/compose.yaml"
     owner: "{{ username }}"
     group: "{{ username }}"
-    mode: '0644'
+    mode: '0600'
   loop: "{{ docker.composes }}"
 
 - name: Create networks

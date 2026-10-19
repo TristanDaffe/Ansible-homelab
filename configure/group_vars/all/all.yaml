@@ -19,7 +19,11 @@ sudo_group: "sudo"
 ssh_group: "admin"
 timezone: "Europe/Brussels"
 local_domain: home
-ssh_public_key_file: "~/.ssh/id_rsa.pub"
+# Public keys allowed to log in as the user. Inline values rather than a file
+# lookup so the playbook also runs from CI, where ~/.ssh/id_rsa.pub does not exist.
+ssh_authorized_keys:
+  - "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDLR72eVcTVTTGcsV+bUqjd2HDPCUwPRiQo2hqecyRhy6d+SQ9nx9SS005j9SyBkEP/Df3JKws8aGuTkVWylQ4jZyey/JpM+FIJHL7Y4sGJSkatiMCHnG7cMqLaLAxs/iKJhFtNx4qUTQSqgOxH51kWw+qGLPhkEt+PmC8PmlBQg6CGLs33WHRCPfa71clTxpwzYg7Qg/42hWicOOZ1J/5+5Io+qYiFVssHPeXMlLDYfHBOvqK3G5FswjskuBnaRsmqAD1EbLANxRS+FzoBASwIKTxvybN7ZgA8oMcNNBmnJcyhZhxeQzJpGUxIzLjCmkW6Wq43YfhkOjc3EwctnmXoTuaux5hAQTwKWYH/n33WP6y2ezU0zz5WH7NqaYPlKzjkswvrkpGt+eGYgpu3nuF2YHLiaf8wSWAV5W83ccp9Zc7nx27hBLWbf7rgUDXm3yT2U8VmHmN1fDvJ9lN3Olq0ycSVS7ZtdMITbY6ibnoKGQeHRVxpDfBURQ9OGU3nydN23tQ9XufAZfwckKdbs8LGvlypy2wU8FGJqSvJF9ce6U9y3wEnWiBk3e3skBd4A1sBsz8+jylJJyLB+B2hg4wgbeHo/6BxXigs6+UkkQsW1Kp8vcQLUb9KT1B287mjWgBKfoEYYORMSk6WXAupoxh/enypS23un5cYNubUo972Sw== tristand@Tristans-MacBook-Pro.local"
+  - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEB0j+Df9hx2LOgBR4lho3djcco8MQozxyOZLym/WdEd forgejo-ci"
 
 #######################
 # Update Settings

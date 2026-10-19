@@ -30,15 +30,21 @@ docker:
     - name: devtools
       volumes:
         - forgejo
+        - forgejo-runner
         - redis_data
         - pg_data
+      config:
+        - file: forgejo-runner.yaml.j2
+          dst: forgejo-runner/config.yml
 
 #######################
 # Backup (UrBackup)
 #######################
 
 urbackup:
-  server_host: "{{ hostvars[groups['Master'][0]].services_ip }}"
+  # Master is not in inventory-dev, so hostvars can't resolve it here: use its
+  # Tailscale IP directly (keep in sync with tailscale_ip in Master.yaml)
+  server_host: 100.108.226.73
   backup_dirs: # Directories backed up by the client on each node
     - "{{ docker.docker_dir }}/volumes"
   authkey: "{{ urbackup_authkeys.tools }}" 

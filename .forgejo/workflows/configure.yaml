@@ -1,0 +1,91 @@
+---
+# Runs configure/configure.yaml against the homelab nodes.
+#   pull_request      → dry run (--check)
+#   push to main      → apply
+#   workflow_dispatch → apply, optionally limited to tags / hosts
+#
+# Required repo secrets:
+#   SOPS_AGE_KEY     CI age private key (one of the recipients in .sops.yaml)
+#   SSH_PRIVATE_KEY  CI deploy key; its public half is in ssh_authorized_keys
+#   SSH_KNOWN_HOSTS  output of: ssh-keyscan 192.168.129.123 192.168.129.124 192.168.129.125
+#
+# Never add --diff: compose templates contain secrets and the diff would print them.
+name: configure
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'configure/**'
+      - 'roles/**'
+      - 'ansible.cfg'
+      - 'requirements.yml'
+      - '.forgejo/workflows/configure.yaml'
+  pull_request:
+    paths:
+      - 'configure/**'
+      - 'roles/**'
+      - 'ansible.cfg'
+      - 'requirements.yml'
+      - '.forgejo/workflows/configure.yaml'
+  workflow_dispatch:
+    inputs:
+      tags:
+        description: 'Ansible tags (comma-separated)'
+        default: 'all'
+      limit:
+        description: 'Host limit'
+        default: 'all'
+
+# One run at a time against the nodes; queue instead of cancelling a half-applied run
+concurrency:
+  group: configure
+  cancel-in-progress: false
+
+env:
+  ANSIBLE_VERSION: '2.21.5'
+  SOPS_VERSION: '3.13.3'
+
+jobs:
+  configure:
+    runs-on: docker
+    # Debian 13: ansible-core 2.21 needs Python >= 3.12; node is needed by actions/checkout
+    container:
+      image: node:22-trixie
+    env:
+      SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
+      ANSIBLE_CONFIG: ${{ github.workspace }}/ansible.cfg
+      ANSIBLE_FORCE_COLOR: '1'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install tooling
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq --no-install-recommends python3-venv openssh-client
+          python3 -m venv /opt/ansible
+          /opt/ansible/bin/pip install --quiet "ansible-core==${ANSIBLE_VERSION}"
+          /opt/ansible/bin/ansible-galaxy collection install -r requirements.yml
+          curl -fsSLo /usr/local/bin/sops \
+            "https://github.com/getsops/sops/releases/download/v${SOPS_VERSION}/sops-v${SOPS_VERSION}.linux.amd64"
+          chmod +x /usr/local/bin/sops
+          echo /opt/ansible/bin >> "$GITHUB_PATH"
+
+      - name: Configure SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+
+      - name: Run configure playbook
+        env:
+          TAGS: ${{ inputs.tags || 'all' }}
+          LIMIT: ${{ inputs.limit || 'all' }}
+          CHECK: ${{ github.event_name == 'pull_request' && '--check' || '' }}
+        run: |
+          ansible-playbook -i configure/inventory configure/configure.yaml \
+            --tags "$TAGS" --limit "$LIMIT" $CHECK

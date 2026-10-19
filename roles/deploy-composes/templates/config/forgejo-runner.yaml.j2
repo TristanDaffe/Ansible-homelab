@@ -1,0 +1,37 @@
+# Forgejo runner config (runner v13). Registration is offline via a shared
+# secret, so no .runner file is needed. The same secret must be registered once
+# on the Forgejo side:
+#   docker exec -u git devtools-forgejo-1 \
+#     forgejo forgejo-cli actions register --name devtools --secret <token>
+log:
+  level: info
+  job_level: info
+
+runner:
+  capacity: 1
+  timeout: 3h
+  shutdown_timeout: 3h
+  fetch_timeout: 30s
+  fetch_interval: 2s
+  labels:
+    - "docker:docker://node:22-trixie"
+
+cache:
+  enabled: true
+
+container:
+  # Empty = one network per job; jobs reach the LAN nodes through Docker NAT
+  network: ""
+  privileged: false
+  valid_volumes: []
+  # Do not mount the Docker socket into job containers
+  docker_host: "-"
+
+server:
+  connections:
+    forgejo:
+      # Internal URL on the shared `dev` network: polling and log uploads do not
+      # depend on Traefik or on the nodes a job is reconfiguring
+      url: http://forgejo:3000/
+      uuid: "{{ forgejo_runner.uuid | mandatory('forgejo_runner.uuid missing from secret.all.sops.yaml') }}"
+      token: "{{ forgejo_runner.token | mandatory('forgejo_runner.token missing from secret.all.sops.yaml') }}"

@@ -1,0 +1,16 @@
+---
+# Recipients for every SOPS-encrypted secrets file in the repo.
+# After changing the recipient list, re-encrypt existing files with:
+#   sops updatekeys configure/group_vars/all/secret.all.sops.yaml
+keys:
+  # Personal key (private half: ~/.config/sops/age/key.txt)
+  - &personal_age_key age1fq6gfuafrfkcqy9p9mg48qmjwlyr3s5xmxwaz2uaxlscukcdt36q5qmen0
+  # Forgejo CI key (private half: SOPS_AGE_KEY repo secret)
+  - &forgejo_age_key age1h8mjx6hjjp04qhl5zmmghfnd7kgqa6dm4hcnj2yachzzud8395lsxrmf2t
+
+creation_rules:
+  - path_regex: secret\..*\.sops\.ya?ml$
+    key_groups:
+      - age:
+          - *personal_age_key
+          - *forgejo_age_key

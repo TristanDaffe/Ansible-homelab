@@ -1,0 +1,15 @@
+---
+# Install with: ansible-galaxy collection install -r requirements.yml
+collections:
+  - name: ansible.posix
+    version: 2.2.2
+  - name: artis3n.tailscale
+    version: 1.1.0
+  - name: community.docker
+    version: 5.4.0
+  - name: community.general
+    version: 13.5.0
+  - name: community.proxmox   # nodesetup only
+    version: 2.0.0
+  - name: community.sops
+    version: 2.5.0
