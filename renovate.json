@@ -1,40 +1,74 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:recommended"],
+  "extends": [
+    "config:recommended"
+  ],
   "dependencyDashboard": true,
-  "ignorePaths": ["archive/**"],
+  "ignorePaths": [
+    "archive/**"
+  ],
   "platformAutomerge": false,
   "customManagers": [
     {
       "customType": "regex",
-      "description": "Docker images in the deploy-composes Jinja2 templates: not named compose*.yml, and the {% %} blocks are not valid YAML for the docker-compose manager",
-      "managerFilePatterns": ["/^roles/deploy-composes/templates/[^/]+\\.ya?ml$/"],
-      "matchStrings": [
-        "\\n[ \\t]*image:[ \\t]*\"?(?<depName>[^\\s:@\"]+):(?<currentValue>[^\\s@\"]+)(?:@(?<currentDigest>sha256:[a-f0-9]+))?"
+      "description": "Docker images in the deploy-composes Jinja2 templates: not named compose*.yml, and the {% %} blocks are not valid YAML for the docker-compose manager; tags templated with {{ }} are left to their own manager",
+      "managerFilePatterns": [
+        "/^roles/deploy-composes/templates/[^/]+\\.ya?ml$/"
       ],
+      "matchStrings": [
+        "\\n[ \\t]*image:[ \\t]*\"?(?<depName>[^\\s:@\"]+):(?<currentValue>[^\\s@\"{][^\\s@\"]*)(?:@(?<currentDigest>sha256:[a-f0-9]+))?"
+      ],
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "description": "Shared Immich version in media.yaml, looked up through immich-server",
+      "managerFilePatterns": [
+        "/^roles/deploy-composes/templates/media\\.yaml$/"
+      ],
+      "matchStrings": [
+        "\\{%-?\\s*set immich_version = \"(?<currentValue>[^\"]+)\"\\s*-?%\\}"
+      ],
+      "depNameTemplate": "ghcr.io/immich-app/immich-server",
       "datasourceTemplate": "docker"
     }
   ],
   "packageRules": [
     {
       "description": "Auto-merge non-major image updates once the lint check is green; the merge to main deploys them",
-      "matchDatasources": ["docker"],
-      "matchUpdateTypes": ["minor", "patch", "digest"],
+      "matchDatasources": [
+        "docker"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "digest"
+      ],
       "minimumReleaseAge": "3 days",
       "minimumReleaseAgeBehaviour": "timestamp-optional",
       "automerge": true
     },
     {
       "description": "Database major upgrades need a dump/restore: never propose them",
-      "matchDatasources": ["docker"],
-      "matchPackageNames": ["/postgres/", "/redis/", "/valkey/"],
-      "matchUpdateTypes": ["major"],
+      "matchDatasources": [
+        "docker"
+      ],
+      "matchPackageNames": [
+        "/postgres/",
+        "/redis/",
+        "/valkey/"
+      ],
+      "matchUpdateTypes": [
+        "major"
+      ],
       "enabled": false
     },
     {
-      "description": "Immich server and machine-learning must stay on the same version",
-      "matchPackageNames": ["/immich-app/immich-/"],
-      "groupName": "immich"
+      "description": "Immich ships breaking changes in minor releases: always review by hand",
+      "matchPackageNames": [
+        "ghcr.io/immich-app/immich-server"
+      ],
+      "automerge": false
     }
   ]
 }
