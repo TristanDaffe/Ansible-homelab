@@ -29,7 +29,7 @@ services:
       - wud.tag.include=^\d+\.\d+\.\d+$$
 
   socket-proxy:
-    image: linuxserver/socket-proxy
+    image: linuxserver/socket-proxy:3.4.7
     restart: unless-stopped
     environment:
       - CONTAINERS=1

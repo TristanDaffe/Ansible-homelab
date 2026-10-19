@@ -18,7 +18,7 @@ services:
       - "traefik.http.routers.prometheus.entrypoints=websecure"
 
   loki:
-    image: grafana/loki:latest
+    image: grafana/loki:3.7.8
     restart: always
     command: -config.file=/etc/loki/local-config.yaml
     ports:
@@ -35,7 +35,7 @@ services:
       - "traefik.http.routers.loki.entrypoints=websecure"
 
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana:13.2.4
     restart: always
     volumes:
       - "{{ docker.docker_dir}}/volumes/monitoring/grafana/var:/var/lib/grafana"

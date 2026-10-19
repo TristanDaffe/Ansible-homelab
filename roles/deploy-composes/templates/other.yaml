@@ -170,7 +170,7 @@ services:
       - wud.watch=false
 
   tika:
-    image: docker.io/apache/tika:latest
+    image: docker.io/apache/tika:4.1.0
     restart: unless-stopped
     networks:
       - paperless

@@ -1,0 +1,40 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "dependencyDashboard": true,
+  "ignorePaths": ["archive/**"],
+  "platformAutomerge": false,
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Docker images in the deploy-composes Jinja2 templates: not named compose*.yml, and the {% %} blocks are not valid YAML for the docker-compose manager",
+      "managerFilePatterns": ["/^roles/deploy-composes/templates/[^/]+\\.ya?ml$/"],
+      "matchStrings": [
+        "\\n[ \\t]*image:[ \\t]*\"?(?<depName>[^\\s:@\"]+):(?<currentValue>[^\\s@\"]+)(?:@(?<currentDigest>sha256:[a-f0-9]+))?"
+      ],
+      "datasourceTemplate": "docker"
+    }
+  ],
+  "packageRules": [
+    {
+      "description": "Auto-merge non-major image updates once the lint check is green; the merge to main deploys them",
+      "matchDatasources": ["docker"],
+      "matchUpdateTypes": ["minor", "patch", "digest"],
+      "minimumReleaseAge": "3 days",
+      "minimumReleaseAgeBehaviour": "timestamp-optional",
+      "automerge": true
+    },
+    {
+      "description": "Database major upgrades need a dump/restore: never propose them",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["/postgres/", "/redis/", "/valkey/"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    },
+    {
+      "description": "Immich server and machine-learning must stay on the same version",
+      "matchPackageNames": ["/immich-app/immich-/"],
+      "groupName": "immich"
+    }
+  ]
+}

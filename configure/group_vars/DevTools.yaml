@@ -31,6 +31,9 @@ docker:
       volumes:
         - forgejo
         - forgejo-runner
+        - path: renovate   # Renovate image runs as uid 12021
+          uid: 12021
+          gid: 12021
         - redis_data
         - pg_data
       config:

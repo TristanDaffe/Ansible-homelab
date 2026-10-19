@@ -42,8 +42,37 @@ services:
     labels:
       - wud.watch=false
 
+  # Renovate is a one-shot CLI: rerun it on a fixed interval. It opens image
+  # update PRs on this repo; repo-side behaviour lives in renovate.json.
+  renovate:
+    image: ghcr.io/renovatebot/renovate:44.133.0
+    restart: unless-stopped
+    depends_on:
+      - forgejo
+    command: ["bash", "-c", "while true; do renovate; sleep {{ renovate.interval | default(21600) }}; done"]
+    environment:
+      - RENOVATE_PLATFORM=forgejo
+      # Internal URL on the `dev` network, for the API and (gitUrl=endpoint) for cloning
+      - RENOVATE_ENDPOINT=http://forgejo:3000/api/v1
+      - RENOVATE_GIT_URL=endpoint
+      - "RENOVATE_TOKEN={{ renovate.token | mandatory('renovate.token missing from secret.all.sops.yaml') }}"
+      - RENOVATE_REPOSITORIES=Susu/Ansible-homelab
+      - "RENOVATE_GIT_AUTHOR=Renovate Bot <renovate@{{ docker.domain }}>"
+      - RENOVATE_BASE_DIR=/tmp/renovate
+      - LOG_LEVEL=info
+{% if renovate.github_com_token is defined %}
+      # Read-only GitHub token: release notes in PRs + avoids GitHub API rate limits
+      - "GITHUB_COM_TOKEN={{ renovate.github_com_token }}"
+{% endif %}
+    networks:
+      - dev
+    volumes:
+      - "{{ docker.docker_dir }}/volumes/renovate:/tmp/renovate"
+    labels:
+      - wud.watch=false
+
   infisical-backend:
-    image: infisical/infisical:latest   # TODO: pin to a specific version tag
+    image: infisical/infisical:v0.166.8
     restart: unless-stopped
     pull_policy: always
     depends_on:

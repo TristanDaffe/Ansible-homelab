@@ -52,7 +52,7 @@ services:
 
  # tailscale funnel --bg 8083
   tailscale:
-     image: tailscale/tailscale
+     image: tailscale/tailscale:v1.104.1
      hostname: calibre-tailscale
      cap_add:
        - NET_ADMIN

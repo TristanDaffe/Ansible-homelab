@@ -1,7 +1,7 @@
 services:
 
   shelfmark:
-    image: ghcr.io/calibrain/shelfmark:latest
+    image: ghcr.io/calibrain/shelfmark:1.4.0
     restart: unless-stopped
     environment:
       FLASK_PORT: 8084
@@ -30,7 +30,7 @@ services:
       - "traefik.http.routers.shelfmark.entrypoints=websecure"
 
   shelfmark-maman:
-    image: ghcr.io/calibrain/shelfmark:latest
+    image: ghcr.io/calibrain/shelfmark:1.4.0
     restart: unless-stopped
     environment:
       FLASK_PORT: 8084
@@ -57,7 +57,7 @@ services:
       - "traefik.http.routers.shelfmark-maman.entrypoints=websecure"
 
   prowlarr:
-    image: ghcr.io/linuxserver/prowlarr:latest
+    image: ghcr.io/linuxserver/prowlarr:2.6.5
     restart: unless-stopped
     environment:
       - PUID={{ docker.puid }}
@@ -81,7 +81,7 @@ services:
       - "traefik.http.routers.prowlarr-api.priority=100"
 
   flaresolverr:
-    image: ghcr.io/flaresolverr/flaresolverr:latest
+    image: ghcr.io/flaresolverr/flaresolverr:v3.5.2
     restart: unless-stopped
     environment:
       - LOG_LEVEL=info
@@ -89,7 +89,7 @@ services:
       - indexer
 
   seer:
-    image: ghcr.io/seerr-team/seerr:latest
+    image: ghcr.io/seerr-team/seerr:v3.5.0
     restart: unless-stopped
     volumes:
       - "{{ docker.docker_dir }}/volumes/seer:/app/config"
@@ -126,7 +126,7 @@ services:
       - "traefik.http.routers.sonarr-api.priority=100"
 
   radarr:
-    image: ghcr.io/linuxserver/radarr:latest
+    image: ghcr.io/linuxserver/radarr:6.4.4
     restart: unless-stopped
     environment:
       - PUID={{ nas.puid }}
@@ -150,7 +150,7 @@ services:
       - "traefik.http.routers.radarr-api.priority=100"
 
   bazarr:
-    image: ghcr.io/linuxserver/bazarr:latest
+    image: ghcr.io/linuxserver/bazarr:1.6.2
     restart: unless-stopped
     environment:
       - PUID={{ nas.puid }}

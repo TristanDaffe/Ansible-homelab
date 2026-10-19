@@ -12,7 +12,7 @@ services:
   #     - "traefik.http.routers.omni-tools.entrypoints=websecure"
 
   it-tools:
-    image: corentinth/it-tools:latest
+    image: corentinth/it-tools:2024.10.22-7ca5933
     restart: unless-stopped
     networks:
       - proxy_network
