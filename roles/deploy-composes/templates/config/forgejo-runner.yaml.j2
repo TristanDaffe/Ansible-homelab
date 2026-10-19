@@ -20,8 +20,10 @@ cache:
   enabled: true
 
 container:
-  # Empty = one network per job; jobs reach the LAN nodes through Docker NAT
-  network: ""
+  # Jobs get the connection URL below as their server URL (actions/checkout
+  # clones from http://forgejo:3000), so they must share Forgejo's compose
+  # network to resolve it. LAN nodes are still reached through Docker NAT.
+  network: devtools_dev
   privileged: false
   valid_volumes: []
   # Do not mount the Docker socket into job containers
