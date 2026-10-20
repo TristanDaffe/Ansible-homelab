@@ -1,6 +1,6 @@
 {# Server and machine-learning must run the same version. Renovate updates this
    via immich-server's tags (the ML repo has too many tags for GHCR to list). #}
-{% set immich_version = "v3.3.1" %}
+{% set immich_version = "v3.3.4" %}
 services:
 
 ############
