@@ -39,10 +39,10 @@ on:
         description: 'Host limit'
         default: 'all'
 
-# One run at a time against the nodes; queue instead of cancelling a half-applied run
-concurrency:
-  group: configure
-  cancel-in-progress: false
+# No `concurrency:` group: on Forgejo 16 queued runs in a group were never released
+# once the running one finished (2026-10-20), deadlocking every PR and deploy.
+# Applies are still serialized because there is a single runner with capacity 1;
+# revisit if a second runner or a higher capacity is added.
 
 env:
   ANSIBLE_VERSION: '2.21.5'
