@@ -16,4 +16,4 @@ collections:
     version: 2.5.0
   # Alloy role (pulls community.grafana as a dependency)
   - name: grafana.grafana
-    version: 6.0.6
+    version: 6.1.0
