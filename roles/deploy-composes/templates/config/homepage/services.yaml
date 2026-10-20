@@ -221,6 +221,27 @@
         username: {{ wud.user }}
         password: {{ wud.pass }}
 
+# DevTools VM (configure/inventory-dev): not in this inventory, so URLs are static and use devtools_domain
+- DevTools:
+  - Forgejo:
+      icon: forgejo.png
+      href: https://git.{{ devtools_domain }}
+      description: Forge Git
+      ping: https://git.{{ devtools_domain }}
+  - CI:
+      icon: mdi-rocket-launch
+      href: https://git.{{ devtools_domain }}/Susu/Ansible-homelab/actions
+      description: Pipelines Forgejo Actions
+  - Renovate:
+      icon: renovate.png
+      href: https://git.{{ devtools_domain }}/Susu/Ansible-homelab/issues/6
+      description: Mises à jour des dépendances
+  - Infisical:
+      icon: infisical.png
+      href: https://pass.{{ devtools_domain }}
+      description: Gestion des secrets
+      ping: https://pass.{{ devtools_domain }}
+
 - Traefik:
 {% for host in groups['docker_hosts'] | sort %}
 {% if hostvars[host].ansible_hostname is defined %}
@@ -234,6 +255,14 @@
         url: https://traefik.{{ hostvars[host].ansible_hostname }}.{{ docker.domain }}
 {% endif %}
 {% endfor %}
+  - Traefik Devtools:
+      icon: traefik.png
+      href: https://traefik.devtools.{{ devtools_domain }}
+      description: Traefik - devtools
+      ping: https://traefik.devtools.{{ devtools_domain }}
+      widget:
+        type: traefik
+        url: https://traefik.devtools.{{ devtools_domain }}
 
 - Admin-bottom:
   - Backup:

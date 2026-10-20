@@ -38,7 +38,7 @@ extra_packages:
   - qemu-guest-agent
 
 allow_reboot: false
-reboot_delay: 60 
+reboot_delay: 60
 security_updates_only: true  # For production systems
 
 #######################
@@ -49,14 +49,18 @@ prune_containers: false
 prune_images: true
 prune_volumes: false  # Be careful with volumes!
 
+# DevTools (configure/inventory-dev) serves Forgejo/Infisical under its own domain; the
+# prod nodes link to it (Homepage) without having DevTools in their inventory.
+devtools_domain: autostack.ovh
+
 docker:
   cleanup: true
   docker_dir: "/docker"
-  domain: dev.autostack.ovh
+  domain: autostack.ovh
   cert_resolver: "ovh"
   docker_networks:
     - proxy_network
-  composes: 
+  composes:
     - name: traefik
       compose: network.yaml
       volumes:

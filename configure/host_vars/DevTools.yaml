@@ -10,7 +10,7 @@ mount_nas: false
 
 docker:
   docker_dir: "/docker"
-  domain: dev.autostack.ovh
+  domain: "{{ devtools_domain }}"
   subdomain: "devtools"
   cert_resolver: "ovh"
   puid: 1000
