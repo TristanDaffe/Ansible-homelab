@@ -2,7 +2,7 @@
 services:
 
   forgejo:
-    image: codeberg.org/forgejo/forgejo:16
+    image: codeberg.org/forgejo/forgejo:17
     restart: always
     environment:
       - "USER_UID={{ docker.puid }}"
