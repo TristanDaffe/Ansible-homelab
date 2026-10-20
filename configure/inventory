@@ -1,23 +1,17 @@
-[Master]
+[Vm]
 Master ansible_host=192.168.129.125
 
-[Tools]
+[Lxc]
 Tools ansible_host=192.168.129.124
-
-[Media]
 Media ansible_host=192.168.129.123
 
-[Vm:children]
+# Runs Prometheus, Loki and the UrBackup server; gets the matching firewall rules
+[MonitoringMaster]
 Master
-
-[Lxc:children]
-Tools
-Media
 
 [docker_hosts:children]
-Tools
-Media
-Master
+Vm
+Lxc
 
 [Monitoring:children]
 Vm

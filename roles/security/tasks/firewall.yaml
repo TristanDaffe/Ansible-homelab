@@ -43,7 +43,7 @@
     port: '3100'
     proto: tcp
     from_ip: "{{ tailscale_network }}"
-  when: "'Master' in group_names"
+  when: "'MonitoringMaster' in group_names"
 
 - name: Allow Node Exporter from Docker bridge (for local Prometheus)
   community.general.ufw:
@@ -51,7 +51,7 @@
     port: '9100'
     proto: tcp
     from_ip: "{{ docker_bridge_network }}"
-  when: "'Master' in group_names"
+  when: "'MonitoringMaster' in group_names"
 
 - name: Allow Portainer agent from Tailscale only
   community.general.ufw:
@@ -59,7 +59,7 @@
     port: '9001'
     proto: tcp
     from_ip: "{{ tailscale_network }}"
-  when: "'Master' not in group_names"
+  when: "'MonitoringMaster' not in group_names"
 
 - name: Enable UFW with logging
   community.general.ufw:

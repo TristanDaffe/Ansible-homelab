@@ -21,4 +21,4 @@ node_alloy_enabled: true
 # would NOT propagate into the included role (it sees its own 'latest' default).
 monitoring_alloy_version: "1.15.1"   # pin to the latest stable .deb available; check before bumping
 # Loki push endpoint Alloy ships logs to
-alloy_loki_url: "http://{{ hostvars[groups['Master'][0]].services_ip }}:3100/loki/api/v1/push"
+alloy_loki_url: "http://{{ hostvars[groups['MonitoringMaster'][0]].services_ip }}:3100/loki/api/v1/push"

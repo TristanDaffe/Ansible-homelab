@@ -7,7 +7,7 @@ Installs Prometheus `node_exporter` and Grafana `Alloy` on a node. Alloy ships l
 - Ansible ≥ 2.15
 - `grafana.grafana` collection (Alloy)
 - `services_ip` must be defined for every host — in this repo it maps to `tailscale_ip`, so the **tailscale role must run first**
-- The Loki endpoint default reads `hostvars[groups['Master'][0]].services_ip` — an inventory group named `Master` must exist (override `alloy_loki_url` otherwise)
+- The Loki endpoint default reads `hostvars[groups['MonitoringMaster'][0]].services_ip` — an inventory group named `MonitoringMaster` must exist (override `alloy_loki_url` otherwise)
 
 ## Role variables
 

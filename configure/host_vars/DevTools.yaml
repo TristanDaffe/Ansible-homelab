@@ -1,7 +1,7 @@
 ---
 
 hostname: devtools
-tailscale_ip: 
+tailscale_ip: 100.89.46.10
 mount_nas: false
 
 #######################
