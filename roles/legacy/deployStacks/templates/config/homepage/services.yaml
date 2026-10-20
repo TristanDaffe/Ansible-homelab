@@ -63,8 +63,8 @@
         widget:
           type: calibreweb
           url: http://calibre-maman.{{ local_domain }}
-          username: {{ calibre_user }}
-          password: {{ calibre_pass }}
+          username: {{ calibre_user }}
+          password: {{ calibre_pass }}
     - Téléchargement de livres:
         icon: https://developer.asustor.com/uploadIcons/0020_999_1573465183_calibre-web_256.png
         href: https://calibre-web-book-download.{{ swarm.domain }}

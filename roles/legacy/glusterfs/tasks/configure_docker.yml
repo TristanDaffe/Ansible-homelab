@@ -7,11 +7,11 @@
 
 - name: Set SERVERS for GlusterFS Docker Plugin
   community.docker.docker_plugin:
-    plugin_name: "{{ gluster.gluster_alias }}"
+    plugin_name: "{{ gluster.gluster_alias }}"
     plugin_options:
       SERVERS: "{{ gluster_ips_reordered }}"
 
 - name: Enable the plugin
   community.docker.docker_plugin:
-    plugin_name: "{{ gluster.gluster_alias }}"
+    plugin_name: "{{ gluster.gluster_alias }}"
     state: enable

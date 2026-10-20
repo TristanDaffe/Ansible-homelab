@@ -9,9 +9,11 @@ collections:
     version: 5.4.0
   - name: community.general
     version: 13.5.0
-  - name: community.proxmox   # nodesetup only
+  # nodesetup only
+  - name: community.proxmox
     version: 2.0.0
   - name: community.sops
     version: 2.5.0
-  - name: grafana.grafana     # Alloy role (pulls community.grafana as a dependency)
+  # Alloy role (pulls community.grafana as a dependency)
+  - name: grafana.grafana
     version: 6.0.6

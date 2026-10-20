@@ -1,3 +1,6 @@
+{# Server and machine-learning must run the same version. Renovate updates this
+   via immich-server's tags (the ML repo has too many tags for GHCR to list). #}
+{% set immich_version = "v3.3.1" %}
 services:
 
 ############
@@ -99,7 +102,7 @@ services:
 ###########
 
   immich-server:
-    image: ghcr.io/immich-app/immich-server:v3.3.1
+    image: ghcr.io/immich-app/immich-server:{{ immich_version }}
     devices:
       - /dev/dri:/dev/dri
     group_add:
@@ -128,7 +131,7 @@ services:
       - "traefik.http.routers.immich.entrypoints=websecure"
 
   immich-machine-learning:
-    image: ghcr.io/immich-app/immich-machine-learning:v3.3.1
+    image: ghcr.io/immich-app/immich-machine-learning:{{ immich_version }}
     volumes:
       - "{{ docker.docker_dir }}/volumes/immich/model-cache:/cache"
     restart: always
