@@ -72,7 +72,7 @@ services:
       - wud.watch=false
 
   infisical-backend:
-    image: infisical/infisical:v0.166.8
+    image: infisical/infisical:v0.166.9
     restart: unless-stopped
     pull_policy: always
     depends_on:
