@@ -64,8 +64,10 @@ docker:
       config:
         - file: prometheus.yaml.j2
           dst: monitoring/prometheus/prometheus.yml
+          mode: '0644'   # read by Prometheus as nobody; no secrets in it
         - file: loki.yaml
           dst: monitoring/loki/local-config.yaml
+          mode: '0644'   # read by Loki as uid 10001; no secrets in it
     - name: gateway
       compose: gateway.yaml
       volumes:

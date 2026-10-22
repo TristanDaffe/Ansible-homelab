@@ -22,6 +22,8 @@
       loop: "{{ volume_stats.results }}"
       when: not item.stat.exists
 
+# 0600 by default: many config files embed secrets. Entries read by a container
+# running as another uid (Prometheus = nobody, Loki = 10001) set `mode: '0644'`.
 - name: Copy config files for the compose
   ansible.builtin.template:
     src: "config/{{ item.file }}"
@@ -29,6 +31,6 @@
     force: "{{ item.force | default(true) }}"
     owner: "{{ username }}"
     group: "{{ username }}"
-    mode: '0600'
+    mode: "{{ item.mode | default('0600') }}"
   loop: "{{ compose.config }}"
   when: compose.config is defined
