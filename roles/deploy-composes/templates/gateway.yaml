@@ -1,7 +1,7 @@
 services:
 
   pocket-id:
-    image: ghcr.io/pocket-id/pocket-id:v2.18
+    image: ghcr.io/pocket-id/pocket-id:v2.19
     entrypoint: ["/app/pocket-id"]
     restart: unless-stopped
     networks:
