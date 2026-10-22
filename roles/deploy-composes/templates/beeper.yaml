@@ -1,0 +1,15 @@
+services:
+
+  # Self-hosted Beeper bridge: bbctl downloads and runs mautrix-instagram,
+  # which connects outbound to Beeper's servers (no port, no Traefik route).
+  # Log in to Instagram by messaging the bridge bot from the Beeper app.
+  beeper-instagram:
+    image: ghcr.io/beeper/bridge-manager:latest@sha256:845d44be8a9cdaa88f0ff795fdbcc29aef8831bedbb00f60ba0e108d8479c1be
+    restart: unless-stopped
+    user: "{{ docker.puid }}:{{ docker.pgid }}"
+    command: sh-instagram
+    environment:
+      - TZ={{ timezone }}
+      - MATRIX_ACCESS_TOKEN={{ beeper.access_token }}
+    volumes:
+      - "{{ docker.docker_dir }}/volumes/beeper-instagram:/data"

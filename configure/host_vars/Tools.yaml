@@ -53,6 +53,10 @@ docker:
         - radarr
         - bazarr
         - qbittorrent
+    - name: beeper
+      compose: beeper.yaml
+      volumes:
+        - beeper-instagram
 
 traefik_peers:
   - "{{ hostvars['Master'].tailscale_ip }}"
