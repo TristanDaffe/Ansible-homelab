@@ -1,7 +1,7 @@
 services:
 
   shelfmark:
-    image: ghcr.io/calibrain/shelfmark:v1.5.0
+    image: ghcr.io/calibrain/shelfmark:v1.5.1
     restart: unless-stopped
     environment:
       FLASK_PORT: 8084
@@ -30,7 +30,7 @@ services:
       - "traefik.http.routers.shelfmark.entrypoints=websecure"
 
   shelfmark-maman:
-    image: ghcr.io/calibrain/shelfmark:v1.5.0
+    image: ghcr.io/calibrain/shelfmark:v1.5.1
     restart: unless-stopped
     environment:
       FLASK_PORT: 8084
