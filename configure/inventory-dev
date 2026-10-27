@@ -1,5 +1,6 @@
 [docker_hosts]
 DevTools ansible_host=192.168.129.129
+Warehouse ansible_host=192.168.129.128
 
 [Tailscale:children]
 docker_hosts

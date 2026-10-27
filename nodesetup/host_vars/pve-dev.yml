@@ -31,3 +31,4 @@ vms:
     ciuser: susu
     autostart: true
     ipconfig0: "ip=192.168.129.129/23,gw=192.168.128.1"
+

@@ -41,4 +41,11 @@ vms:
     autostart: true
     ipconfig0: "ip=192.168.129.131/23,gw=192.168.128.1"
 
-  # Workers meant for the OTHER node go in that node's host_vars file, not here.
+  - name: Warehouse
+    vmid: 128
+    cores: 2
+    memory: 8192
+    disk_gb: 128
+    ciuser: susu
+    autostart: true
+    ipconfig0: "ip=192.168.129.128/23,gw=192.168.128.1"
