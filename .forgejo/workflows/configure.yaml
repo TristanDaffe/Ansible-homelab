@@ -54,7 +54,7 @@ jobs:
     runs-on: docker
     # Debian 13: ansible-core 2.21 needs Python >= 3.12; node is needed by actions/checkout
     container:
-      image: node:24-trixie
+      image: node:26-trixie
     env:
       ANSIBLE_CONFIG: ${{ github.workspace }}/ansible.cfg
       ANSIBLE_FORCE_COLOR: '1'
@@ -82,7 +82,7 @@ jobs:
     if: github.event_name != 'pull_request'
     runs-on: docker
     container:
-      image: node:24-trixie
+      image: node:26-trixie
     env:
       SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
       ANSIBLE_CONFIG: ${{ github.workspace }}/ansible.cfg
