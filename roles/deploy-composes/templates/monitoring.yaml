@@ -35,7 +35,7 @@ services:
       - "traefik.http.routers.loki.entrypoints=websecure"
 
   grafana:
-    image: grafana/grafana:13.2.4
+    image: grafana/grafana:13.3.0
     restart: always
     volumes:
       - "{{ docker.docker_dir}}/volumes/monitoring/grafana/var:/var/lib/grafana"
