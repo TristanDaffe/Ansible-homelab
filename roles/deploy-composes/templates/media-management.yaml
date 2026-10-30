@@ -57,7 +57,7 @@ services:
       - "traefik.http.routers.shelfmark-maman.entrypoints=websecure"
 
   prowlarr:
-    image: ghcr.io/linuxserver/prowlarr:2.6.5
+    image: ghcr.io/linuxserver/prowlarr:2.7.0
     restart: unless-stopped
     environment:
       - PUID={{ docker.puid }}
