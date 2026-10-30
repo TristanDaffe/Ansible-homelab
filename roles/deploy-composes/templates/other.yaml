@@ -156,7 +156,7 @@ services:
       PAPERLESS_SECRET_KEY: "{{ paperless.secret_key }}"
 
   gotenberg:
-    image: docker.io/gotenberg/gotenberg:8.38
+    image: docker.io/gotenberg/gotenberg:8.39
     restart: unless-stopped
     networks:
       - paperless
