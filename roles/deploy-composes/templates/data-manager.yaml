@@ -1,0 +1,60 @@
+services:
+  rustfs:
+    image: rustfs/rustfs:latest
+    restart: unless-stopped
+    user: "{{ nas.puid }}:{{ nas.pgid }}"
+    security_opt:
+      - "no-new-privileges:true"
+    environment:
+      - RUSTFS_VOLUMES=/data/rustfs0
+      - RUSTFS_ADDRESS=0.0.0.0:9000
+      - RUSTFS_CONSOLE_ADDRESS=0.0.0.0:9001
+      - RUSTFS_CONSOLE_ENABLE=true
+      - RUSTFS_CORS_ALLOWED_ORIGINS=*
+      - RUSTFS_CONSOLE_CORS_ALLOWED_ORIGINS=*
+      - RUSTFS_ACCESS_KEY={{ rustfs.access_key }}
+      - RUSTFS_SECRET_KEY={{ rustfs.secret_key }}
+      - RUSTFS_REGION=auto
+      - RUSTFS_OBS_LOGGER_LEVEL=info
+      - RUSTFS_OBS_LOG_DIRECTORY=/logs
+      - RUSTFS_IDENTITY_OPENID_ENABLE=on
+      - RUSTFS_IDENTITY_OPENID_CONFIG_URL=https://pocket-id.{{ docker.domain }}/.well-known/openid-configuration
+      - RUSTFS_IDENTITY_OPENID_CLIENT_ID={{ rustfs.client_id }}
+      - RUSTFS_IDENTITY_OPENID_CLIENT_SECRET={{ rustfs.client_secret }}
+      - RUSTFS_IDENTITY_OPENID_SCOPES=openid,profile,email
+      - RUSTFS_IDENTITY_OPENID_GROUPS_CLAIM=groups
+      - RUSTFS_IDENTITY_OPENID_ROLES_CLAIM=roles
+    volumes:
+      - "{{ docker.docker_dir }}/volumes/rustfs/data:/data"
+      - "{{ docker.docker_dir }}/volumes/rustfs/logs:/logs"
+    networks:
+      - proxy_network
+    labels:
+      - "traefik.enable=true"
+      # RustFS UI
+      - "traefik.http.services.rustfs-ui.loadbalancer.server.port=9001"
+      - "traefik.http.routers.rustfs-ui.rule=Host(`bucket.{{ docker.domain }}`)"
+      - "traefik.http.routers.rustfs-ui.entrypoints=websecure"
+      - "traefik.http.routers.rustfs-ui.service=rustfs-ui"
+
+      - "traefik.http.services.rustfs-bucket.loadbalancer.server.port=9000"
+      - "traefik.http.routers.rustfs-bucket.rule=Host(`s3.{{ docker.domain }}`)"
+      - "traefik.http.routers.rustfs-bucket.entrypoints=websecure"
+      - "traefik.http.routers.rustfs-bucket.service=rustfs-bucket"
+
+  postgres:
+    image: postgres:18.6
+    environment:
+      POSTGRES_PASSWORD: "{{ db.password }}"
+      POSTGRES_USER: "{{ db.user }}"
+    volumes:
+      - "{{ docker.docker_dir }}/volumes/data-manager/postgres:/var/lib/postgresql/data"
+    shm_size: 128mb
+    restart: unless-stopped
+    networks:
+      - proxy_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.postgres.loadbalancer.server.port=5432"
+      - "traefik.http.routers.postgres.rule=Host(`db.{{ docker.domain }}`)"
+      - "traefik.http.routers.postgres.entrypoints=websecure"
