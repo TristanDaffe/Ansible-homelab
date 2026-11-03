@@ -29,6 +29,12 @@
     port: '443'
     proto: tcp
 
+- name: Allow Database connections
+  community.general.ufw:
+    rule: limit
+    port: '5432'
+    proto: tcp
+
 - name: Allow Node Exporter from Tailscale only
   community.general.ufw:
     rule: allow

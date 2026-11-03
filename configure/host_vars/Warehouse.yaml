@@ -10,7 +10,7 @@ mount_nas: false
 
 docker:
   docker_dir: "/docker"
-  domain: "{{ devtools_domain }}"
+  domain: storage.autostack.ovh
   subdomain: "warehouse"
   cert_resolver: "ovh"
   puid: 1000
@@ -25,17 +25,11 @@ docker:
       config:
         - file: traefik.yaml
           dst: letsencrypt/traefik.yaml
-    # No `slaves` stack while this is a test VM: slave-containers.yaml needs the
-    # urbackup block below, which can't resolve MonitoringMaster in inventory-dev
+    - name: data-manager
+      compose: data-manager.yaml
+      volumes:
+        - path: rustfs
+          uid: 10001
+          gid: 10001
+        - postgres 
 
-# #######################
-# # Backup (UrBackup)
-# #######################
-#
-# urbackup:
-#   # Master is not in inventory-dev, so hostvars can't resolve it here: use its
-#   # Tailscale IP directly (keep in sync with tailscale_ip in Master.yaml)
-#   server_host: 100.108.226.73
-#   backup_dirs: # Directories backed up by the client on each node
-#     - "{{ docker.docker_dir }}/volumes"
-#   authkey: "{{ urbackup_authkeys.devtools }}"

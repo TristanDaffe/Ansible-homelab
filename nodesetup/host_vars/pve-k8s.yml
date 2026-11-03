@@ -1,3 +1,4 @@
+---
 ############
 # Kubernetes test node — control-plane + worker(s)   (TEMPLATE — edit the XXX)
 ############
@@ -48,4 +49,4 @@ vms:
     disk_gb: 128
     ciuser: susu
     autostart: true
-    ipconfig0: "ip=192.168.129.128/23,gw=192.168.128.1"
+    ipconfig0: "ip=192.168.129.132/23,gw=192.168.128.1"
