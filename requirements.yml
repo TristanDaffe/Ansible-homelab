@@ -13,7 +13,7 @@ collections:
   - name: community.proxmox
     version: 2.1.0
   - name: community.sops
-    version: 2.5.0
+    version: 2.5.1
   # Alloy role (pulls community.grafana as a dependency)
   - name: grafana.grafana
     version: 6.1.0
