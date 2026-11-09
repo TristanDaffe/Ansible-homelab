@@ -6,6 +6,7 @@ ubuntu_cloudimg_filename: "{{ ubuntu_lts_image_url | basename }}"
 
 # LXC base template (must exist in `pveam available`)
 ubuntu_lxc_template: "ubuntu-24.04-standard_24.04-2_amd64.tar.zst"
+debian_lxc_template: "debian-13-standard_13.6-1_amd64.tar.zst"
 
 # OS keyboard layout for the cloud-init snippet (XKB code; 'be' = Belgian AZERTY,
 # different from Proxmox's 'fr-be' VNC code).

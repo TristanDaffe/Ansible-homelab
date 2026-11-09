@@ -27,6 +27,8 @@ lxc_features:
 #                            igpu_video_gid/igpu_render_gid facts from proxmox-host)
 #   nas_mounts             - list of { src, dst, mp_index } to bind-mount
 #   autostart, startup     - Proxmox onboot/startup hooks
+#   nameserver             - DNS server; default lxc_nameserver, else the
+#                            host's resolv.conf is copied
 #
 # Required play vars (same as proxmox-vm role): proxmox_node, proxmox_storage,
 # proxmox_api_host + token or password, ubuntu_lxc_template.

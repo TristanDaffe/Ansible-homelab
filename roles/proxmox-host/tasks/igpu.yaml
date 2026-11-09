@@ -3,6 +3,7 @@
   ansible.builtin.set_fact:
     igpu_lxcs: >-
       {{ lxc_containers | default([])
+         | selectattr('enable_igpu', 'defined')
          | selectattr('enable_igpu', 'equalto', true)
          | rejectattr('privileged', 'equalto', true)
          | list }}

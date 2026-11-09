@@ -34,11 +34,23 @@
     state: directory
     mode: '0755'
 
-# Idempotent via creates: — no stat pre-check needed.
-- name: Download Ubuntu LXC template
-  ansible.builtin.command: "pveam download local {{ ubuntu_lxc_template }}"
+# Idempotent via creates: — no stat pre-check needed. Each LXC may select its
+# own template; existing containers continue using their current template.
+- name: Download required LXC templates
+  ansible.builtin.command: "pveam download local {{ item }}"
   args:
-    creates: "/var/lib/vz/template/cache/{{ ubuntu_lxc_template }}"
+    creates: "/var/lib/vz/template/cache/{{ item }}"
+  loop: >-
+    {{
+      ([ubuntu_lxc_template] +
+       (lxc_containers | default([])
+        | selectattr('template', 'defined')
+        | map(attribute='template')
+        | list))
+      | unique
+    }}
+  loop_control:
+    label: "{{ item }}"
 
 # Idempotent via get_url's default force: false — skipped when dest exists.
 - name: Download Ubuntu LTS cloud image

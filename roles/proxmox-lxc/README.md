@@ -24,6 +24,8 @@ Per-container config comes from the loop variable `ct` — full key list in `def
 - `privileged` — defaults to false (unprivileged container)
 - `enable_tun` — bind-mount `/dev/net/tun`
 - `enable_igpu` — Intel iGPU passthrough (unprivileged only)
+- `template` — optional LXC template filename; defaults to `ubuntu_lxc_template`
+- `nameserver` — DNS server; defaults to `lxc_nameserver`, otherwise Proxmox copies the host's `resolv.conf` (breaks on Tailscale MagicDNS hosts)
 
 ## Behavior notes
 

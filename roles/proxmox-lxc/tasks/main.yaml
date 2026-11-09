@@ -14,7 +14,7 @@
 
     vmid: "{{ ct.ctid }}"
     hostname: "{{ ct.hostname }}"
-    ostemplate: "local:vztmpl/{{ ubuntu_lxc_template }}"
+    ostemplate: "local:vztmpl/{{ ct.template | default(ubuntu_lxc_template) }}"
     cores: "{{ ct.cores | default(1) }}"
     memory: "{{ ct.memory | default(1024) }}"
     swap: 0
@@ -25,6 +25,10 @@
     unprivileged: "{{ not (ct.privileged | default(false)) }}"
     features: "{{ ct.features | default(lxc_features) }}"
     mounts: "{{ ct.mounts | default(lxc_mounts | default(omit)) }}"
+    # Without it the CT copies the host's resolv.conf — Tailscale MagicDNS
+    # (100.100.100.100) on nodes running Tailscale, unreachable from the CT.
+    nameserver: "{{ ct.nameserver | default(lxc_nameserver | default(omit)) }}"
+    cmode: tty
 
     onboot: "{{ ct.autostart | default(omit) }}"
     startup: "{{ ct.startup | default(omit) }}"
@@ -150,4 +154,3 @@
     state: started
   delegate_to: localhost
   become: false
-

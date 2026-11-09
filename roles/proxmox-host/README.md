@@ -1,6 +1,6 @@
 # proxmox-host
 
-Configures a Proxmox VE host: powertop tuning, snippet/template directories, cloud-init `user-data` snippet, Ubuntu cloud image + LXC template downloads, CIFS mounts, and iGPU subgid mapping for unprivileged LXC passthrough.
+Configures a Proxmox VE host: powertop tuning, snippet/template directories, cloud-init `user-data` snippet, Ubuntu cloud image + selected LXC template downloads, CIFS mounts, and iGPU subgid mapping for unprivileged LXC passthrough.
 
 ## Requirements
 
@@ -15,6 +15,7 @@ Configures a Proxmox VE host: powertop tuning, snippet/template directories, clo
 | `ubuntu_lts_image_url`       | https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img | Ubuntu LTS cloud image URL                         |
 | `ubuntu_cloudimg_filename`   | basename of the URL                                                            | Image filename (also used by `proxmox-vm`)         |
 | `ubuntu_lxc_template`        | `ubuntu-24.04-standard_24.04-2_amd64.tar.zst`                                  | LXC template (must exist in `pveam available`)     |
+| `debian_lxc_template`   | `debian-13-standard_13.6-1_amd64.tar.zst`                                      | Debian 13 template for containers selecting it      |
 | `cloud_init_keyboard_layout` | `be`                                                                           | XKB layout for the cloud-init snippet              |
 | `cifs_mounts`                | `[]`                                                                           | List of `{ src, path, opts }` host-level mounts    |
 
