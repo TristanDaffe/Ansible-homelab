@@ -18,8 +18,26 @@ proxmox_storage: vm-dev
 
 # --- No NAS / no LXC on this node ----------------------------------------
 cifs_mounts: []
-lxc_containers: []
+lxc_containers:
+  - hostname: postgres-pve-dev
+    ctid: 226
+    template: "{{ debian_lxc_template }}"
+    memory: 4096
+    cores: 2
+    rootfs_gb: 64
+    ipconfig: "192.168.129.134/23,gw=192.168.128.1"
+    privileged: false
+    autostart: true
 
+  - hostname: postgres-pve
+    ctid: 225
+    template: "{{ debian_lxc_template }}"
+    memory: 4096
+    cores: 2
+    rootfs_gb: 64
+    ipconfig: "192.168.129.133/23,gw=192.168.128.1"
+    privileged: false
+    autostart: true
 # --- VMs on this node ----------------------------------------------------
 # cloud-init injects your ~/.ssh/id_rsa.pub automatically. VMIDs are
 # cluster-wide unique — keep them clear of prod (125 / 223 / 224).
@@ -32,4 +50,3 @@ vms:
     ciuser: susu
     autostart: true
     ipconfig0: "ip=192.168.129.129/23,gw=192.168.128.1"
-

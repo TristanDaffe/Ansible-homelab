@@ -1,0 +1,9 @@
+---
+- name: Configure PostgreSQL HA members
+  hosts: postgres_ha
+  become: true
+  gather_facts: true
+
+  roles:
+    - role: postgresql-ha
+      tags: [postgresql-ha]

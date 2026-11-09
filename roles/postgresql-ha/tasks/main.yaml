@@ -1,0 +1,136 @@
+---
+- name: Validate inventory and secrets
+  ansible.builtin.assert:
+    that:
+      - groups['postgres_ha'] | default([]) | length == 3
+      - postgresql_ha_superuser_password is defined
+      - postgresql_ha_replication_password is defined
+    fail_msg: >-
+      Needs exactly three hosts in the postgres_ha group and
+      postgresql_ha_superuser_password / postgresql_ha_replication_password
+      in the SOPS secrets.
+
+# ---------------------------------------------------------------------------
+# 1. Install PostgreSQL, Patroni and etcd
+# ---------------------------------------------------------------------------
+# postgresql-common must be configured before the server package is installed,
+# otherwise Debian creates and starts a "main" cluster on 5432 that would
+# collide with the one Patroni manages.
+- name: Install postgresql-common
+  ansible.builtin.apt:
+    name: postgresql-common
+    state: present
+    update_cache: true
+
+- name: Stop Debian from creating a default cluster
+  ansible.builtin.lineinfile:
+    path: /etc/postgresql-common/createcluster.conf
+    regexp: '^#?\s*create_main_cluster\s*='
+    line: create_main_cluster = false
+
+- name: Install PostgreSQL, Patroni and etcd
+  ansible.builtin.apt:
+    name:
+      - postgresql-{{ postgresql_ha_version }}
+      - patroni
+      - python3-etcd        # Patroni's etcd3 backend imports it
+      - python3-psycopg2
+      - etcd-server
+      - etcd-client
+      - ufw
+    state: present
+
+# ---------------------------------------------------------------------------
+# 2. Firewall
+# ---------------------------------------------------------------------------
+- name: Allow SSH
+  community.general.ufw:
+    rule: allow
+    port: "22"
+    proto: tcp
+
+- name: Allow etcd, Patroni REST API and replication between cluster members
+  community.general.ufw:
+    rule: allow
+    port: "{{ item.0 }}"
+    proto: tcp
+    from_ip: "{{ hostvars[item.1].ansible_host }}"
+  loop: "{{ ['2379', '2380', '8008', '5432'] | product(groups['postgres_ha']) | list }}"
+  loop_control:
+    label: "{{ item.0 }} from {{ item.1 }}"
+
+- name: Allow PostgreSQL clients
+  community.general.ufw:
+    rule: allow
+    port: "5432"
+    proto: tcp
+    from_ip: "{{ item }}"
+  loop: "{{ postgresql_ha_client_networks }}"
+
+- name: Enable UFW, deny other incoming traffic
+  community.general.ufw:
+    state: enabled
+    policy: deny
+    direction: incoming
+
+# ---------------------------------------------------------------------------
+# 3. Cluster: etcd (who is leader) + Patroni (runs PostgreSQL, failover, rejoin)
+# ---------------------------------------------------------------------------
+# The packaged etcd.service reads ETCD_* variables from /etc/default/etcd.
+- name: Configure etcd
+  ansible.builtin.template:
+    src: etcd.j2
+    dest: /etc/default/etcd
+    owner: root
+    group: root
+    mode: "0644"
+  register: postgresql_ha_etcd_config
+
+- name: Create the Patroni data directory
+  ansible.builtin.file:
+    path: "{{ postgresql_ha_data_dir }}"
+    state: directory
+    owner: postgres
+    group: postgres
+    mode: "0700"
+
+- name: Configure Patroni
+  ansible.builtin.template:
+    src: patroni.yml.j2
+    dest: /etc/patroni/config.yml
+    owner: postgres
+    group: postgres
+    mode: "0600"
+  notify: Reload Patroni
+
+# Restarted right away, not via a handler: the package already started etcd
+# in single-node mode on install, and Patroni must not start against that.
+# Runs on the three hosts in parallel: a new etcd cluster only finishes
+# starting once a majority of members is up.
+- name: Start etcd
+  ansible.builtin.systemd:
+    name: etcd
+    state: "{{ 'restarted' if postgresql_ha_etcd_config is changed else 'started' }}"
+    enabled: true
+
+- name: Start Patroni
+  ansible.builtin.systemd:
+    name: patroni
+    state: started
+    enabled: true
+
+- name: Wait for a leader and two streaming replicas
+  ansible.builtin.command: timeout 20 patronictl -c /etc/patroni/config.yml list
+  register: postgresql_ha_members
+  until: >-
+    'Leader' in postgresql_ha_members.stdout
+    and postgresql_ha_members.stdout.count('streaming') == 2
+  retries: 30
+  delay: 10
+  changed_when: false
+  run_once: true
+
+- name: Show cluster state
+  ansible.builtin.debug:
+    msg: "{{ postgresql_ha_members.stdout_lines }}"
+  run_once: true

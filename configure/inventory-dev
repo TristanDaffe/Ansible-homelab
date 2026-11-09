@@ -2,6 +2,14 @@
 DevTools ansible_host=192.168.129.129
 Warehouse ansible_host=192.168.129.132
 
+[postgres_ha]
+postgres-pve ansible_host=192.168.129.133
+postgres-pve-dev ansible_host=192.168.129.134
+postgres-pve-dev-2 ansible_host=192.168.129.135
+
+[postgres_ha:vars]
+ansible_ssh_user=root
+
 [Tailscale:children]
 docker_hosts
 

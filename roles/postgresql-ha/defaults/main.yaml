@@ -1,0 +1,27 @@
+---
+# Debian 13 ships PostgreSQL 17, Patroni and etcd — no extra APT repository needed.
+postgresql_ha_version: "17"
+
+# Patroni cluster name (also the etcd key prefix and the etcd cluster token)
+postgresql_ha_scope: homelab-postgres
+
+# Patroni-managed data dir; kept away from Debian's .../main cluster path
+postgresql_ha_data_dir: "/var/lib/postgresql/{{ postgresql_ha_version }}/patroni"
+postgresql_ha_bin_dir: "/usr/lib/postgresql/{{ postgresql_ha_version }}/bin"
+
+# Separate from the single-node /var/lib/etcd/default the package creates on install
+postgresql_ha_etcd_data_dir: /var/lib/etcd/postgres-ha
+
+# Only used the very first time etcd starts with an empty data dir. Set it to
+# "existing" when re-adding a member to a running cluster (see README).
+postgresql_ha_etcd_initial_state: new
+
+postgresql_ha_replication_user: replicator
+
+# Networks allowed to connect to PostgreSQL (5432) — apps, k3s nodes, admin
+postgresql_ha_client_networks:
+  - 192.168.128.0/23   # = 192.168.128.0 – 192.168.129.255, the whole LAN
+
+# Passwords — from configure/group_vars/all/secret.all.sops.yaml
+# postgresql_ha_superuser_password:
+# postgresql_ha_replication_password:

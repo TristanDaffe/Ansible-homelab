@@ -1,0 +1,12 @@
+# {{ ansible_managed }}
+ETCD_NAME={{ inventory_hostname }}
+ETCD_DATA_DIR={{ postgresql_ha_etcd_data_dir }}
+ETCD_LISTEN_PEER_URLS=http://{{ ansible_host }}:2380
+ETCD_LISTEN_CLIENT_URLS=http://{{ ansible_host }}:2379,http://127.0.0.1:2379
+ETCD_INITIAL_ADVERTISE_PEER_URLS=http://{{ ansible_host }}:2380
+ETCD_ADVERTISE_CLIENT_URLS=http://{{ ansible_host }}:2379
+ETCD_INITIAL_CLUSTER={% for host in groups['postgres_ha'] %}{{ host }}=http://{{ hostvars[host].ansible_host }}:2380{{ '' if loop.last else ',' }}{% endfor %}
+
+# Ignored once the data dir exists, so restarts and reboots simply rejoin
+ETCD_INITIAL_CLUSTER_STATE={{ postgresql_ha_etcd_initial_state }}
+ETCD_INITIAL_CLUSTER_TOKEN={{ postgresql_ha_scope }}

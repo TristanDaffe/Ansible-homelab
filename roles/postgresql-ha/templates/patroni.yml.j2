@@ -1,0 +1,63 @@
+# {{ ansible_managed }}
+scope: {{ postgresql_ha_scope }}
+name: {{ inventory_hostname }}
+
+restapi:
+  listen: 0.0.0.0:8008
+  connect_address: {{ ansible_host }}:8008
+
+etcd3:
+  hosts:
+{% for host in groups['postgres_ha'] %}
+    - {{ hostvars[host].ansible_host }}:2379
+{% endfor %}
+
+# Only used once, when the first node initialises the cluster
+bootstrap:
+  dcs:
+    ttl: 30
+    loop_wait: 10
+    retry_timeout: 10
+    maximum_lag_on_failover: 1048576
+  initdb:
+    - encoding: UTF8
+    - locale: C.UTF-8
+    - data-checksums
+
+postgresql:
+  listen: 0.0.0.0:5432
+  connect_address: {{ ansible_host }}:5432
+  data_dir: {{ postgresql_ha_data_dir }}
+  bin_dir: {{ postgresql_ha_bin_dir }}
+  pgpass: /var/lib/postgresql/.pgpass
+  # Patroni runs as the postgres OS user and talks to its local server over the
+  # socket, which the "local ... peer" rule below allows without a password.
+  use_unix_socket: true
+
+  # Automatic rejoin: a former primary that comes back is rewound and follows
+  # the new leader; if that fails it is wiped and re-cloned from the leader.
+  use_pg_rewind: true
+  remove_data_directory_on_rewind_failure: true
+  remove_data_directory_on_diverged_timelines: true
+
+  authentication:
+    superuser:
+      username: postgres
+      password: {{ postgresql_ha_superuser_password | to_json }}
+    replication:
+      username: {{ postgresql_ha_replication_user }}
+      password: {{ postgresql_ha_replication_password | to_json }}
+
+  parameters:
+    password_encryption: scram-sha-256
+
+  # Members: streaming replication + pg_rewind (connects to the leader as postgres)
+  pg_hba:
+    - local all all peer
+{% for host in groups['postgres_ha'] %}
+    - host replication {{ postgresql_ha_replication_user }} {{ hostvars[host].ansible_host }}/32 scram-sha-256
+    - host all postgres {{ hostvars[host].ansible_host }}/32 scram-sha-256
+{% endfor %}
+{% for network in postgresql_ha_client_networks %}
+    - host all all {{ network }} scram-sha-256
+{% endfor %}

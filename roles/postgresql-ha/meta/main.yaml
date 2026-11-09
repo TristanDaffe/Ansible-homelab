@@ -1,0 +1,11 @@
+---
+galaxy_info:
+  author: homelab
+  description: 3-node PostgreSQL cluster with automatic failover and rejoin (Patroni + etcd)
+  license: MIT
+  min_ansible_version: "2.15"
+  platforms:
+    - name: Debian
+      versions:
+        - trixie
+dependencies: []
